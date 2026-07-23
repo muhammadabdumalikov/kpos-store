@@ -13,14 +13,13 @@ COPY pnpm-lock.yaml* ./
 RUN pnpm install --no-frozen-lockfile --ignore-scripts
 COPY . .
 
-# NEXT_PUBLIC_* vars are inlined at build time, so the backend URL the browser
-# calls must be provided here (override with --build-arg).
-ARG NEXT_PUBLIC_STORE_API_URL=http://localhost:3050
-ENV NEXT_PUBLIC_STORE_API_URL=$NEXT_PUBLIC_STORE_API_URL
+# NEXT_PUBLIC_* vars are inlined at build time (into both server and browser
+# bundles), so the backend URL is hardcoded here. Change these two lines if the
+# backend URL or root domain ever move.
+ENV NEXT_PUBLIC_STORE_API_URL=https://api.joyla.online
 # Root domain the storefront is served under; subdomains of it become the
-# tenant slug (e.g. salom.kpos.uz -> "salom"). Override for production.
-ARG NEXT_PUBLIC_ROOT_DOMAIN=kpos.uz
-ENV NEXT_PUBLIC_ROOT_DOMAIN=$NEXT_PUBLIC_ROOT_DOMAIN
+# tenant slug (e.g. salom.kpos.uz -> "salom").
+ENV NEXT_PUBLIC_ROOT_DOMAIN=kpos.uz
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
