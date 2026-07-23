@@ -17,6 +17,7 @@ import {
   type StoreOrderResult,
 } from "../../lib/store-api";
 import { saveOrderId } from "../../lib/order-store";
+import { getStoreSlugClient } from "../../lib/store-slug";
 import { useTranslations } from "@/hooks/useTranslations";
 
 type CartItem = {
@@ -204,9 +205,10 @@ export default function CartPage() {
       return;
     }
     setTopLoading(true);
+    const slug = getStoreSlugClient();
     Promise.all(
       lines.map(async (line: CartLine) => {
-        const product = await fetchStoreProduct(line.id);
+        const product = await fetchStoreProduct(line.id, slug);
         if (!product)
           return null;
         return {
@@ -293,12 +295,15 @@ export default function CartPage() {
     setOrderError(null);
     setTopLoading(true);
     try {
-      const result = await createStoreOrder({
-        items: selected.map((i) => ({ productId: i.id, quantity: i.qty })),
-        phone: phone.trim(),
-        customerName: customerName.trim() || undefined,
-        note: note.trim() || undefined,
-      });
+      const result = await createStoreOrder(
+        {
+          items: selected.map((i) => ({ productId: i.id, quantity: i.qty })),
+          phone: phone.trim(),
+          customerName: customerName.trim() || undefined,
+          note: note.trim() || undefined,
+        },
+        getStoreSlugClient()
+      );
       // Remember the order id so the customer can track its status later.
       saveOrderId(result.id);
       // Remove the ordered items from the cart, keep the rest.

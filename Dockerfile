@@ -17,6 +17,10 @@ COPY . .
 # calls must be provided here (override with --build-arg).
 ARG NEXT_PUBLIC_STORE_API_URL=http://localhost:3050
 ENV NEXT_PUBLIC_STORE_API_URL=$NEXT_PUBLIC_STORE_API_URL
+# Root domain the storefront is served under; subdomains of it become the
+# tenant slug (e.g. salom.kpos.uz -> "salom"). Override for production.
+ARG NEXT_PUBLIC_ROOT_DOMAIN=kpos.uz
+ENV NEXT_PUBLIC_ROOT_DOMAIN=$NEXT_PUBLIC_ROOT_DOMAIN
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 

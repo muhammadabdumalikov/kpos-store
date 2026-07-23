@@ -8,6 +8,7 @@ import { DesktopHeader } from "../components/DesktopHeader";
 import { MobileHeader } from "../components/MobileHeader";
 import { MobileNav } from "../components/MobileNav";
 import { getSavedOrderIds } from "../../lib/order-store";
+import { getStoreSlugClient } from "../../lib/store-slug";
 import {
   fetchStoreOrderStatus,
   type StoreOrderStatus,
@@ -135,9 +136,10 @@ export default function OrdersPage() {
       return;
     }
     if (!silent) setRefreshing(true);
+    const slug = getStoreSlugClient();
     try {
       const results = await Promise.all(
-        ids.map((id) => fetchStoreOrderStatus(id).catch(() => null))
+        ids.map((id) => fetchStoreOrderStatus(id, slug).catch(() => null))
       );
       setOrders(results.filter((o): o is StoreOrderStatus => o !== null));
     } finally {

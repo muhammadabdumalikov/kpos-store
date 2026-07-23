@@ -7,6 +7,7 @@ import { ProductCard } from "../components/ProductCard";
 import { CategoryCard } from "../components/CategoryCard";
 import { AuthDrawerProvider } from "../components/AuthDrawerContext";
 import { getStoreProducts, getStoreCategories } from "../../lib/store-api";
+import { getStoreSlugServer } from "../../lib/store-slug-server";
 
 const sortOptions = [
   { value: "popular", label: "Mashhur" },
@@ -39,10 +40,11 @@ export default async function CatalogPage({
   const { category, sort, q } = await searchParams;
   const sortValue = (sort as SortValue) || "popular";
   const query = (q ?? "").trim();
+  const slug = await getStoreSlugServer();
 
   let categories: { id: string; name: string; image?: string | null }[] = [];
   try {
-    categories = await getStoreCategories();
+    categories = await getStoreCategories(slug);
   } catch {
     categories = [];
   }
@@ -56,6 +58,7 @@ export default async function CatalogPage({
       category: category || undefined,
       search: query || undefined,
       limit: 500,
+      slug,
     });
     catalogProducts = res.products.map((p) => ({
       id: p.id,

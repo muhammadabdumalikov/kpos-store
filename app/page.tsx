@@ -4,18 +4,23 @@ import { MobileHeader } from "./components/MobileHeader";
 import { MobileNav } from "./components/MobileNav";
 import { AuthDrawerProvider } from "./components/AuthDrawerContext";
 import { HomeContent, type HomeCategory, type HomeProduct } from "./components/HomeContent";
-import { getStoreProducts, getStoreCategories } from "../lib/store-api";
+import { getStoreProducts, getStoreCategories, getStoreInfo } from "../lib/store-api";
+import { getStoreSlugServer } from "../lib/store-slug-server";
 
 export default async function Home() {
+  const slug = await getStoreSlugServer();
   let categories: HomeCategory[] = [];
   let popularProducts: HomeProduct[] = [];
   let totalProducts = 0;
+  let storeName: string | null = null;
 
   try {
-    const [categoriesRes, productsRes] = await Promise.all([
-      getStoreCategories(),
-      getStoreProducts({ limit: 8 }),
+    const [info, categoriesRes, productsRes] = await Promise.all([
+      getStoreInfo(slug),
+      getStoreCategories(slug),
+      getStoreProducts({ limit: 8, slug }),
     ]);
+    storeName = info.name;
     categories = categoriesRes;
     totalProducts = productsRes.total;
     popularProducts = productsRes.products.map((p) => ({
@@ -39,6 +44,7 @@ export default async function Home() {
           categories={categories}
           products={popularProducts}
           total={totalProducts}
+          storeName={storeName}
         />
       </main>
 

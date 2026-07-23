@@ -19,16 +19,18 @@ export function HomeContent({
   categories,
   products,
   total,
+  storeName,
 }: {
   categories: HomeCategory[];
   products: HomeProduct[];
   total: number;
+  storeName?: string | null;
 }) {
   const { t } = useTranslations();
 
   return (
     <>
-      <Banners />
+      <Banners storeName={storeName} />
 
       {categories.length > 0 && (
         <section aria-label={t("home.categories")} className="mt-4 lg:mt-6">

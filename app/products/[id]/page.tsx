@@ -7,6 +7,7 @@ import { ProductCard } from "../../components/ProductCard";
 import { AddToCartButton } from "../../components/AddToCartButton";
 import { AuthDrawerProvider } from "../../components/AuthDrawerContext";
 import { getStoreProduct, getStoreProducts } from "../../../lib/store-api";
+import { getStoreSlugServer } from "../../../lib/store-slug-server";
 
 const formatPrice = (value: number) =>
   new Intl.NumberFormat("uz-UZ").format(value) + " UZS";
@@ -17,7 +18,8 @@ export default async function ProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const apiProduct = await getStoreProduct(id);
+  const slug = await getStoreSlugServer();
+  const apiProduct = await getStoreProduct(id, slug);
   if (!apiProduct) notFound();
 
   const outOfStock = apiProduct.quantity <= 0;
@@ -31,7 +33,7 @@ export default async function ProductPage({
 
   let recommendedProducts: { id: string; name: string; price: number; quantity?: number }[] = [];
   try {
-    const res = await getStoreProducts({ limit: 5 });
+    const res = await getStoreProducts({ limit: 5, slug });
     recommendedProducts = res.products
       .filter((p) => p.id !== id)
       .slice(0, 5)
