@@ -1,0 +1,120 @@
+{
+  "common": {
+    "brand": "KPOS",
+    "search": "Поиск...",
+    "loading": "Загрузка...",
+    "sending": "Отправка...",
+    "all": "Все",
+    "close": "Закрыть",
+    "back": "Назад",
+    "share": "Поделиться",
+    "selectLanguage": "Выбрать язык",
+    "uzbek": "Узбекский"
+  },
+  "nav": {
+    "home": "Главная",
+    "catalog": "Каталог",
+    "cart": "Корзина",
+    "favorites": "Избранное",
+    "profile": "Профиль",
+    "mainNav": "Основная навигация",
+    "orders": "Мои заказы"
+  },
+  "header": {
+    "login": "Войти",
+    "searchAria": "Поиск"
+  },
+  "home": {
+    "popular": "Популярные товары",
+    "more": "ещё {count}",
+    "noProducts": "Товаров пока нет",
+    "categoriesAria": "Категории товаров",
+    "popularAria": "Популярные товары",
+    "categories": "Категории",
+    "seeAll": "Все",
+    "heroTitle": "Магазин рядом с вами",
+    "heroSubtitle": "Оформите заказ, магазин подтвердит и подготовит его",
+    "heroCta": "Перейти в каталог"
+  },
+  "product": {
+    "buy": "Купить",
+    "addToFavorites": "Добавить в избранное",
+    "removeFromFavorites": "Удалить из избранного",
+    "reviews": "Отзывы",
+    "recommend": "Мы также рекомендуем",
+    "addToCart": "В корзину",
+    "outOfStock": "Нет в наличии"
+  },
+  "cart": {
+    "title": "Корзина",
+    "selectAll": "Выбрать всё",
+    "empty": "Корзина пока пуста",
+    "yourOrder": "Ваш заказ",
+    "totalPrice": "Итого",
+    "decrease": "Уменьшить",
+    "increase": "Увеличить",
+    "quantity": "Количество",
+    "remove": "Удалить",
+    "checkout": "Оформить заказ",
+    "orderError": "Ошибка при оформлении заказа",
+    "orderAccepted": "Заказ принят!",
+    "customerInfo": "Данные для заказа",
+    "phone": "Номер телефона",
+    "phoneRequired": "Введите полный номер телефона",
+    "namePlaceholder": "Ваше имя (необязательно)",
+    "notePlaceholder": "Комментарий (необязательно)",
+    "errorInsufficientStock": "«{name}» недостаточно — на складе осталось {available} шт.",
+    "sentForConfirmation": "Заказ отправлен на подтверждение",
+    "sentHint": "Магазин рассмотрит заказ. Следите за статусом в разделе «Мои заказы».",
+    "viewOrders": "Мои заказы",
+    "continueShopping": "Продолжить покупки",
+    "orderNumber": "Номер заказа",
+    "deleteSelected": "Удалить выбранные",
+    "emptyHint": "Добавьте понравившиеся товары в корзину, они появятся здесь",
+    "backHome": "Вернуться на главную",
+    "productsTotal": "{count} товар(ов):"
+  },
+  "catalog": {
+    "title": "Каталог",
+    "productsAria": "Список товаров",
+    "selectCategory": "Выбрать категорию",
+    "sortLabel": "Сортировка:",
+    "sort": {
+      "popular": "Популярные",
+      "new": "Новые",
+      "priceAsc": "Сначала дешёвые",
+      "priceDesc": "Сначала дорогие"
+    }
+  },
+  "auth": {
+    "enterPhone": "Введите номер телефона",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "phoneAria": "Номер телефона",
+    "policyTitle": "Политика конфиденциальности",
+    "policyBody": "Текст политики конфиденциальности будет показан здесь (PDF или текст)."
+  },
+  "theme": {
+    "toggle": "Переключить тему"
+  },
+  "orders": {
+    "title": "Мои заказы",
+    "empty": "Заказов пока нет",
+    "emptyHint": "Сделайте первый заказ, его статус появится здесь",
+    "goCatalog": "Перейти в каталог",
+    "order": "Заказ",
+    "productsCount": "{count} товар(ов)",
+    "statusPending": "Ожидает подтверждения",
+    "statusConfirmed": "Принят",
+    "statusCompleted": "Выдан",
+    "statusCancelled": "Отклонён",
+    "stepSent": "Отправлен",
+    "stepConfirmed": "Принят",
+    "stepDone": "Выдан",
+    "cancelledNote": "Магазин отклонил заказ. Если есть вопросы, свяжитесь с магазином.",
+    "pendingNote": "Заказ отправлен в магазин. Дождитесь подтверждения.",
+    "confirmedNote": "Магазин принял заказ и готовит его.",
+    "completedNote": "Заказ выдан. Спасибо за покупку!",
+    "notFound": "Заказ не найден",
+    "refresh": "Обновить"
+  }
+}

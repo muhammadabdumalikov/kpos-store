@@ -1,0 +1,120 @@
+{
+  "common": {
+    "brand": "KPOS",
+    "search": "Qidirish...",
+    "loading": "Yuklanmoqda...",
+    "sending": "Yuborilmoqda...",
+    "all": "Barchasi",
+    "close": "Yopish",
+    "back": "Orqaga",
+    "share": "Ulashish",
+    "selectLanguage": "Tilni tanlash",
+    "uzbek": "Oʼzbekcha"
+  },
+  "nav": {
+    "home": "Bosh sahifa",
+    "catalog": "Katalog",
+    "cart": "Savat",
+    "favorites": "Sevimlilar",
+    "profile": "Profil",
+    "mainNav": "Asosiy navigatsiya",
+    "orders": "Buyurtmalarim"
+  },
+  "header": {
+    "login": "Kirish",
+    "searchAria": "Qidirish"
+  },
+  "home": {
+    "popular": "Ommabop mahsulotlar",
+    "more": "{count} yana",
+    "noProducts": "Mahsulotlar hozircha yoʼq",
+    "categoriesAria": "Mahsulot kategoriyalari",
+    "popularAria": "Mashhur mahsulotlar",
+    "categories": "Kategoriyalar",
+    "seeAll": "Hammasi",
+    "heroTitle": "Sizga yaqin doʼkon",
+    "heroSubtitle": "Buyurtma bering, doʼkon tasdiqlaydi va tayyorlab qoʼyadi",
+    "heroCta": "Katalogga oʼtish"
+  },
+  "product": {
+    "buy": "Sotib olish",
+    "addToFavorites": "Sevimlilarga qoʼshish",
+    "removeFromFavorites": "Sevimlilardan oʼchirish",
+    "reviews": "Sharhlar",
+    "recommend": "Biz ham tavsiya qilamiz",
+    "addToCart": "Savatga qoʼshish",
+    "outOfStock": "Omborda yoʼq"
+  },
+  "cart": {
+    "title": "Savat",
+    "selectAll": "Barchasini tanlash",
+    "empty": "Hozircha savat boʼsh",
+    "yourOrder": "Buyurtmangiz",
+    "totalPrice": "Umumiy narx",
+    "decrease": "Kamaytirish",
+    "increase": "Koʼpaytirish",
+    "quantity": "Soni",
+    "remove": "Oʼchirish",
+    "checkout": "Buyurtma berish",
+    "orderError": "Buyurtma berishda xatolik",
+    "orderAccepted": "Buyurtma qabul qilindi!",
+    "customerInfo": "Buyurtma uchun maʼlumot",
+    "phone": "Telefon raqam",
+    "phoneRequired": "Telefon raqamini toʼliq kiriting",
+    "namePlaceholder": "Ismingiz (ixtiyoriy)",
+    "notePlaceholder": "Izoh (ixtiyoriy)",
+    "errorInsufficientStock": "«{name}» yetarli emas — omborda {available} ta qoldi",
+    "sentForConfirmation": "Buyurtma tasdiqlash uchun yuborildi",
+    "sentHint": "Doʼkon buyurtmani koʼrib chiqadi. Holatini «Buyurtmalarim» boʼlimida kuzating.",
+    "viewOrders": "Buyurtmalarim",
+    "continueShopping": "Xaridni davom ettirish",
+    "orderNumber": "Buyurtma raqami",
+    "deleteSelected": "Tanlanganlarni oʼchirish",
+    "emptyHint": "Yoqqan mahsulotlaringizni savatga qoʼshing, ular shu yerda paydo boʼladi",
+    "backHome": "Bosh sahifaga qaytish",
+    "productsTotal": "{count} ta mahsulot:"
+  },
+  "catalog": {
+    "title": "Katalog",
+    "productsAria": "Mahsulotlar roʼyxati",
+    "selectCategory": "Kategoriyani tanlash",
+    "sortLabel": "Saralash:",
+    "sort": {
+      "popular": "Mashhur",
+      "new": "Yangi",
+      "priceAsc": "Arzon avval",
+      "priceDesc": "Qimmat avval"
+    }
+  },
+  "auth": {
+    "enterPhone": "Telefon raqamingizni kiriting",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "phoneAria": "Telefon raqami",
+    "policyTitle": "Shaxsiy maʼlumotlar siyosati",
+    "policyBody": "Shaxsiy maʼlumotlar siyosati matni shu yerda koʼrsatiladi (PDF yoki matn)."
+  },
+  "theme": {
+    "toggle": "Mavzuni oʼzgartirish"
+  },
+  "orders": {
+    "title": "Buyurtmalarim",
+    "empty": "Hozircha buyurtmalar yoʼq",
+    "emptyHint": "Birinchi buyurtmangizni bering, holatini shu yerda kuzatasiz",
+    "goCatalog": "Katalogga oʼtish",
+    "order": "Buyurtma",
+    "productsCount": "{count} ta mahsulot",
+    "statusPending": "Tasdiqlash kutilmoqda",
+    "statusConfirmed": "Qabul qilindi",
+    "statusCompleted": "Topshirildi",
+    "statusCancelled": "Rad etildi",
+    "stepSent": "Yuborildi",
+    "stepConfirmed": "Qabul qilindi",
+    "stepDone": "Topshirildi",
+    "cancelledNote": "Doʼkon buyurtmani rad etdi. Savollar boʼlsa doʼkon bilan bogʼlaning.",
+    "pendingNote": "Buyurtmangiz doʼkonga yuborildi. Tasdiqlanishini kuting.",
+    "confirmedNote": "Doʼkon buyurtmani qabul qildi va tayyorlamoqda.",
+    "completedNote": "Buyurtma topshirildi. Xaridingiz uchun rahmat!",
+    "notFound": "Buyurtma topilmadi",
+    "refresh": "Yangilash"
+  }
+}

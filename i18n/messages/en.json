@@ -1,0 +1,120 @@
+{
+  "common": {
+    "brand": "KPOS",
+    "search": "Search...",
+    "loading": "Loading...",
+    "sending": "Sending...",
+    "all": "All",
+    "close": "Close",
+    "back": "Back",
+    "share": "Share",
+    "selectLanguage": "Select language",
+    "uzbek": "Uzbek"
+  },
+  "nav": {
+    "home": "Home",
+    "catalog": "Catalog",
+    "cart": "Cart",
+    "favorites": "Favorites",
+    "profile": "Profile",
+    "mainNav": "Main navigation",
+    "orders": "My orders"
+  },
+  "header": {
+    "login": "Sign in",
+    "searchAria": "Search"
+  },
+  "home": {
+    "popular": "Popular products",
+    "more": "{count} more",
+    "noProducts": "No products yet",
+    "categoriesAria": "Product categories",
+    "popularAria": "Popular products",
+    "categories": "Categories",
+    "seeAll": "See all",
+    "heroTitle": "Your neighbourhood store",
+    "heroSubtitle": "Place an order, the store confirms and prepares it",
+    "heroCta": "Browse catalog"
+  },
+  "product": {
+    "buy": "Buy",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites",
+    "reviews": "Reviews",
+    "recommend": "We also recommend",
+    "addToCart": "Add to cart",
+    "outOfStock": "Out of stock"
+  },
+  "cart": {
+    "title": "Cart",
+    "selectAll": "Select all",
+    "empty": "Your cart is empty",
+    "yourOrder": "Your order",
+    "totalPrice": "Total",
+    "decrease": "Decrease",
+    "increase": "Increase",
+    "quantity": "Quantity",
+    "remove": "Remove",
+    "checkout": "Place order",
+    "orderError": "Failed to place order",
+    "orderAccepted": "Order accepted!",
+    "customerInfo": "Order details",
+    "phone": "Phone number",
+    "phoneRequired": "Enter your full phone number",
+    "namePlaceholder": "Your name (optional)",
+    "notePlaceholder": "Note (optional)",
+    "errorInsufficientStock": "Not enough “{name}”, only {available} left in stock",
+    "sentForConfirmation": "Order sent for confirmation",
+    "sentHint": "The store will review your order. Track its status in My orders.",
+    "viewOrders": "My orders",
+    "continueShopping": "Continue shopping",
+    "orderNumber": "Order number",
+    "deleteSelected": "Delete selected",
+    "emptyHint": "Add products you like to the cart, they will appear here",
+    "backHome": "Back to home",
+    "productsTotal": "{count} product(s):"
+  },
+  "catalog": {
+    "title": "Catalog",
+    "productsAria": "Product list",
+    "selectCategory": "Select category",
+    "sortLabel": "Sort:",
+    "sort": {
+      "popular": "Popular",
+      "new": "New",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low"
+    }
+  },
+  "auth": {
+    "enterPhone": "Enter your phone number",
+    "phonePlaceholder": "+998 90 123 45 67",
+    "phoneAria": "Phone number",
+    "policyTitle": "Privacy policy",
+    "policyBody": "The privacy policy text will be shown here (PDF or text)."
+  },
+  "theme": {
+    "toggle": "Toggle theme"
+  },
+  "orders": {
+    "title": "My orders",
+    "empty": "No orders yet",
+    "emptyHint": "Place your first order and track its status here",
+    "goCatalog": "Browse catalog",
+    "order": "Order",
+    "productsCount": "{count} product(s)",
+    "statusPending": "Awaiting confirmation",
+    "statusConfirmed": "Accepted",
+    "statusCompleted": "Handed over",
+    "statusCancelled": "Declined",
+    "stepSent": "Sent",
+    "stepConfirmed": "Accepted",
+    "stepDone": "Handed over",
+    "cancelledNote": "The store declined this order. Contact the store if you have questions.",
+    "pendingNote": "Your order was sent to the store. Wait for confirmation.",
+    "confirmedNote": "The store accepted your order and is preparing it.",
+    "completedNote": "Order handed over. Thank you for shopping!",
+    "notFound": "Order not found",
+    "refresh": "Refresh"
+  }
+}
