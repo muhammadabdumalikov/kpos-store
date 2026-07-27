@@ -3,6 +3,8 @@
 // `headers()` in Server Components and from `window.location` on the client —
 // and forwarded to the backend as ?store=<slug> on every /store call.
 
+import { getStartParam } from "./telegram";
+
 // Root domain the storefront runs under. Anything at the apex (kpos.uz),
 // `www`, or a bare host (localhost, an IP, a Coolify preview URL) has no tenant
 // slug and falls back to the backend's STORE_BUSINESS_ID.
@@ -30,8 +32,16 @@ export function slugFromHost(host: string | null | undefined): string | null {
   return label;
 }
 
-/** Client-side slug (reads the browser host). Null during SSR. */
+/**
+ * Client-side slug. Null during SSR.
+ *
+ * Normally the host carries it. Inside the Telegram mini app the launch host
+ * can be the bot's fixed entry URL, so the `startapp` payload is the fallback
+ * (TelegramProvider redirects to the tenant subdomain, but this keeps calls
+ * scoped correctly in the window before that lands, and in local dev where the
+ * host has no slug at all).
+ */
 export function getStoreSlugClient(): string | null {
   if (typeof window === "undefined") return null;
-  return slugFromHost(window.location.host);
+  return slugFromHost(window.location.host) ?? getStartParam();
 }

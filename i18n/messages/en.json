@@ -72,7 +72,9 @@
     "deleteSelected": "Delete selected",
     "emptyHint": "Add products you like to the cart, they will appear here",
     "backHome": "Back to home",
-    "productsTotal": "{count} product(s):"
+    "productsTotal": "{count} product(s):",
+    "phoneFromTelegram": "Use my Telegram number",
+    "phoneFromTelegramFailed": "Could not get the number — enter it manually"
   },
   "catalog": {
     "title": "Catalog",
@@ -116,5 +118,10 @@
     "completedNote": "Order handed over. Thank you for shopping!",
     "notFound": "Order not found",
     "refresh": "Refresh"
+  },
+  "tg": {
+    "opening": "Opening the store...",
+    "noStore": "Store not identified",
+    "noStoreHint": "The link is incomplete. Open the store again from its Telegram link."
   }
 }

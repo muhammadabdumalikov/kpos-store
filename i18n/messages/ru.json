@@ -72,7 +72,9 @@
     "deleteSelected": "Удалить выбранные",
     "emptyHint": "Добавьте понравившиеся товары в корзину, они появятся здесь",
     "backHome": "Вернуться на главную",
-    "productsTotal": "{count} товар(ов):"
+    "productsTotal": "{count} товар(ов):",
+    "phoneFromTelegram": "Взять номер из Telegram",
+    "phoneFromTelegramFailed": "Не удалось получить номер — введите вручную"
   },
   "catalog": {
     "title": "Каталог",
@@ -116,5 +118,10 @@
     "completedNote": "Заказ выдан. Спасибо за покупку!",
     "notFound": "Заказ не найден",
     "refresh": "Обновить"
+  },
+  "tg": {
+    "opening": "Открываем магазин...",
+    "noStore": "Магазин не определён",
+    "noStoreHint": "Ссылка неполная. Откройте магазин заново по ссылке из Telegram."
   }
 }

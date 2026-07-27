@@ -72,7 +72,9 @@
     "deleteSelected": "Tanlanganlarni oʼchirish",
     "emptyHint": "Yoqqan mahsulotlaringizni savatga qoʼshing, ular shu yerda paydo boʼladi",
     "backHome": "Bosh sahifaga qaytish",
-    "productsTotal": "{count} ta mahsulot:"
+    "productsTotal": "{count} ta mahsulot:",
+    "phoneFromTelegram": "Telegram raqamimni ulash",
+    "phoneFromTelegramFailed": "Raqam olinmadi — qoʼlda kiriting"
   },
   "catalog": {
     "title": "Katalog",
@@ -116,5 +118,10 @@
     "completedNote": "Buyurtma topshirildi. Xaridingiz uchun rahmat!",
     "notFound": "Buyurtma topilmadi",
     "refresh": "Yangilash"
+  },
+  "tg": {
+    "opening": "Doʼkon ochilmoqda...",
+    "noStore": "Doʼkon aniqlanmadi",
+    "noStoreHint": "Havola toʼliq emas. Doʼkonning Telegramdagi havolasidan qayta oching."
   }
 }

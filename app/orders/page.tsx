@@ -10,9 +10,11 @@ import { MobileNav } from "../components/MobileNav";
 import { getSavedOrderIds } from "../../lib/order-store";
 import { getStoreSlugClient } from "../../lib/store-slug";
 import {
+  fetchMyTelegramOrders,
   fetchStoreOrderStatus,
   type StoreOrderStatus,
 } from "../../lib/store-api";
+import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 
 const formatPrice = (value: number) =>
@@ -124,36 +126,59 @@ function statusBadge(status: string) {
 
 export default function OrdersPage() {
   const { t } = useTranslations();
+  const { probed, initData } = useTelegram();
   const [orders, setOrders] = useState<StoreOrderStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async (silent: boolean) => {
-    const ids = getSavedOrderIds();
-    if (ids.length === 0) {
-      setOrders([]);
-      setLoading(false);
-      return;
-    }
-    if (!silent) setRefreshing(true);
-    const slug = getStoreSlugClient();
-    try {
-      const results = await Promise.all(
-        ids.map((id) => fetchStoreOrderStatus(id, slug).catch(() => null))
-      );
-      setOrders(results.filter((o): o is StoreOrderStatus => o !== null));
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const load = useCallback(
+    async (silent: boolean) => {
+      if (!silent) setRefreshing(true);
+      const slug = getStoreSlugClient();
+      try {
+        // In the mini app the Telegram user id is the key, so history survives
+        // a cleared webview and follows the customer across devices. The ids in
+        // localStorage still count: they cover orders placed in the browser, or
+        // before the launch payload could be verified.
+        const [remote, local] = await Promise.all([
+          initData ? fetchMyTelegramOrders(initData, slug) : null,
+          Promise.all(
+            getSavedOrderIds().map((id) =>
+              fetchStoreOrderStatus(id, slug).catch(() => null)
+            )
+          ),
+        ]);
+
+        const merged = new Map<string, StoreOrderStatus>();
+        for (const order of [
+          ...(remote ?? []),
+          ...local.filter((o): o is StoreOrderStatus => o !== null),
+        ]) {
+          merged.set(order.id, order);
+        }
+        setOrders(
+          [...merged.values()].sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
+        );
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [initData]
+  );
 
   useEffect(() => {
+    // Wait for the Telegram probe so the first load can already use initData
+    // (otherwise a mini-app user briefly sees only their localStorage orders).
+    if (!probed) return;
     load(true);
     // Statuses change on the POS side; refresh quietly while the page is open.
     const id = setInterval(() => load(true), 30_000);
     return () => clearInterval(id);
-  }, [load]);
+  }, [load, probed]);
 
   const statusLabel = (status: string) => {
     const key = `orders.status${status}`;

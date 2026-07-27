@@ -134,6 +134,8 @@ export interface CreateStoreOrderInput {
   customerName?: string;
   phone: string;
   note?: string;
+  /** Telegram mini-app launch payload; binds the order to that Telegram user. */
+  initData?: string;
 }
 
 export interface StoreOrderResult {
@@ -164,6 +166,25 @@ export async function fetchStoreOrderStatus(
     if (res.status === 404) return null;
     throw new Error("Failed to fetch order");
   }
+  return res.json();
+}
+
+/**
+ * Client-side: every order this Telegram user has placed at this store.
+ *
+ * The signed launch payload is the credential — there is no session of ours.
+ * Returns null when the backend rejects it (stale or forged), which the caller
+ * treats as "fall back to the ids kept in localStorage".
+ */
+export async function fetchMyTelegramOrders(
+  initData: string,
+  slug?: string | null
+): Promise<StoreOrderStatus[] | null> {
+  const params = withStore(new URLSearchParams(), slug);
+  const res = await fetch(`${apiBase()}/store/my-orders?${params.toString()}`, {
+    headers: { "X-Telegram-Init-Data": initData },
+  });
+  if (!res.ok) return null;
   return res.json();
 }
 

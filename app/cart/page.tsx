@@ -18,6 +18,8 @@ import {
 } from "../../lib/store-api";
 import { saveOrderId } from "../../lib/order-store";
 import { getStoreSlugClient } from "../../lib/store-slug";
+import { requestTelegramContact } from "../../lib/telegram";
+import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 
 type CartItem = {
@@ -184,6 +186,7 @@ function persistItems(items: CartItem[]) {
 export default function CartPage() {
   const { t } = useTranslations();
   const { setLoading: setTopLoading } = useLoading();
+  const { isTelegram, user: telegramUser, initData } = useTelegram();
   const [items, setItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [placing, setPlacing] = useState(false);
@@ -193,9 +196,40 @@ export default function CartPage() {
   const [customerName, setCustomerName] = useState("");
   const [note, setNote] = useState("");
   const [phoneTouched, setPhoneTouched] = useState(false);
+  const [contactPending, setContactPending] = useState(false);
+  const [contactFailed, setContactFailed] = useState(false);
 
   // Valid when the +998 prefix is followed by a full 9-digit subscriber number.
   const phoneValid = phone.replace(/\D/g, "").length >= 12;
+
+  // In the mini app the shopper is already identified — don't make them retype
+  // their name. Only prefills an untouched field.
+  useEffect(() => {
+    if (!telegramUser) return;
+    const name = [telegramUser.first_name, telegramUser.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    if (name) setCustomerName((prev) => prev || name);
+  }, [telegramUser]);
+
+  const useTelegramPhone = useCallback(async () => {
+    setContactPending(true);
+    setContactFailed(false);
+    try {
+      const number = await requestTelegramContact();
+      if (!number) {
+        setContactFailed(true);
+        return;
+      }
+      // Normalise to the same "+998 XXXXXXXXX" shape the field produces.
+      const digits = number.replace(/\D/g, "").replace(/^998/, "");
+      setPhone("+998 " + digits.slice(0, 9));
+      setPhoneTouched(true);
+    } finally {
+      setContactPending(false);
+    }
+  }, []);
 
   useEffect(() => {
     const lines = getCart();
@@ -301,6 +335,9 @@ export default function CartPage() {
           phone: phone.trim(),
           customerName: customerName.trim() || undefined,
           note: note.trim() || undefined,
+          // Verified server-side; when it checks out the order is bound to this
+          // Telegram user for durable history and status notifications.
+          initData: initData ?? undefined,
         },
         getStoreSlugClient()
       );
@@ -329,7 +366,7 @@ export default function CartPage() {
       setPlacing(false);
       setTopLoading(false);
     }
-  }, [items, phone, phoneValid, customerName, note, setTopLoading, t]);
+  }, [items, phone, phoneValid, customerName, note, initData, setTopLoading, t]);
 
   return (
     <AuthDrawerProvider>
@@ -508,6 +545,24 @@ export default function CartPage() {
                   />
                   {phoneTouched && !phoneValid && (
                     <p className="text-sm font-medium text-red">{t("cart.phoneRequired")}</p>
+                  )}
+                  {/* Inside Telegram the number is one tap away — no keyboard. */}
+                  {isTelegram && (
+                    <button
+                      type="button"
+                      onClick={useTelegramPhone}
+                      disabled={contactPending}
+                      className="self-start rounded-lg px-1 py-0.5 text-sm font-semibold text-brand-500 transition hover:text-brand-600 disabled:opacity-60"
+                    >
+                      {contactPending
+                        ? t("common.loading")
+                        : t("cart.phoneFromTelegram")}
+                    </button>
+                  )}
+                  {contactFailed && (
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      {t("cart.phoneFromTelegramFailed")}
+                    </p>
                   )}
                 </div>
                 <input
