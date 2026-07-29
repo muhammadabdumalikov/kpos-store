@@ -90,7 +90,7 @@ export default async function CatalogPage({
       <DesktopHeader />
       <MobileHeader />
 
-      <main className="mx-auto max-w-7xl pb-24 pt-[56px] lg:pb-8 lg:pt-4">
+      <main className="mx-auto max-w-7xl pb-[calc(var(--nav-total)_+_24px)] pt-[56px] lg:pb-8 lg:pt-4">
         <div className="rounded-b-[18px] bg-white dark:bg-gray-900 px-4 py-4 lg:rounded-2xl lg:px-6 lg:py-6">
           {/* Breadcrumb */}
           <nav aria-label="Breadcrumb" className="mb-4">

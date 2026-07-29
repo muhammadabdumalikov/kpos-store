@@ -175,6 +175,26 @@
   }
 }
 
+/* Bottom navigation metrics, shared by the nav itself and by every page that
+   has to keep clear of it (sticky checkout bars, bottom spacers).
+   `--tg-safe-bottom` is set by TelegramProvider from the value the Telegram
+   client reports: inside the mini-app webview `env(safe-area-inset-bottom)` is
+   normally 0 even on a phone with a home indicator, so the CSS-only value
+   cannot be trusted there. */
+:root {
+  --nav-height: 56px;
+  --tg-safe-bottom: 0px;
+  --nav-safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom));
+  --nav-total: calc(var(--nav-height) + var(--nav-safe-bottom));
+}
+
+/* Inside Telegram the bar needs more room: the client's own drag handle and
+   gesture area sit directly beneath it, so a browser-sized bar reads cramped
+   and its targets are easy to miss. */
+:root.tg {
+  --nav-height: 72px;
+}
+
 @utility no-scrollbar {
   &::-webkit-scrollbar {
     display: none;

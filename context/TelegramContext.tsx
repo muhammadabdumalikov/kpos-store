@@ -169,9 +169,30 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
         `${webApp.viewportStableHeight}px`
       );
     };
+
+    // What the bottom nav has to clear: the device's own inset (home indicator)
+    // plus whatever Telegram draws over the page at the bottom. `env()` reports
+    // 0 in this webview, so the client's numbers are the only real source.
+    const applySafeArea = () => {
+      const device = webApp.safeAreaInset?.bottom ?? 0;
+      const content = webApp.contentSafeAreaInset?.bottom ?? 0;
+      document.documentElement.style.setProperty(
+        "--tg-safe-bottom",
+        `${Math.max(0, device + content)}px`
+      );
+    };
+
     applyViewport();
+    applySafeArea();
     webApp.onEvent("viewportChanged", applyViewport);
-    return () => webApp.offEvent("viewportChanged", applyViewport);
+    // Both are Bot API 8.0+; on older clients they simply never fire.
+    webApp.onEvent("safeAreaChanged", applySafeArea);
+    webApp.onEvent("contentSafeAreaChanged", applySafeArea);
+    return () => {
+      webApp.offEvent("viewportChanged", applyViewport);
+      webApp.offEvent("safeAreaChanged", applySafeArea);
+      webApp.offEvent("contentSafeAreaChanged", applySafeArea);
+    };
   }, [webApp, isTelegram, startParam]);
 
   // ── Follow the Telegram client's light/dark setting ───────────────────────

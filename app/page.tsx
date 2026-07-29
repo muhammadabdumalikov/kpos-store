@@ -39,7 +39,7 @@ export default async function Home() {
       <DesktopHeader />
       <MobileHeader />
 
-      <main className="mx-auto max-w-7xl pb-24 pt-[56px] lg:px-4 lg:pb-8 lg:pt-6">
+      <main className="mx-auto max-w-7xl pb-[calc(var(--nav-total)_+_24px)] pt-[56px] lg:px-4 lg:pb-8 lg:pt-6">
         <HomeContent
           categories={categories}
           products={popularProducts}

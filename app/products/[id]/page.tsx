@@ -181,7 +181,7 @@ export default async function ProductPage({
         {/* Mobile buy section — fixed above bottom nav */}
         <div
           className="fixed left-0 right-0 z-20 flex w-full items-center justify-between border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3 shadow-[0_-2px_10px_rgba(0,0,0,0.06)] lg:hidden"
-          style={{ bottom: "calc(56px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ bottom: "var(--nav-total)" }}
         >
           <span className="text-lg font-bold text-gray-900 dark:text-white/90">{formatPrice(product.price)}</span>
           <div className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export default async function ProductPage({
         </div>
 
         {/* Spacer so content isn't hidden behind buy section + nav */}
-        <div className="h-[120px] lg:hidden" style={{ minHeight: "calc(56px + 56px + env(safe-area-inset-bottom, 0px))" }} />
+        <div className="lg:hidden" style={{ minHeight: "calc(var(--nav-total) + 56px)" }} />
       </main>
 
       <MobileNav />

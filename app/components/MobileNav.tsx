@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "@/hooks/useTranslations";
 import { LoginButton } from "./LoginButton";
 
-const NAV_HEIGHT = 56;
+// Height and bottom inset live in globals.css (--nav-height / --nav-safe-bottom)
+// because the cart and product pages have to stack their sticky bars on top of
+// this one — one source of truth keeps them from drifting apart.
 
 function HomeIcon({ active }: { active: boolean }) {
   return (
@@ -85,8 +87,8 @@ export function MobileNav() {
       className="fixed left-0 right-0 z-10 flex items-center justify-around border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 lg:hidden"
       style={{
         bottom: 0,
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        minHeight: NAV_HEIGHT,
+        paddingBottom: "var(--nav-safe-bottom)",
+        minHeight: "var(--nav-height)",
       }}
       aria-label={t("nav.mainNav")}
     >

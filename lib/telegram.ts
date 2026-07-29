@@ -14,6 +14,13 @@ export interface TelegramUser {
   photo_url?: string;
 }
 
+export interface TelegramInsets {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
 interface TelegramButton {
   isVisible: boolean;
   show(): void;
@@ -38,6 +45,10 @@ export interface TelegramWebApp {
   isExpanded: boolean;
   viewportHeight: number;
   viewportStableHeight: number;
+  /** Device insets (home indicator, notch). Bot API 8.0+; absent on older clients. */
+  safeAreaInset?: TelegramInsets;
+  /** Insets of the Telegram chrome drawn over the mini app. Bot API 8.0+. */
+  contentSafeAreaInset?: TelegramInsets;
   BackButton: TelegramButton;
   HapticFeedback?: {
     impactOccurred(style: "light" | "medium" | "heavy"): void;

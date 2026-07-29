@@ -621,7 +621,7 @@ export default function CartPage() {
         {/* Mobile sticky checkout bar */}
         <div
           className="fixed left-0 right-0 z-20 w-full border-t border-gray60 bg-gray50/95 backdrop-blur-[20px] lg:hidden"
-          style={{ bottom: "calc(56px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ bottom: "var(--nav-total)" }}
         >
           <div className="mx-auto flex max-w-7xl items-center justify-between px-[16px] py-[10px]">
             <div className="flex flex-col gap-[2px]">
@@ -641,10 +641,10 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* Spacer (checkout bar + nav + safe area) */}
+        {/* Spacer: the nav (plus its inset) and the checkout bar above it. */}
         <div
           className="lg:hidden"
-          style={{ minHeight: "calc(56px + 56px + env(safe-area-inset-bottom, 0px))" }}
+          style={{ minHeight: "calc(var(--nav-total) + 56px)" }}
         />
       </main>
 

@@ -206,7 +206,7 @@ export default function OrdersPage() {
       <DesktopHeader />
       <MobileHeader />
 
-      <main className="mx-auto flex max-w-3xl flex-col gap-3 px-4 pb-24 pt-[68px] lg:pb-12 lg:pt-8">
+      <main className="mx-auto flex max-w-3xl flex-col gap-3 px-4 pb-[calc(var(--nav-total)_+_24px)] pt-[68px] lg:pb-12 lg:pt-8">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white/90 lg:text-2xl">
             {t("orders.title")}
