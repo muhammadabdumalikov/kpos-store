@@ -108,9 +108,28 @@ export async function getStoreCategories(
   return res.json();
 }
 
+export type DeliveryType = "pickup" | "delivery";
+
+/**
+ * How the shop hands orders over (YETKAZISH.md 4.3). Money fields are numbers
+ * in the contract; `normalizeFulfillment` coerces them in case the numeric
+ * columns ever leak through as strings.
+ */
+export interface StoreFulfillment {
+  pickupEnabled: boolean;
+  deliveryEnabled: boolean;
+  deliveryFee: number;
+  freeDeliveryFrom: number | null;
+  minDeliveryAmount: number | null;
+  pickupBranchName: string | null;
+  pickupAddress: string | null;
+}
+
 export interface StoreInfo {
   name: string | null;
   slug: string | null;
+  /** Absent on a backend that predates delivery; callers treat that as pickup only. */
+  fulfillment?: StoreFulfillment | null;
 }
 
 export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {
@@ -124,6 +143,15 @@ export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {
   return res.json();
 }
 
+/** Client-side only: store info without the Next cache (checkout needs the
+ *  current fee and thresholds, not a minute-old snapshot). */
+export async function fetchStoreInfo(slug?: string | null): Promise<StoreInfo> {
+  const params = withStore(new URLSearchParams(), slug);
+  const res = await fetch(`${apiBase()}/store/info?${params.toString()}`);
+  if (!res.ok) throw new Error("Failed to fetch store info");
+  return res.json();
+}
+
 export interface StoreOrderItem {
   productId: string;
   quantity: number;
@@ -134,6 +162,14 @@ export interface CreateStoreOrderInput {
   customerName?: string;
   phone: string;
   note?: string;
+  /** Optional only when the shop has a single method enabled. */
+  deliveryType?: DeliveryType;
+  /** Required for delivery, max 500 chars. */
+  address?: string;
+  lat?: number;
+  lng?: number;
+  /** Storefront locale; the shop's Telegram notifications follow it. */
+  locale?: "uz" | "uzc" | "ru" | "en";
   /** Telegram mini-app launch payload; binds the order to that Telegram user. */
   initData?: string;
 }
@@ -142,16 +178,55 @@ export interface StoreOrderResult {
   id: string;
   status: string;
   totalAmount: string;
+  /** Fixed at checkout; the shop lowering its fee later does not change it. */
+  deliveryFee: string;
+  /** totalAmount + deliveryFee: what the customer actually pays. */
+  payable: string;
+  deliveryType: DeliveryType;
   itemCount: number;
   createdAt: string;
 }
 
+export type StoreOrderStatusCode =
+  | "Pending"
+  | "Assembling"
+  | "Delivering"
+  | "ReadyForPickup"
+  | "Completed"
+  | "Cancelled";
+
+export type StoreCancelReason =
+  | "customer_refused"
+  | "no_answer"
+  | "out_of_stock"
+  | "customer_cancelled"
+  | "other";
+
 export interface StoreOrderStatus {
   id: string;
-  status: string; // 'Pending' | 'Confirmed' | 'Completed' | 'Cancelled'
+  /** One of StoreOrderStatusCode; typed loosely so an unknown code degrades, not crashes. */
+  status: string;
+  deliveryType: DeliveryType;
+  /** Goods only. */
   totalAmount: string;
+  deliveryFee: string;
+  /** totalAmount + deliveryFee. */
+  payable: string;
   itemCount: number;
+  /** When the customer placed it (placedAt). */
   createdAt: string;
+  deliveryAddress: string | null;
+  /** Only while Delivering. */
+  courier: { name: string; phone: string | null } | null;
+  /** Pickup orders only. */
+  pickup: { branchName: string | null; address: string | null } | null;
+  cancelReason: StoreCancelReason | string | null;
+  /** The shop's own words, only for an 'other' cancel. */
+  cancelNote?: string | null;
+  /** The customer may cancel only while Pending. */
+  canCancel: boolean;
+  /** Status transitions, oldest first (from order_status_events). */
+  timeline: { status: string; at: string }[];
   items: { productName: string; quantity: number; lineTotal: string }[];
 }
 
@@ -204,6 +279,20 @@ export class StoreApiError extends Error {
   }
 }
 
+/** Turn a failed response into a StoreApiError carrying the backend's code. */
+async function toStoreApiError(res: Response, fallback: string): Promise<StoreApiError> {
+  const err = (await res.json().catch(() => null)) as {
+    message?: string;
+    code?: string;
+    params?: Record<string, unknown>;
+  } | null;
+  return new StoreApiError(
+    err?.message || fallback,
+    err?.code ?? null,
+    err?.params ?? null
+  );
+}
+
 /** Client-side: place a store order (public, no auth). */
 export async function createStoreOrder(
   input: CreateStoreOrderInput,
@@ -215,17 +304,27 @@ export async function createStoreOrder(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(input),
   });
-  if (!res.ok) {
-    const err = (await res.json().catch(() => null)) as {
-      message?: string;
-      code?: string;
-      params?: Record<string, unknown>;
-    } | null;
-    throw new StoreApiError(
-      err?.message || "Order failed",
-      err?.code ?? null,
-      err?.params ?? null
-    );
-  }
+  if (!res.ok) throw await toStoreApiError(res, "Order failed");
   return res.json();
+}
+
+/**
+ * Client-side: the customer cancels their own order. Only Pending orders can
+ * be cancelled; anything else fails with STORE_ORDER_NOT_CANCELLABLE. The id
+ * is the credential (as for status lookups); the Telegram launch payload is
+ * forwarded when present so the backend can attribute the action.
+ */
+export async function cancelStoreOrder(
+  id: string,
+  slug?: string | null,
+  initData?: string | null
+): Promise<void> {
+  const params = withStore(new URLSearchParams(), slug);
+  const headers: Record<string, string> = {};
+  if (initData) headers["X-Telegram-Init-Data"] = initData;
+  const res = await fetch(
+    `${apiBase()}/store/orders/${id}/cancel?${params.toString()}`,
+    { method: "POST", headers }
+  );
+  if (!res.ok) throw await toStoreApiError(res, "Cancel failed");
 }

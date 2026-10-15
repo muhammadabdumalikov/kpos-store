@@ -9,11 +9,18 @@ import { DesktopFooter } from "../components/DesktopFooter";
 import { DesktopHeader } from "../components/DesktopHeader";
 import { MobileHeader } from "../components/MobileHeader";
 import { MobileNav } from "../components/MobileNav";
+import { FulfillmentSection } from "../components/checkout/FulfillmentSection";
+import { OrderSummary } from "../components/checkout/OrderSummary";
+import { useCheckoutFulfillment } from "../components/checkout/useCheckoutFulfillment";
+import { storeErrorMessage } from "../../lib/api-errors";
 import { getCart, setCart, type CartLine } from "../../lib/cart-store";
+import { formatPrice, toAmount } from "../../lib/format";
+import { LEGACY_PICKUP_ONLY, normalizeFulfillment } from "../../lib/fulfillment";
 import {
+  fetchStoreInfo,
   fetchStoreProduct,
   createStoreOrder,
-  StoreApiError,
+  type StoreFulfillment,
   type StoreOrderResult,
 } from "../../lib/store-api";
 import { saveOrderId } from "../../lib/order-store";
@@ -30,9 +37,6 @@ type CartItem = {
   qty: number;
   selected: boolean;
 };
-
-const formatPrice = (value: number) =>
-  new Intl.NumberFormat("uz-UZ").format(value) + " UZS";
 
 function Checkbox({
   checked,
@@ -184,7 +188,7 @@ function persistItems(items: CartItem[]) {
 }
 
 export default function CartPage() {
-  const { t } = useTranslations();
+  const { t, locale } = useTranslations();
   const { setLoading: setTopLoading } = useLoading();
   const { isTelegram, user: telegramUser, initData } = useTelegram();
   const [items, setItems] = useState<CartItem[]>([]);
@@ -198,9 +202,33 @@ export default function CartPage() {
   const [phoneTouched, setPhoneTouched] = useState(false);
   const [contactPending, setContactPending] = useState(false);
   const [contactFailed, setContactFailed] = useState(false);
+  // Pickup / delivery settings of this shop. Fetched fresh (not the cached
+  // server snapshot) because the fee and thresholds decide what is charged.
+  const [fulfillment, setFulfillment] = useState<StoreFulfillment | null>(null);
+  const [fulfillmentFailed, setFulfillmentFailed] = useState(false);
+  const [fulfillmentAttempt, setFulfillmentAttempt] = useState(0);
 
   // Valid when the +998 prefix is followed by a full 9-digit subscriber number.
   const phoneValid = phone.replace(/\D/g, "").length >= 12;
+
+  useEffect(() => {
+    let stale = false;
+    fetchStoreInfo(getStoreSlugClient())
+      .then((info) => {
+        if (!stale) setFulfillment(normalizeFulfillment(info));
+      })
+      .catch(() => {
+        if (!stale) setFulfillmentFailed(true);
+      });
+    return () => {
+      stale = true;
+    };
+  }, [fulfillmentAttempt]);
+
+  const retryFulfillment = useCallback(() => {
+    setFulfillmentFailed(false);
+    setFulfillmentAttempt((n) => n + 1);
+  }, []);
 
   // In the mini app the shopper is already identified — don't make them retype
   // their name. Only prefills an untouched field.
@@ -275,6 +303,15 @@ export default function CartPage() {
     return { total, qty };
   }, [items]);
 
+  // Until the shop's settings arrive the hook runs on the legacy default; the
+  // section itself shows a skeleton and the order button stays disabled.
+  const checkout = useCheckoutFulfillment(
+    fulfillment ?? LEGACY_PICKUP_ONLY,
+    selectedTotals.total
+  );
+  const canSubmit =
+    selectedCount > 0 && !placing && fulfillment !== null && !checkout.blocked;
+
   const toggleAll = useCallback(() => {
     const next = !allSelected;
     setItems((prev) => {
@@ -320,11 +357,11 @@ export default function CartPage() {
 
   const placeOrder = useCallback(async () => {
     const selected = items.filter((i) => i.selected);
-    if (selected.length === 0) return;
-    if (!phoneValid) {
-      setPhoneTouched(true);
-      return;
-    }
+    if (selected.length === 0 || fulfillment === null) return;
+    // Surface every missing field at once rather than one per tap.
+    if (!phoneValid) setPhoneTouched(true);
+    const deliveryOk = checkout.validate();
+    if (!phoneValid || !deliveryOk) return;
     setPlacing(true);
     setOrderError(null);
     setTopLoading(true);
@@ -335,12 +372,16 @@ export default function CartPage() {
           phone: phone.trim(),
           customerName: customerName.trim() || undefined,
           note: note.trim() || undefined,
+          ...checkout.payload(),
+          // The shop's Telegram messages to this customer follow this language.
+          locale,
           // Verified server-side; when it checks out the order is bound to this
           // Telegram user for durable history and status notifications.
           initData: initData ?? undefined,
         },
         getStoreSlugClient()
       );
+      checkout.remember();
       // Remember the order id so the customer can track its status later.
       saveOrderId(result.id);
       // Remove the ordered items from the cart, keep the rest.
@@ -351,22 +392,24 @@ export default function CartPage() {
       });
       setPlacedOrder(result);
     } catch (err) {
-      if (err instanceof StoreApiError && err.code === "STORE_INSUFFICIENT_STOCK") {
-        setOrderError(
-          t("cart.errorInsufficientStock")
-            .replace("{name}", String(err.params?.name ?? ""))
-            .replace("{available}", String(err.params?.available ?? 0))
-        );
-      } else {
-        setOrderError(
-          err instanceof Error && err.message ? err.message : t("cart.orderError")
-        );
-      }
+      setOrderError(storeErrorMessage(err, t, t("cart.orderError")));
     } finally {
       setPlacing(false);
       setTopLoading(false);
     }
-  }, [items, phone, phoneValid, customerName, note, initData, setTopLoading, t]);
+  }, [
+    items,
+    fulfillment,
+    phone,
+    phoneValid,
+    customerName,
+    note,
+    checkout,
+    locale,
+    initData,
+    setTopLoading,
+    t,
+  ]);
 
   return (
     <AuthDrawerProvider>
@@ -389,8 +432,18 @@ export default function CartPage() {
               {t("cart.orderNumber")}:{" "}
               <span className="font-semibold text-black dark:text-white/90">#{placedOrder.id.slice(0, 8).toUpperCase()}</span>
               {" · "}
-              <span className="font-semibold text-black dark:text-white/90">{formatPrice(Math.round(Number(placedOrder.totalAmount)))}</span>
+              <span className="font-semibold text-black dark:text-white/90">
+                {formatPrice(toAmount(placedOrder.payable ?? placedOrder.totalAmount))}
+              </span>
             </p>
+            {placedOrder.deliveryType === "delivery" && (
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                {t("cart.deliveryFee")}:{" "}
+                {toAmount(placedOrder.deliveryFee) === 0
+                  ? t("cart.free")
+                  : formatPrice(toAmount(placedOrder.deliveryFee))}
+              </p>
+            )}
             <div className="mt-2 flex w-full max-w-sm flex-col gap-2">
               <Link
                 href="/orders"
@@ -518,6 +571,33 @@ export default function CartPage() {
               </ul>
             </section>
 
+            {/* Pickup or delivery (and where) */}
+            {fulfillment ? (
+              <FulfillmentSection model={checkout} />
+            ) : fulfillmentFailed ? (
+              <section className="flex items-center justify-between gap-3 rounded-[18px] bg-white px-[16px] py-[14px] dark:bg-gray-900">
+                <p className="text-md font-medium text-gray-600 dark:text-gray-300">
+                  {t("cart.fulfillmentLoadFailed")}
+                </p>
+                <button
+                  type="button"
+                  onClick={retryFulfillment}
+                  className="shrink-0 rounded-lg px-2 py-1 text-sm font-semibold text-brand-500 transition hover:text-brand-600 dark:text-brand-400"
+                >
+                  {t("cart.retry")}
+                </button>
+              </section>
+            ) : (
+              <section
+                className="flex animate-pulse flex-col gap-3 rounded-[18px] bg-white px-[16px] py-[12px] dark:bg-gray-900"
+                aria-hidden
+              >
+                <div className="h-6 w-32 rounded bg-gray-100 dark:bg-gray-800" />
+                <div className="h-[62px] w-full rounded-2xl bg-gray-100 dark:bg-gray-800" />
+                <div className="h-16 w-full rounded-xl bg-gray-100 dark:bg-gray-800" />
+              </section>
+            )}
+
             {/* Customer info (required for the store to call back) */}
             <section className="flex flex-col gap-[12px] rounded-[18px] bg-white dark:bg-gray-900 px-[16px] py-[12px]">
               <h2 className="text-xl font-semibold text-black dark:text-white/90">{t("cart.customerInfo")}</h2>
@@ -588,28 +668,18 @@ export default function CartPage() {
 
             {/* Order summary */}
             <div className="flex w-full flex-col gap-[16px]">
-              <section className="flex flex-col gap-[12px] rounded-[18px] bg-white dark:bg-gray-900 px-[16px] py-[12px]">
-                <h2 className="text-xl font-semibold text-black dark:text-white/90">{t("cart.yourOrder")}</h2>
-                <div className="border-gray110 flex flex-col gap-[8px] border-y border-dashed py-[16px]">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-medium text-gray90">
-                      {t("cart.productsTotal").replace("{count}", String(selectedTotals.qty))}
-                    </h4>
-                    <h3 className="text-lg font-semibold text-black dark:text-white/90">{formatPrice(selectedTotals.total)}</h3>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between">
-                  <h4 className="text-lg font-medium text-black10">{t("cart.totalPrice")}</h4>
-                  <h3 className="text-xl font-bold text-black30">{formatPrice(selectedTotals.total)}</h3>
-                </div>
-              </section>
+              <OrderSummary
+                subtotal={selectedTotals.total}
+                count={selectedTotals.qty}
+                model={checkout}
+              />
 
               <div className="hidden w-full lg:flex">
                 <button
                   type="button"
                   onClick={placeOrder}
                   className="h-[56px] w-full rounded-[16px] bg-brand-500 text-md font-semibold text-white hover:bg-brand-600 disabled:bg-gray-200 disabled:text-gray-500 dark:text-gray-400"
-                  disabled={selectedCount === 0 || placing}
+                  disabled={!canSubmit}
                 >
                   {placing ? t("common.sending") : t("cart.checkout")}
                 </button>
@@ -625,16 +695,19 @@ export default function CartPage() {
         >
           <div className="mx-auto flex max-w-7xl items-center justify-between px-[16px] py-[10px]">
             <div className="flex flex-col gap-[2px]">
-              <h3 className="text-lg font-bold text-black dark:text-white/90">{formatPrice(selectedTotals.total)}</h3>
-              <h4 className="text-md font-medium text-gray">
+              <h3 className="text-lg font-bold text-black dark:text-white/90">{formatPrice(checkout.payable)}</h3>
+              <h4 className="text-md font-medium text-gray-500 dark:text-gray-400">
                 {t("cart.productsTotal").replace("{count}", String(selectedTotals.qty)).replace(/:$/, "")}
+                {checkout.type === "delivery" && checkout.fee > 0 && (
+                  <> + {t("cart.deliveryFee").toLocaleLowerCase()}</>
+                )}
               </h4>
             </div>
             <button
               type="button"
               onClick={placeOrder}
-              className="h-[36px] rounded-lg bg-brand-500 px-4 text-md font-semibold text-white hover:bg-brand-600 disabled:bg-gray20 disabled:text-gray30"
-              disabled={selectedCount === 0 || placing}
+              className="h-[36px] rounded-lg bg-brand-500 px-4 text-md font-semibold text-white hover:bg-brand-600 disabled:bg-gray-200 disabled:text-gray-500"
+              disabled={!canSubmit}
             >
               {placing ? t("common.sending") : t("cart.checkout")}
             </button>

@@ -67,7 +67,34 @@ export interface TelegramWebApp {
   requestContact?(
     cb: (ok: boolean, event?: TelegramContactEvent) => void
   ): void;
+  /** Bot API 8.0+. Device location through the Telegram client, no browser prompt. */
+  LocationManager?: TelegramLocationManager;
   showAlert(message: string): void;
+}
+
+export interface TelegramLocationData {
+  latitude: number;
+  longitude: number;
+  altitude?: number | null;
+  course?: number | null;
+  speed?: number | null;
+  horizontal_accuracy?: number | null;
+  vertical_accuracy?: number | null;
+  course_accuracy?: number | null;
+  speed_accuracy?: number | null;
+}
+
+export interface TelegramLocationManager {
+  isInited: boolean;
+  /** False when the device has no location service at all. */
+  isLocationAvailable: boolean;
+  isAccessRequested: boolean;
+  isAccessGranted: boolean;
+  init(cb?: () => void): TelegramLocationManager;
+  /** `null` when access was declined or location is unavailable. */
+  getLocation(cb: (data: TelegramLocationData | null) => void): TelegramLocationManager;
+  /** Opens the mini app's settings so the user can re-enable location. */
+  openSettings(): TelegramLocationManager;
 }
 
 /** Shape of the (loosely documented) requestContact callback payload. */

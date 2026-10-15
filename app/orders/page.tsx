@@ -7,122 +7,18 @@ import { DesktopFooter } from "../components/DesktopFooter";
 import { DesktopHeader } from "../components/DesktopHeader";
 import { MobileHeader } from "../components/MobileHeader";
 import { MobileNav } from "../components/MobileNav";
+import { OrderCard } from "../components/orders/OrderCard";
 import { getSavedOrderIds } from "../../lib/order-store";
 import { getStoreSlugClient } from "../../lib/store-slug";
 import {
+  cancelStoreOrder,
   fetchMyTelegramOrders,
   fetchStoreOrderStatus,
+  StoreApiError,
   type StoreOrderStatus,
 } from "../../lib/store-api";
 import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
-
-const formatPrice = (value: number) =>
-  new Intl.NumberFormat("uz-UZ").format(value) + " UZS";
-
-function formatDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.toLocaleDateString("uz-UZ")} ${d.toLocaleTimeString("uz-UZ", {
-    hour: "2-digit",
-    minute: "2-digit",
-  })}`;
-}
-
-function CheckIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M4 10.5l4 4 8-9"
-        stroke="currentColor"
-        strokeWidth={2.4}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function CrossIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path
-        d="M5 5l10 10M15 5L5 15"
-        stroke="currentColor"
-        strokeWidth={2.4}
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-/** Sent → Accepted → Handed over progress for one order. Cancelled renders the
- *  reached steps in red with a cross on the last one. */
-function StatusStepper({ status }: { status: string }) {
-  const { t } = useTranslations();
-  const cancelled = status === "Cancelled";
-  // How many steps are complete: Pending = 1 (sent), Confirmed = 2, Completed = 3.
-  const reached = status === "Completed" ? 3 : status === "Confirmed" ? 2 : 1;
-  const steps = [
-    t("orders.stepSent"),
-    t("orders.stepConfirmed"),
-    t("orders.stepDone"),
-  ];
-
-  return (
-    <ol className="flex w-full items-start">
-      {steps.map((label, i) => {
-        const done = i < reached && !cancelled;
-        const failed = cancelled && i === reached - 1;
-        const reachedCancelled = cancelled && i < reached - 1;
-        const circle = done || reachedCancelled
-          ? "bg-brand-500 text-white"
-          : failed
-            ? "bg-error-500 text-white"
-            : "border-2 border-gray-200 bg-white text-transparent dark:border-gray-700 dark:bg-gray-900";
-        const lineDone = i < reached - 1 && !cancelled;
-        return (
-          <li key={label} className="flex flex-1 flex-col items-center gap-1.5">
-            <div className="flex w-full items-center">
-              <div
-                className={`mx-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${circle} ${
-                  i > 0 ? "" : ""
-                }`}
-              >
-                {failed ? <CrossIcon /> : <CheckIcon />}
-              </div>
-            </div>
-            <span
-              className={`px-1 text-center text-[11px] font-medium leading-tight ${
-                failed
-                  ? "text-error-600 dark:text-error-400"
-                  : done
-                    ? "text-gray-900 dark:text-white/90"
-                    : "text-gray-400 dark:text-gray-500"
-              }`}
-            >
-              {label}
-            </span>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-function statusBadge(status: string) {
-  switch (status) {
-    case "Pending":
-      return "bg-warning-50 text-warning-700 dark:bg-warning-500/10 dark:text-warning-400";
-    case "Confirmed":
-      return "bg-brand-50 text-brand-600 dark:bg-brand-500/10 dark:text-brand-400";
-    case "Completed":
-      return "bg-success-50 text-success-700 dark:bg-success-500/10 dark:text-success-400";
-    case "Cancelled":
-      return "bg-error-50 text-error-700 dark:bg-error-500/10 dark:text-error-400";
-    default:
-      return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300";
-  }
-}
 
 export default function OrdersPage() {
   const { t } = useTranslations();
@@ -180,26 +76,22 @@ export default function OrdersPage() {
     return () => clearInterval(id);
   }, [load, probed]);
 
-  const statusLabel = (status: string) => {
-    const key = `orders.status${status}`;
-    const label = t(key);
-    return label === key ? status : label;
-  };
-
-  const statusNote = (status: string) => {
-    switch (status) {
-      case "Pending":
-        return t("orders.pendingNote");
-      case "Confirmed":
-        return t("orders.confirmedNote");
-      case "Completed":
-        return t("orders.completedNote");
-      case "Cancelled":
-        return t("orders.cancelledNote");
-      default:
-        return null;
-    }
-  };
+  const cancelOrder = useCallback(
+    async (id: string) => {
+      try {
+        await cancelStoreOrder(id, getStoreSlugClient(), initData);
+      } catch (err) {
+        // The shop may have picked the order up in the meantime: pull the real
+        // state so the card stops offering cancel, then let it show the message.
+        if (err instanceof StoreApiError && err.code === "STORE_ORDER_NOT_CANCELLABLE") {
+          void load(true);
+        }
+        throw err;
+      }
+      await load(true);
+    },
+    [initData, load]
+  );
 
   return (
     <AuthDrawerProvider>
@@ -269,73 +161,7 @@ export default function OrdersPage() {
           </section>
         ) : (
           orders.map((order) => (
-            <article
-              key={order.id}
-              className="flex flex-col gap-4 rounded-2xl bg-white p-5 dark:bg-gray-900"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-white/90">
-                    {t("orders.order")} #{order.id.slice(0, 8).toUpperCase()}
-                  </h2>
-                  <p className="mt-0.5 text-xs font-medium text-gray-500 dark:text-gray-400">
-                    {formatDate(order.createdAt)}
-                  </p>
-                </div>
-                <span
-                  className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(order.status)}`}
-                >
-                  {statusLabel(order.status)}
-                </span>
-              </div>
-
-              <StatusStepper status={order.status} />
-
-              {statusNote(order.status) && (
-                <p
-                  className={`rounded-xl px-3.5 py-2.5 text-sm font-medium ${
-                    order.status === "Cancelled"
-                      ? "bg-error-50 text-error-700 dark:bg-error-500/10 dark:text-error-400"
-                      : "bg-gray-50 text-gray-600 dark:bg-white/[0.04] dark:text-gray-300"
-                  }`}
-                >
-                  {statusNote(order.status)}
-                </p>
-              )}
-
-              <div className="flex flex-col gap-1.5">
-                {order.items.slice(0, 3).map((item, i) => (
-                  <div
-                    key={`${order.id}-${i}`}
-                    className="flex items-center justify-between gap-3 text-sm"
-                  >
-                    <span className="min-w-0 truncate font-medium text-gray-700 dark:text-gray-300">
-                      {item.quantity} × {item.productName}
-                    </span>
-                    <span className="shrink-0 font-semibold text-gray-900 dark:text-white/90">
-                      {formatPrice(Math.round(Number(item.lineTotal)))}
-                    </span>
-                  </div>
-                ))}
-                {order.items.length > 3 && (
-                  <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
-                    +{order.items.length - 3}
-                  </span>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between border-t border-dashed border-gray-200 pt-3 dark:border-gray-700">
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {t("orders.productsCount").replace(
-                    "{count}",
-                    String(order.itemCount)
-                  )}
-                </span>
-                <span className="text-base font-bold text-gray-900 dark:text-white/90">
-                  {formatPrice(Math.round(Number(order.totalAmount)))}
-                </span>
-              </div>
-            </article>
+            <OrderCard key={order.id} order={order} onCancel={cancelOrder} />
           ))
         )}
       </main>
