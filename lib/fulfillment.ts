@@ -29,7 +29,7 @@ const moneyOrNull = (v: unknown): number | null => {
 /** Coerce the wire shape defensively; a store with neither method enabled is
  *  impossible by contract (STORE_NO_FULFILLMENT_METHOD), so pickup wins. */
 export function normalizeFulfillment(info: StoreInfo): StoreFulfillment {
-  const raw = info.fulfillment;
+  const raw = info.fulfilment;
   if (!raw) return LEGACY_PICKUP_ONLY;
   const pickupEnabled = raw.pickupEnabled !== false;
   const deliveryEnabled = raw.deliveryEnabled === true;

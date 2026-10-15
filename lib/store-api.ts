@@ -129,7 +129,8 @@ export interface StoreInfo {
   name: string | null;
   slug: string | null;
   /** Absent on a backend that predates delivery; callers treat that as pickup only. */
-  fulfillment?: StoreFulfillment | null;
+  // Wire name as the backend sends it (YETKAZISH.md §4.3): one "l".
+  fulfilment?: StoreFulfillment | null;
 }
 
 export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {
