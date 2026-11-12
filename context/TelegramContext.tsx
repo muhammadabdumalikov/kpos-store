@@ -117,7 +117,7 @@ const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "kpos.uz";
  *
  * The storefront is one build serving two surfaces: a normal browser site and
  * the mini app opened from a shop's bot. Everything Telegram-specific lives
- * here — viewport sizing, theme following, the native back button, and the
+ * here — viewport sizing, the native back button, and the
  * tenant redirect — so pages stay identical on both surfaces.
  */
 export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
@@ -127,7 +127,7 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
   const {webApp, isTelegram, startParam} = value;
   const router = useRouter();
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const { theme } = useTheme();
 
   // ── Boot: tenant handover, ready/expand, viewport vars ────────────────────
   useEffect(() => {
@@ -195,19 +195,6 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
       webApp.offEvent("contentSafeAreaChanged", applySafeArea);
     };
   }, [webApp, isTelegram, startParam]);
-
-  // ── Follow the Telegram client's light/dark setting ───────────────────────
-  useEffect(() => {
-    if (!webApp || !isTelegram) return;
-    const applyScheme = () => {
-      if (webApp.colorScheme === "dark" || webApp.colorScheme === "light") {
-        setTheme(webApp.colorScheme);
-      }
-    };
-    applyScheme();
-    webApp.onEvent("themeChanged", applyScheme);
-    return () => webApp.offEvent("themeChanged", applyScheme);
-  }, [webApp, isTelegram, setTheme]);
 
   // Paint the Telegram header/background to match the app surface, so the
   // native chrome does not sit on a mismatched colour.
