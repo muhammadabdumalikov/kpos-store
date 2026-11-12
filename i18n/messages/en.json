@@ -9,7 +9,10 @@
     "back": "Back",
     "share": "Share",
     "selectLanguage": "Select language",
-    "uzbek": "Uzbek"
+    "uzbek": "Uzbek",
+    "currency": "UZS",
+    "unitKg": "kg",
+    "retry": "Try again"
   },
   "nav": {
     "home": "Home",
@@ -18,32 +21,53 @@
     "favorites": "Favorites",
     "profile": "Profile",
     "mainNav": "Main navigation",
-    "orders": "My orders"
+    "orders": "Orders"
   },
   "header": {
     "login": "Sign in",
-    "searchAria": "Search"
+    "searchAria": "Search",
+    "cartAria": "Cart"
   },
   "home": {
-    "popular": "Popular products",
+    "popular": "Products",
     "more": "{count} more",
     "noProducts": "No products yet",
     "categoriesAria": "Product categories",
-    "popularAria": "Popular products",
+    "popularAria": "Products",
     "categories": "Categories",
     "seeAll": "See all",
     "heroTitle": "Your neighbourhood store",
     "heroSubtitle": "Place an order, the store confirms and prepares it",
-    "heroCta": "Browse catalog"
+    "heroCta": "Browse catalog",
+    "allProducts": "All products",
+    "fulfilmentAria": "How to get your order",
+    "pickup": "Pickup",
+    "delivery": "Delivery",
+    "deliveryFree": "free",
+    "freeFrom": "free from {amount}",
+    "minOrder": "orders from {min}",
+    "emptyTitle": "No products yet",
+    "emptyBody": "Products will appear here once the shop adds them",
+    "errorTitle": "Could not open the shop",
+    "errorBody": "There was a connection problem. Please try again in a moment."
   },
   "product": {
-    "buy": "Buy",
-    "addToFavorites": "Add to favorites",
-    "removeFromFavorites": "Remove from favorites",
-    "reviews": "Reviews",
-    "recommend": "We also recommend",
     "addToCart": "Add to cart",
-    "outOfStock": "Out of stock"
+    "add": "Add",
+    "soldOut": "Sold out",
+    "lowStock": "Few left",
+    "inCart": "In cart: {count}",
+    "maxReached": "No more in stock",
+    "noPhoto": "No photo",
+    "onlyLeft": "Only {count} left",
+    "onlyLeftKg": "Only {count} kg left",
+    "allInCart": "No more left, all of it is in your cart",
+    "sameCategory": "From this category",
+    "moreProducts": "More products",
+    "photoFailed": "Photo did not load",
+    "notFoundTitle": "Product not found",
+    "notFoundBody": "The shop may have removed it, or the link has a mistake",
+    "toCatalog": "Go to catalog"
   },
   "cart": {
     "title": "Cart",
@@ -114,11 +138,21 @@
     "selectCategory": "Select category",
     "sortLabel": "Sort:",
     "sort": {
-      "popular": "Popular",
-      "new": "New",
+      "new": "Newest first",
       "priceAsc": "Price: low to high",
       "priceDesc": "Price: high to low"
-    }
+    },
+    "searchTitle": "Results for “{q}”",
+    "count": "Found: {count}",
+    "sortAria": "Sort",
+    "emptySearchTitle": "Nothing found",
+    "emptySearchBody": "Try another word or remove the filter",
+    "emptyCategoryTitle": "Nothing in this category yet",
+    "clearSearch": "Clear search",
+    "clearFilters": "Clear filter",
+    "emptySearchBodyPlain": "Try another word",
+    "loadingMore": "Loading more products",
+    "moreError": "Could not load more products"
   },
   "auth": {
     "enterPhone": "Enter your phone number",
@@ -187,5 +221,12 @@
     "opening": "Opening the store...",
     "noStore": "Store not identified",
     "noStoreHint": "The link is incomplete. Open the store again from its Telegram link."
+  },
+  "cartBar": {
+    "items": "Items: {count}",
+    "open": "Go to cart"
+  },
+  "footer": {
+    "poweredBy": "Powered by KPOS"
   }
 }

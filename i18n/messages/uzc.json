@@ -9,7 +9,10 @@
     "back": "Орқага",
     "share": "Улашиш",
     "selectLanguage": "Тилни танлаш",
-    "uzbek": "Ўзбекча"
+    "uzbek": "Ўзбекча",
+    "currency": "сўм",
+    "unitKg": "кг",
+    "retry": "Қайта уриниш"
   },
   "nav": {
     "home": "Бош саҳифа",
@@ -18,32 +21,53 @@
     "favorites": "Севимлилар",
     "profile": "Профил",
     "mainNav": "Асосий навигация",
-    "orders": "Буюртмаларим"
+    "orders": "Буюртмалар"
   },
   "header": {
     "login": "Кириш",
-    "searchAria": "Қидириш"
+    "searchAria": "Қидириш",
+    "cartAria": "Сават"
   },
   "home": {
-    "popular": "Оммабоп маҳсулотлар",
+    "popular": "Маҳсулотлар",
     "more": "{count} яна",
     "noProducts": "Маҳсулотлар ҳозирча йўқ",
     "categoriesAria": "Маҳсулот категориялари",
-    "popularAria": "Машҳур маҳсулотлар",
+    "popularAria": "Маҳсулотлар",
     "categories": "Категориялар",
     "seeAll": "Ҳаммаси",
     "heroTitle": "Сизга яқин дўкон",
     "heroSubtitle": "Буюртма беринг, дўкон тасдиқлайди ва тайёрлаб қўяди",
-    "heroCta": "Каталогга ўтиш"
+    "heroCta": "Каталогга ўтиш",
+    "allProducts": "Барча маҳсулотлар",
+    "fulfilmentAria": "Буюртмани олиш усуллари",
+    "pickup": "Олиб кетиш",
+    "delivery": "Етказиб бериш",
+    "deliveryFree": "бепул",
+    "freeFrom": "{amount} дан бепул",
+    "minOrder": "буюртма {min} дан",
+    "emptyTitle": "Дўконда ҳозирча маҳсулот йўқ",
+    "emptyBody": "Дўкон маҳсулот қўшгач, улар шу ерда чиқади",
+    "errorTitle": "Дўкон очилмади",
+    "errorBody": "Алоқада муаммо бўлди. Бироздан кейин қайта уриниб кўринг."
   },
   "product": {
-    "buy": "Сотиб олиш",
-    "addToFavorites": "Севимлиларга қўшиш",
-    "removeFromFavorites": "Севимлилардан ўчириш",
-    "reviews": "Шарҳлар",
-    "recommend": "Биз ҳам тавсия қиламиз",
     "addToCart": "Саватга қўшиш",
-    "outOfStock": "Омборда йўқ"
+    "add": "Қўшиш",
+    "soldOut": "Тугаган",
+    "lowStock": "Оз қолди",
+    "inCart": "Саватда: {count}",
+    "maxReached": "Бошқа қолмаган",
+    "noPhoto": "Расм йўқ",
+    "onlyLeft": "Атиги {count} та қолди",
+    "onlyLeftKg": "Атиги {count} кг қолди",
+    "allInCart": "Бошқа қолмаган, ҳаммаси саватингизда",
+    "sameCategory": "Шу бўлимдан",
+    "moreProducts": "Бошқа маҳсулотлар",
+    "photoFailed": "Расм юкланмади",
+    "notFoundTitle": "Маҳсулот топилмади",
+    "notFoundBody": "Дўкон уни олиб ташлаган ёки ҳавола хато бўлиши мумкин",
+    "toCatalog": "Каталогга ўтиш"
   },
   "cart": {
     "title": "Сават",
@@ -114,11 +138,21 @@
     "selectCategory": "Категорияни танлаш",
     "sortLabel": "Саралаш:",
     "sort": {
-      "popular": "Машҳур",
-      "new": "Янги",
-      "priceAsc": "Арзон аввал",
-      "priceDesc": "Қиммат аввал"
-    }
+      "new": "Аввал янгилари",
+      "priceAsc": "Аввал арзонлари",
+      "priceDesc": "Аввал қимматлари"
+    },
+    "searchTitle": "«{q}» бўйича",
+    "count": "{count} та маҳсулот",
+    "sortAria": "Саралаш",
+    "emptySearchTitle": "Ҳеч нарса топилмади",
+    "emptySearchBody": "Бошқа сўз билан қидириб кўринг ёки филтрни олиб ташланг",
+    "emptyCategoryTitle": "Бу бўлимда ҳозирча маҳсулот йўқ",
+    "clearSearch": "Қидирувни тозалаш",
+    "clearFilters": "Филтрни тозалаш",
+    "emptySearchBodyPlain": "Бошқа сўз билан қидириб кўринг",
+    "loadingMore": "Яна маҳсулотлар юкланмоқда",
+    "moreError": "Яна маҳсулотларни юклаб бўлмади"
   },
   "auth": {
     "enterPhone": "Телефон рақамингизни киритинг",
@@ -187,5 +221,12 @@
     "opening": "Дўкон очилмоқда...",
     "noStore": "Дўкон аниқланмади",
     "noStoreHint": "Ҳавола тўлиқ эмас. Дўконнинг Телеграмдаги ҳаволасидан қайта очинг."
+  },
+  "cartBar": {
+    "items": "{count} та маҳсулот",
+    "open": "Саватга ўтиш"
+  },
+  "footer": {
+    "poweredBy": "KPOS асосида ишлайди"
   }
 }

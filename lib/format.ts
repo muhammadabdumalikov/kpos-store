@@ -1,8 +1,24 @@
 import type { Locale } from "@/i18n/config";
 
-/** Storefront money format: "1 250 000 UZS". Same shape on every page. */
-export const formatPrice = (value: number) =>
-  new Intl.NumberFormat("uz-UZ").format(value) + " UZS";
+/**
+ * Whole so'm with no-break-space thousand groups: 14500000 → "14 500 000".
+ * Done by hand rather than with Intl so the server render and the browser
+ * always agree (ICU builds differ in which space they group with).
+ */
+export function formatAmount(value: number): string {
+  const n = Math.round(Number.isFinite(value) ? value : 0);
+  const digits = Math.abs(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return n < 0 ? `−${digits}` : digits;
+}
+
+/**
+ * The storefront's one money formatter: "14 500 000 UZS", or with a unit
+ * "18 000 soʼm/kg". `currency` is the localised label (common.currency) where
+ * the caller has one; pages not yet moved to it keep the old "UZS".
+ */
+export function formatPrice(value: number, currency = "UZS", unit?: string | null): string {
+  return `${formatAmount(value)} ${currency}${unit ? `/${unit}` : ""}`;
+}
 
 /** Backend money fields arrive as numeric strings; round to whole so'm. */
 export const toAmount = (value: string | number | null | undefined) =>

@@ -9,7 +9,10 @@
     "back": "Orqaga",
     "share": "Ulashish",
     "selectLanguage": "Tilni tanlash",
-    "uzbek": "Oʼzbekcha"
+    "uzbek": "Oʼzbekcha",
+    "currency": "soʼm",
+    "unitKg": "kg",
+    "retry": "Qayta urinish"
   },
   "nav": {
     "home": "Bosh sahifa",
@@ -18,32 +21,53 @@
     "favorites": "Sevimlilar",
     "profile": "Profil",
     "mainNav": "Asosiy navigatsiya",
-    "orders": "Buyurtmalarim"
+    "orders": "Buyurtmalar"
   },
   "header": {
     "login": "Kirish",
-    "searchAria": "Qidirish"
+    "searchAria": "Qidirish",
+    "cartAria": "Savat"
   },
   "home": {
-    "popular": "Ommabop mahsulotlar",
+    "popular": "Mahsulotlar",
     "more": "{count} yana",
     "noProducts": "Mahsulotlar hozircha yoʼq",
     "categoriesAria": "Mahsulot kategoriyalari",
-    "popularAria": "Mashhur mahsulotlar",
+    "popularAria": "Mahsulotlar",
     "categories": "Kategoriyalar",
     "seeAll": "Hammasi",
     "heroTitle": "Sizga yaqin doʼkon",
     "heroSubtitle": "Buyurtma bering, doʼkon tasdiqlaydi va tayyorlab qoʼyadi",
-    "heroCta": "Katalogga oʼtish"
+    "heroCta": "Katalogga oʼtish",
+    "allProducts": "Barcha mahsulotlar",
+    "fulfilmentAria": "Buyurtmani olish usullari",
+    "pickup": "Olib ketish",
+    "delivery": "Yetkazib berish",
+    "deliveryFree": "bepul",
+    "freeFrom": "{amount} dan bepul",
+    "minOrder": "buyurtma {min} dan",
+    "emptyTitle": "Doʼkonda hozircha mahsulot yoʼq",
+    "emptyBody": "Doʼkon mahsulot qoʼshgach, ular shu yerda chiqadi",
+    "errorTitle": "Doʼkon ochilmadi",
+    "errorBody": "Aloqada muammo boʼldi. Birozdan keyin qayta urinib koʼring."
   },
   "product": {
-    "buy": "Sotib olish",
-    "addToFavorites": "Sevimlilarga qoʼshish",
-    "removeFromFavorites": "Sevimlilardan oʼchirish",
-    "reviews": "Sharhlar",
-    "recommend": "Biz ham tavsiya qilamiz",
     "addToCart": "Savatga qoʼshish",
-    "outOfStock": "Omborda yoʼq"
+    "add": "Qoʼshish",
+    "soldOut": "Tugagan",
+    "lowStock": "Oz qoldi",
+    "inCart": "Savatda: {count}",
+    "maxReached": "Boshqa qolmagan",
+    "noPhoto": "Rasm yoʼq",
+    "onlyLeft": "Atigi {count} ta qoldi",
+    "onlyLeftKg": "Atigi {count} kg qoldi",
+    "allInCart": "Boshqa qolmagan, hammasi savatingizda",
+    "sameCategory": "Shu boʼlimdan",
+    "moreProducts": "Boshqa mahsulotlar",
+    "photoFailed": "Rasm yuklanmadi",
+    "notFoundTitle": "Mahsulot topilmadi",
+    "notFoundBody": "Doʼkon uni olib tashlagan yoki havola xato boʼlishi mumkin",
+    "toCatalog": "Katalogga oʼtish"
   },
   "cart": {
     "title": "Savat",
@@ -114,11 +138,21 @@
     "selectCategory": "Kategoriyani tanlash",
     "sortLabel": "Saralash:",
     "sort": {
-      "popular": "Mashhur",
-      "new": "Yangi",
-      "priceAsc": "Arzon avval",
-      "priceDesc": "Qimmat avval"
-    }
+      "new": "Avval yangilari",
+      "priceAsc": "Avval arzonlari",
+      "priceDesc": "Avval qimmatlari"
+    },
+    "searchTitle": "«{q}» boʼyicha",
+    "count": "{count} ta mahsulot",
+    "sortAria": "Saralash",
+    "emptySearchTitle": "Hech narsa topilmadi",
+    "emptySearchBody": "Boshqa soʼz bilan qidirib koʼring yoki filtrni olib tashlang",
+    "emptyCategoryTitle": "Bu boʼlimda hozircha mahsulot yoʼq",
+    "clearSearch": "Qidiruvni tozalash",
+    "clearFilters": "Filtrni tozalash",
+    "emptySearchBodyPlain": "Boshqa soʼz bilan qidirib koʼring",
+    "loadingMore": "Yana mahsulotlar yuklanmoqda",
+    "moreError": "Yana mahsulotlarni yuklab boʼlmadi"
   },
   "auth": {
     "enterPhone": "Telefon raqamingizni kiriting",
@@ -187,5 +221,12 @@
     "opening": "Doʼkon ochilmoqda...",
     "noStore": "Doʼkon aniqlanmadi",
     "noStoreHint": "Havola toʼliq emas. Doʼkonning Telegramdagi havolasidan qayta oching."
+  },
+  "cartBar": {
+    "items": "{count} ta mahsulot",
+    "open": "Savatga oʼtish"
+  },
+  "footer": {
+    "poweredBy": "KPOSʼda ishlaydi"
   }
 }

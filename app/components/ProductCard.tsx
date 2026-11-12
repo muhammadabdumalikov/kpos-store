@@ -1,68 +1,109 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { useTranslations } from "@/hooks/useTranslations";
+import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
+import { stockOf } from "@/lib/stock";
+import { AddControl } from "./AddControl";
+import { BoxIcon } from "./icons/ShopIcons";
 
 type ProductCardProps = {
   id: string;
   name: string;
   price: number;
-  image?: string;
-  /** Stock on hand; when 0 or less the card shows an out-of-stock state. */
+  image?: string | null;
+  /** Stock on hand; 0 or less is sold out. Unknown means "no cap". */
   quantity?: number;
+  /** "kg" prices per kilogram; anything else is per piece. */
+  quantityType?: QuantityType;
 };
 
-const formatPrice = (value: number) =>
-  Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " UZS";
-
-export function ProductCard({ id, name, price, image, quantity }: ProductCardProps) {
+/**
+ * The shop's product tile: photo, price, name, and an add control that never
+ * leaves the page. The photo and text link to the product; the control sits
+ * outside the link so a tap on it only changes the cart.
+ */
+export function ProductCard({ id, name, price, image, quantity, quantityType }: ProductCardProps) {
   const { t } = useTranslations();
-  const outOfStock = quantity != null && quantity <= 0;
+  const { parts, format } = usePrice();
+  const [broken, setBroken] = useState(false);
+
+  const { max, soldOut, lowStock } = stockOf(quantity);
+  const showImage = Boolean(image) && !broken;
+  const { amount, suffix } = parts(price, quantityType);
 
   return (
-    <article className="group flex w-full flex-col overflow-hidden rounded-2xl bg-white p-2 shadow-theme-xs transition hover:shadow-theme-md dark:border dark:border-gray-800 dark:bg-gray-900 dark:shadow-none">
-      <Link href={`/products/${id}`} className="flex flex-1 flex-col">
-        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-800">
-          {image ? (
+    <article className="flex h-full min-w-0 flex-col">
+      <Link
+        href={`/products/${id}`}
+        aria-label={`${name}, ${format(price, quantityType)}${soldOut ? `, ${t("product.soldOut")}` : ""}`}
+        className="group flex min-w-0 flex-col rounded-[22px] outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-4 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900"
+      >
+        <div
+          className={`relative aspect-square w-full overflow-hidden rounded-[20px] ${
+            showImage ? "bg-gray-900/[0.035] dark:bg-gray-200" : "bg-gray-900/[0.035] dark:bg-white/[0.04]"
+          } ${soldOut && showImage ? "dark:opacity-60" : ""}`}
+        >
+          {showImage ? (
+            // Plain <img>: shop photos come from whatever host the shop's
+            // storage uses, and next/image throws on hosts missing from config.
+            // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={image}
+              src={image!}
               alt=""
-              className={`h-full w-full object-cover transition duration-300 group-hover:scale-[1.03] ${
-                outOfStock ? "opacity-50" : ""
+              loading="lazy"
+              decoding="async"
+              onError={() => setBroken(true)}
+              // Packshots sit on white: multiply melts that white into the
+              // tile. Dark mode keeps a soft light tile so the trick still
+              // works without a glaring white square.
+              className={`h-full w-full object-cover mix-blend-multiply motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03] ${
+                soldOut ? "opacity-40 grayscale" : ""
               }`}
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-3xl font-semibold text-gray-300 dark:text-gray-600">
-              {name.slice(0, 1)}
-            </div>
+            <span className={`flex h-full w-full flex-col items-center justify-center gap-1.5 text-gray-900/25 dark:text-white/25 ${soldOut ? "opacity-50" : ""}`}>
+              <BoxIcon className="h-9 w-9" />
+              <span className="sr-only">{t("product.noPhoto")}</span>
+            </span>
           )}
-          {outOfStock && (
-            <span className="absolute left-2 top-2 rounded-lg bg-gray-900/80 px-2 py-1 text-xs font-semibold text-white">
-              {t("product.outOfStock")}
+          {lowStock && (
+            <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-[3px] text-[11px] font-bold leading-4 text-warning-700">
+              {t("product.lowStock")}
             </span>
           )}
         </div>
-        <div className="flex w-full min-w-0 flex-1 flex-col gap-1 px-1 pt-2.5">
-          <p className="text-base font-bold text-gray-900 dark:text-white/90">
-            {formatPrice(price)}
-          </p>
-          <p className="text-sm font-medium leading-snug text-gray-600 line-clamp-2 dark:text-gray-400">
-            {name}
-          </p>
-        </div>
-      </Link>
-      {outOfStock ? (
-        <span className="mt-2.5 block w-full rounded-xl bg-gray-100 py-2.5 text-center text-sm font-semibold text-gray-400 dark:bg-gray-800 dark:text-gray-500">
-          {t("product.outOfStock")}
-        </span>
-      ) : (
-        <Link
-          href={`/products/${id}`}
-          className="mt-2.5 block w-full rounded-xl bg-brand-50 py-2.5 text-center text-sm font-semibold text-brand-600 transition hover:bg-brand-500 hover:text-white active:scale-[0.98] dark:bg-brand-500/10 dark:text-brand-400 dark:hover:bg-brand-500 dark:hover:text-white"
+
+        <p
+          className={`mt-2.5 flex flex-wrap items-baseline gap-x-1 px-0.5 tabular-nums ${
+            soldOut ? "text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-white"
+          }`}
         >
-          {t("product.buy")}
-        </Link>
-      )}
+          <span className="text-[17px] font-bold leading-6 tracking-[-0.01em]">{amount}</span>
+          <span
+            className={`text-[13px] font-semibold leading-5 ${
+              soldOut ? "" : "text-gray-500 dark:text-gray-400"
+            }`}
+          >
+            {suffix}
+          </span>
+        </p>
+        <h3 className="mt-0.5 line-clamp-2 break-words px-0.5 text-[14px] font-medium leading-5 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white">
+          {name}
+        </h3>
+      </Link>
+
+      <div className="mt-auto pt-2.5">
+        <AddControl
+          id={id}
+          name={name}
+          price={price}
+          max={max}
+          soldOut={soldOut}
+          unit={isWeighed(quantityType) ? t("common.unitKg") : null}
+        />
+      </div>
     </article>
   );
 }

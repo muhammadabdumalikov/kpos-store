@@ -9,7 +9,10 @@
     "back": "Назад",
     "share": "Поделиться",
     "selectLanguage": "Выбрать язык",
-    "uzbek": "Узбекский"
+    "uzbek": "Узбекский",
+    "currency": "сум",
+    "unitKg": "кг",
+    "retry": "Повторить"
   },
   "nav": {
     "home": "Главная",
@@ -18,32 +21,53 @@
     "favorites": "Избранное",
     "profile": "Профиль",
     "mainNav": "Основная навигация",
-    "orders": "Мои заказы"
+    "orders": "Заказы"
   },
   "header": {
     "login": "Войти",
-    "searchAria": "Поиск"
+    "searchAria": "Поиск",
+    "cartAria": "Корзина"
   },
   "home": {
-    "popular": "Популярные товары",
+    "popular": "Товары",
     "more": "ещё {count}",
     "noProducts": "Товаров пока нет",
     "categoriesAria": "Категории товаров",
-    "popularAria": "Популярные товары",
+    "popularAria": "Товары",
     "categories": "Категории",
     "seeAll": "Все",
     "heroTitle": "Магазин рядом с вами",
     "heroSubtitle": "Оформите заказ, магазин подтвердит и подготовит его",
-    "heroCta": "Перейти в каталог"
+    "heroCta": "Перейти в каталог",
+    "allProducts": "Все товары",
+    "fulfilmentAria": "Способы получения заказа",
+    "pickup": "Самовывоз",
+    "delivery": "Доставка",
+    "deliveryFree": "бесплатно",
+    "freeFrom": "бесплатно от {amount}",
+    "minOrder": "заказ от {min}",
+    "emptyTitle": "В магазине пока нет товаров",
+    "emptyBody": "Товары появятся здесь, когда магазин их добавит",
+    "errorTitle": "Не удалось открыть магазин",
+    "errorBody": "Проблема со связью. Попробуйте ещё раз чуть позже."
   },
   "product": {
-    "buy": "Купить",
-    "addToFavorites": "Добавить в избранное",
-    "removeFromFavorites": "Удалить из избранного",
-    "reviews": "Отзывы",
-    "recommend": "Мы также рекомендуем",
     "addToCart": "В корзину",
-    "outOfStock": "Нет в наличии"
+    "add": "Добавить",
+    "soldOut": "Нет в наличии",
+    "lowStock": "Осталось мало",
+    "inCart": "В корзине: {count}",
+    "maxReached": "Больше нет в наличии",
+    "noPhoto": "Нет фото",
+    "onlyLeft": "Осталось всего {count} шт.",
+    "onlyLeftKg": "Осталось всего {count} кг",
+    "allInCart": "Больше нет, всё уже в корзине",
+    "sameCategory": "Из этого раздела",
+    "moreProducts": "Другие товары",
+    "photoFailed": "Фото не загрузилось",
+    "notFoundTitle": "Товар не найден",
+    "notFoundBody": "Магазин мог убрать его, или в ссылке ошибка",
+    "toCatalog": "Перейти в каталог"
   },
   "cart": {
     "title": "Корзина",
@@ -114,11 +138,21 @@
     "selectCategory": "Выбрать категорию",
     "sortLabel": "Сортировка:",
     "sort": {
-      "popular": "Популярные",
-      "new": "Новые",
+      "new": "Сначала новые",
       "priceAsc": "Сначала дешёвые",
       "priceDesc": "Сначала дорогие"
-    }
+    },
+    "searchTitle": "По запросу «{q}»",
+    "count": "Найдено: {count}",
+    "sortAria": "Сортировка",
+    "emptySearchTitle": "Ничего не найдено",
+    "emptySearchBody": "Попробуйте другой запрос или снимите фильтр",
+    "emptyCategoryTitle": "В этом разделе пока нет товаров",
+    "clearSearch": "Сбросить поиск",
+    "clearFilters": "Сбросить фильтр",
+    "emptySearchBodyPlain": "Попробуйте другой запрос",
+    "loadingMore": "Загружаем ещё товары",
+    "moreError": "Не удалось загрузить ещё товары"
   },
   "auth": {
     "enterPhone": "Введите номер телефона",
@@ -187,5 +221,12 @@
     "opening": "Открываем магазин...",
     "noStore": "Магазин не определён",
     "noStoreHint": "Ссылка неполная. Откройте магазин заново по ссылке из Telegram."
+  },
+  "cartBar": {
+    "items": "Товаров: {count}",
+    "open": "Перейти в корзину"
+  },
+  "footer": {
+    "poweredBy": "Работает на KPOS"
   }
 }

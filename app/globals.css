@@ -156,6 +156,31 @@
     0px 20px 24px -4px rgba(16, 24, 40, 0.08),
     0px 8px 8px -4px rgba(16, 24, 40, 0.03);
   --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
+
+  /* Motion (same tokens as the dashboard). Always applied behind
+     `motion-safe:`; nothing waits on them to become usable. */
+  --animate-popover-in: popover-in 0.16s cubic-bezier(0.23, 1, 0.32, 1);
+  @keyframes popover-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(-4px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  --animate-ledger-in: ledger-in 0.22s cubic-bezier(0.23, 1, 0.32, 1) both;
+  @keyframes ledger-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
 @layer base {
@@ -171,7 +196,7 @@
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50 text-gray-900 antialiased dark:bg-gray-900 dark:text-white/90;
+    @apply relative font-normal font-outfit z-1 bg-white text-gray-900 antialiased dark:bg-gray-900 dark:text-white/90;
   }
 }
 

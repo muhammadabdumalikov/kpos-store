@@ -1,21 +1,37 @@
 "use client";
 
-import Link from "next/link";
-import { useTranslations } from "@/hooks/useTranslations";
+import { useEffect, useState } from "react";
 import LocaleSwitcher from "@/components/common/LocaleSwitcher";
 import { SearchInput } from "./SearchInput";
 
+/**
+ * Phone header: just the search pill and the language switch, sticky in the
+ * normal flow (no fixed bar, no padding hack on every page). The shop itself is
+ * named by the home page's h1, so there is no wordmark here. A hairline appears
+ * only once content scrolls underneath.
+ */
 export function MobileHeader() {
-  const { t } = useTranslations();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 2);
+    // A restored scroll position (back navigation) needs the hairline at once.
+    const frame = requestAnimationFrame(onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-10 flex min-h-[56px] items-center gap-3 border-b border-gray-200 bg-white pl-[max(16px,env(safe-area-inset-left))] pr-[max(12px,env(safe-area-inset-right))] dark:border-gray-800 dark:bg-gray-900 lg:hidden">
-      <Link
-        href="/"
-        className="shrink-0 text-lg font-extrabold tracking-tight text-brand-600 dark:text-brand-400"
-      >
-        {t("common.brand")}
-      </Link>
+    <header
+      className={`sticky top-0 z-20 flex items-center gap-2 border-b bg-white py-2 pl-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))] transition-colors duration-150 dark:bg-gray-900 lg:hidden ${
+        scrolled
+          ? "border-gray-900/[0.06] dark:border-white/[0.06]"
+          : "border-transparent"
+      }`}
+    >
       <SearchInput />
       <LocaleSwitcher />
     </header>

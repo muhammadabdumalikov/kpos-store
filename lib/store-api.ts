@@ -35,22 +35,37 @@ export interface StoreProductsResponse {
   limit: number;
 }
 
+/**
+ * One page of the shop's catalogue. Works on both sides:
+ * - Server Components get Next's data cache (`revalidate: 60`).
+ * - In the browser (catalogue paging) the caller passes the tenant slug from
+ *   `getStoreSlugClient()` and may pass an AbortSignal; no Next-only options.
+ *
+ * `sort` is sent only when it is not the default, so a default request is the
+ * same URL as before. A backend that predates `sort` ignores it and returns
+ * its default order (in stock first, then newest).
+ */
 export async function getStoreProducts(options?: {
   category?: string;
   search?: string;
+  sort?: string;
   page?: number;
   limit?: number;
   slug?: string | null;
+  signal?: AbortSignal;
 }): Promise<StoreProductsResponse> {
   const params = new URLSearchParams();
   if (options?.category) params.set("category", options.category);
   if (options?.search) params.set("search", options.search);
+  if (options?.sort && options.sort !== "new") params.set("sort", options.sort);
   if (options?.page) params.set("page", String(options.page));
   if (options?.limit) params.set("limit", String(options.limit));
   withStore(params, options?.slug);
 
-  const res = await fetch(`${STORE_API_URL}/store/products?${params.toString()}`, {
-    next: { revalidate: 60 },
+  const onServer = typeof window === "undefined";
+  const res = await fetch(`${apiBase()}/store/products?${params.toString()}`, {
+    signal: options?.signal,
+    ...(onServer ? { next: { revalidate: 60 } } : {}),
   });
   if (!res.ok) {
     throw new Error("Failed to fetch products");

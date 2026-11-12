@@ -413,10 +413,13 @@ export default function CartPage() {
 
   return (
     <AuthDrawerProvider>
+      {/* Stage 3 restyles this page; until then it keeps the old grey ground
+          its white cards were drawn against (the body is white now). */}
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <DesktopHeader />
       <MobileHeader />
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-[6px] pb-24 pt-[56px] lg:pb-8 lg:pt-4">
+      <main className="mx-auto flex max-w-7xl flex-col gap-[6px] pb-24 lg:pb-8 lg:pt-4">
         {placedOrder && (
           <section className="mx-[8px] flex flex-col items-center gap-[10px] rounded-2xl bg-white dark:bg-gray-900 px-[16px] py-[28px] text-center">
             <div className="flex h-[56px] w-[56px] items-center justify-center rounded-full bg-brand-50 dark:bg-brand-500/10">
@@ -723,6 +726,7 @@ export default function CartPage() {
 
       <MobileNav />
       <DesktopFooter />
+      </div>
     </AuthDrawerProvider>
   );
 }

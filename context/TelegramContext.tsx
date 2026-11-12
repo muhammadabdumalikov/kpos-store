@@ -16,6 +16,7 @@ import {
   type TelegramWebApp,
 } from "@/lib/telegram";
 import { slugFromHost } from "@/lib/store-slug";
+import { navigateBack } from "@/lib/nav-history";
 import { useTheme } from "./ThemeContext";
 
 type TelegramContextValue = {
@@ -212,7 +213,7 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
   // native chrome does not sit on a mismatched colour.
   useEffect(() => {
     if (!webApp || !isTelegram) return;
-    const surface = theme === "dark" ? "#101828" : "#f9fafb";
+    const surface = theme === "dark" ? "#101828" : "#ffffff";
     try {
       webApp.setHeaderColor?.(surface);
       webApp.setBackgroundColor?.(surface);
@@ -222,9 +223,13 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [webApp, isTelegram, theme]);
 
   // ── Native back button mirrors in-app navigation ──────────────────────────
+  // Same rule as the pages' own back controls (lib/nav-history): history Back
+  // while the previous entry is a storefront page; on a page the mini app was
+  // opened on (a deep link) there is nothing behind it, so go up instead, to
+  // the fallback the page registered (a product's category) or home.
   useEffect(() => {
     if (!webApp || !isTelegram) return;
-    const onBack = () => router.back();
+    const onBack = () => navigateBack(router);
     webApp.BackButton.onClick(onBack);
     if (pathname === "/") {
       webApp.BackButton.hide();

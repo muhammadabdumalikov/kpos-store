@@ -27,7 +27,7 @@ export default function RootLayout({
           strategy="beforeInteractive"
         />
       </head>
-      <body className="min-h-screen bg-gray-50 dark:bg-gray-900" suppressHydrationWarning>
+      <body className="min-h-screen bg-white dark:bg-gray-900" suppressHydrationWarning>
         <ThemeProvider>
           <LocaleProvider>
             <TelegramProvider>
