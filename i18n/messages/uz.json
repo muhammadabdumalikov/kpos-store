@@ -104,7 +104,7 @@
     "free": "Bepul",
     "freeFrom": "{amount} dan bepul",
     "deliveryMinShort": "{min} dan boshlab",
-    "deliveryMin": "Yetkazish {min} dan boshlab, yana {amount} lik tovar qoʼshing",
+    "deliveryMin": "Yetkazish {min} dan boshlab, yana {amount} lik mahsulot qoʼshing",
     "pickupAddressTitle": "Olib ketish manzili",
     "pickupNoAddress": "Buyurtmani doʼkondan olib ketasiz",
     "deliveryAddress": "Yetkazish manzili",
@@ -197,7 +197,7 @@
     "cancelReasons": {
       "customer_refused": "Buyurtma bekor qilindi: siz undan voz kechdingiz.",
       "no_answer": "Buyurtma bekor qilindi: doʼkon siz bilan bogʼlana olmadi.",
-      "out_of_stock": "Buyurtma bekor qilindi: tovar qolmagan.",
+      "out_of_stock": "Buyurtma bekor qilindi: mahsulot qolmagan.",
       "customer_cancelled": "Buyurtmani oʼzingiz bekor qildingiz.",
       "other": "Doʼkon buyurtmani bekor qildi."
     },
