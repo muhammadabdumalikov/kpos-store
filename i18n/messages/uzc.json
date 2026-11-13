@@ -30,6 +30,9 @@
   },
   "home": {
     "popular": "Маҳсулотлар",
+    "bannerPrev": "Олдинги баннер",
+    "bannerNext": "Кейинги баннер",
+    "bannerNth": "{n}-баннер",
     "more": "{count} яна",
     "noProducts": "Маҳсулотлар ҳозирча йўқ",
     "categoriesAria": "Маҳсулот категориялари",

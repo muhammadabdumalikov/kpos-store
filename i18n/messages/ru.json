@@ -30,6 +30,9 @@
   },
   "home": {
     "popular": "Товары",
+    "bannerPrev": "Предыдущий баннер",
+    "bannerNext": "Следующий баннер",
+    "bannerNth": "Баннер {n}",
     "more": "ещё {count}",
     "noProducts": "Товаров пока нет",
     "categoriesAria": "Категории товаров",

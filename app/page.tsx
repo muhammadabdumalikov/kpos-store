@@ -3,12 +3,14 @@ import { DesktopHeader } from "./components/DesktopHeader";
 import { MobileHeader } from "./components/MobileHeader";
 import { MobileNav } from "./components/MobileNav";
 import { AuthDrawerProvider } from "./components/AuthDrawerContext";
+import { BannerCarousel } from "./components/BannerCarousel";
 import { CartBar } from "./components/CartBar";
 import { HomeContent, type HomeCategory, type HomeProduct } from "./components/HomeContent";
 import { StoreIntro } from "./components/StoreIntro";
 import {
   getStoreProducts,
   getStoreCategories,
+  getStoreBanners,
   getStoreInfo,
   type StoreInfo,
 } from "../lib/store-api";
@@ -22,10 +24,12 @@ export default async function Home() {
 
   // Settled separately: a failed category list should not hide the products,
   // and only a failed product list means "the shop could not be opened".
-  const [infoRes, categoriesRes, productsRes] = await Promise.allSettled([
-    getStoreInfo(slug),
-    getStoreCategories(slug),
-    getStoreProducts({ limit: HOME_PRODUCTS, slug }),
+  const [infoRes, categoriesRes, productsRes, banners] = await Promise.all([
+    settle(getStoreInfo(slug)),
+    settle(getStoreCategories(slug)),
+    settle(getStoreProducts({ limit: HOME_PRODUCTS, slug })),
+    // Never rejects: a failed banner request is just "no banners".
+    getStoreBanners(slug),
   ]);
 
   const info: StoreInfo | null = infoRes.status === "fulfilled" ? infoRes.value : null;
@@ -61,6 +65,8 @@ export default async function Home() {
       <MobileHeader />
 
       <main className="mx-auto max-w-7xl px-4 pb-[calc(var(--nav-total)_+_24px)] lg:pb-16">
+        {/* Not when the shop could not be opened: the error panel stands alone. */}
+        {!failed && <BannerCarousel banners={banners} />}
         <HomeContent categories={categories} products={products} total={total} failed={failed} />
         <CartBar />
       </main>
@@ -68,5 +74,13 @@ export default async function Home() {
       <MobileNav />
       <DesktopFooter store={info} />
     </AuthDrawerProvider>
+  );
+}
+
+/** Promise.allSettled for one promise, so the tuple above keeps its types. */
+function settle<T>(promise: Promise<T>): Promise<PromiseSettledResult<T>> {
+  return promise.then(
+    (value) => ({ status: "fulfilled" as const, value }),
+    (reason: unknown) => ({ status: "rejected" as const, reason }),
   );
 }

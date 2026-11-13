@@ -168,6 +168,34 @@ export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {
   return res.json();
 }
 
+/** A banner at the top of the home page (Settings → Online store → Banners). */
+export interface StoreBanner {
+  id: string;
+  image: string;
+  title: string | null;
+  subtitle: string | null;
+  buttonLabel: string | null;
+  link: { type: "none" | "product" | "category" | "url"; value: string | null };
+}
+
+/**
+ * The banners showing today, in the owner's order. A failure is an empty
+ * list: banners are decoration, the shop must open without them.
+ */
+export async function getStoreBanners(slug?: string | null): Promise<StoreBanner[]> {
+  const params = withStore(new URLSearchParams(), slug);
+  try {
+    const res = await fetch(`${STORE_API_URL}/store/banners?${params.toString()}`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const data: unknown = await res.json();
+    return Array.isArray(data) ? (data as StoreBanner[]) : [];
+  } catch {
+    return [];
+  }
+}
+
 /** Client-side only: store info without the Next cache (checkout needs the
  *  current fee and thresholds, not a minute-old snapshot). */
 export async function fetchStoreInfo(slug?: string | null): Promise<StoreInfo> {

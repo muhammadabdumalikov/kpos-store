@@ -30,6 +30,9 @@
   },
   "home": {
     "popular": "Mahsulotlar",
+    "bannerPrev": "Oldingi banner",
+    "bannerNext": "Keyingi banner",
+    "bannerNth": "{n}-banner",
     "more": "{count} yana",
     "noProducts": "Mahsulotlar hozircha yoʼq",
     "categoriesAria": "Mahsulot kategoriyalari",

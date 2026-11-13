@@ -30,6 +30,9 @@
   },
   "home": {
     "popular": "Products",
+    "bannerPrev": "Previous banner",
+    "bannerNext": "Next banner",
+    "bannerNth": "Banner {n}",
     "more": "{count} more",
     "noProducts": "No products yet",
     "categoriesAria": "Product categories",
