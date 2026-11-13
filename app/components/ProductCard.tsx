@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
-import { stockOf } from "@/lib/stock";
-import { AddControl } from "./AddControl";
+import { onOrderLabel, stockOf } from "@/lib/stock";
+import { AddControl, ChooseLink } from "./AddControl";
 import { BoxIcon } from "./icons/ShopIcons";
 
 type ProductCardProps = {
@@ -17,6 +17,12 @@ type ProductCardProps = {
   quantity?: number;
   /** "kg" prices per kilogram; anything else is per piece. */
   quantityType?: QuantityType;
+  /** Taken on order: with no stock the card says "Buyurtmaga", not sold out. */
+  preorder?: boolean;
+  /** Free text after that label ("15–20 kun"). */
+  leadTime?: string | null;
+  /** The product has choices; the control leads to its page to make them. */
+  hasOptions?: boolean;
 };
 
 /**
@@ -24,20 +30,32 @@ type ProductCardProps = {
  * leaves the page. The photo and text link to the product; the control sits
  * outside the link so a tap on it only changes the cart.
  */
-export function ProductCard({ id, name, price, image, quantity, quantityType }: ProductCardProps) {
+export function ProductCard({
+  id,
+  name,
+  price,
+  image,
+  quantity,
+  quantityType,
+  preorder,
+  leadTime,
+  hasOptions,
+}: ProductCardProps) {
   const { t } = useTranslations();
   const { parts, format } = usePrice();
   const [broken, setBroken] = useState(false);
 
-  const { max, soldOut, lowStock } = stockOf(quantity);
+  const { max, soldOut, lowStock, onOrder } = stockOf(quantity, preorder);
   const showImage = Boolean(image) && !broken;
   const { amount, suffix } = parts(price, quantityType);
+  const orderLabel = onOrder ? onOrderLabel(t("preorder.label"), leadTime) : null;
+  const unit = isWeighed(quantityType) ? t("common.unitKg") : null;
 
   return (
     <article className="flex h-full min-w-0 flex-col">
       <Link
         href={`/products/${id}`}
-        aria-label={`${name}, ${format(price, quantityType)}${soldOut ? `, ${t("product.soldOut")}` : ""}`}
+        aria-label={`${name}, ${format(price, quantityType)}${soldOut ? `, ${t("product.soldOut")}` : ""}${orderLabel ? `, ${orderLabel}` : ""}`}
         className="group flex min-w-0 flex-col rounded-[22px] outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-4 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900"
       >
         <div
@@ -92,17 +110,20 @@ export function ProductCard({ id, name, price, image, quantity, quantityType }: 
         <h3 className="mt-0.5 line-clamp-2 break-words px-0.5 text-[14px] font-medium leading-5 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white">
           {name}
         </h3>
+        {orderLabel && (
+          <p className="mt-1 flex min-w-0 items-center gap-1.5 px-0.5 text-[13px] font-semibold leading-5 text-gray-500 dark:text-gray-400">
+            <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+            <span className="min-w-0 truncate">{orderLabel}</span>
+          </p>
+        )}
       </Link>
 
       <div className="mt-auto pt-2.5">
-        <AddControl
-          id={id}
-          name={name}
-          price={price}
-          max={max}
-          soldOut={soldOut}
-          unit={isWeighed(quantityType) ? t("common.unitKg") : null}
-        />
+        {hasOptions ? (
+          <ChooseLink id={id} name={name} soldOut={soldOut} unit={unit} />
+        ) : (
+          <AddControl id={id} name={name} price={price} max={max} soldOut={soldOut} unit={unit} />
+        )}
       </div>
     </article>
   );

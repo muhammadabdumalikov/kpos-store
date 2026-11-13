@@ -4,13 +4,7 @@ import { formatStepTime } from "@/lib/format";
 import type { StoreOrderStatus } from "@/lib/store-api";
 import { useTranslations } from "@/hooks/useTranslations";
 import { CheckIcon, CrossIcon } from "../icons/DeliveryIcons";
-import {
-  FLOW_STEPS,
-  flowOf,
-  normalizeStatus,
-  reachedStep,
-  stepTime,
-} from "./order-status";
+import { normalizeStatus, reachedStep, stepTime, stepsFor } from "./order-status";
 
 type StepState = "done" | "current" | "upcoming" | "failedBefore" | "failedAt";
 
@@ -18,7 +12,9 @@ type StepState = "done" | "current" | "upcoming" | "failedBefore" | "failedAt";
  * Four fixed stages per flow (delivery: sent, assembling, on the way,
  * delivered; pickup: sent, assembling, ready, handed over). Reached steps show
  * when they happened; the current one is ringed; a cancelled order paints the
- * reached steps red with a cross where it stopped.
+ * reached steps red with a cross where it stopped. While the shop waits for
+ * the goods of an accepted order, the second stage reads "waiting for the
+ * product" (see stepsFor).
  */
 export function StatusStepper({
   order,
@@ -29,8 +25,7 @@ export function StatusStepper({
   >;
 }) {
   const { t, locale } = useTranslations();
-  const flow = flowOf(order);
-  const steps = FLOW_STEPS[flow];
+  const steps = stepsFor(order);
   const status = normalizeStatus(order.status);
   const cancelled = status === "Cancelled";
   const reached = reachedStep(order);

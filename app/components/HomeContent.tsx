@@ -18,6 +18,10 @@ export type HomeProduct = {
   image?: string;
   quantity: number;
   quantityType: string | null;
+  /** Taken on order ("Buyurtmaga"), its lead time, and whether it has choices. */
+  preorder?: boolean;
+  leadTime?: string | null;
+  hasOptions?: boolean;
 };
 
 const sectionTitle =
@@ -108,6 +112,9 @@ export function HomeContent({
                   image={p.image}
                   quantity={p.quantity}
                   quantityType={p.quantityType}
+                  preorder={p.preorder}
+                  leadTime={p.leadTime}
+                  hasOptions={p.hasOptions}
                 />
               ))}
             </div>

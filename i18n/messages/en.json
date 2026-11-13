@@ -222,6 +222,20 @@
     "noStore": "Store not identified",
     "noStoreHint": "The link is incomplete. Open the store again from its Telegram link."
   },
+  "preorder": {
+    "label": "Pre-order",
+    "cartNote": "Your cart has a pre-order item. The order will be prepared once it arrives.",
+    "cartNoteLead": "Lead time: {lead}.",
+    "statusAwaiting": "Awaiting stock",
+    "awaitingNote": "The shop accepted your order. It will be prepared once the product arrives."
+  },
+  "productOptions": {
+    "choose": "Choose",
+    "missing": "Choose: {name}",
+    "description": "Description",
+    "more": "More",
+    "less": "Less"
+  },
   "cartBar": {
     "items": "Items: {count}",
     "open": "Go to cart"

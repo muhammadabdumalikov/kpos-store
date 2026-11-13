@@ -26,6 +26,15 @@ export interface StoreProduct {
   categoryId: string | null;
   quantity: number;
   quantityType: string | null;
+  // ONLAYN-SOTUVCHI.md §9.3. Optional: a backend that predates them omits them.
+  /** "Buyurtmaga olinadi": may be ordered with no stock; the line waits for the goods. */
+  preorder?: boolean;
+  /** Choice groups on the card ("Oʼlcham": 39, 40, 41); stock stays per card. */
+  options?: { name: string; values: string[] }[] | null;
+  /** Free text, e.g. "15–20 kun"; shown next to the "Buyurtmaga" label. */
+  leadTime?: string | null;
+  /** Plain text with line breaks, up to 2000 characters. */
+  description?: string | null;
 }
 
 export interface StoreProductsResponse {
@@ -171,6 +180,8 @@ export async function fetchStoreInfo(slug?: string | null): Promise<StoreInfo> {
 export interface StoreOrderItem {
   productId: string;
   quantity: number;
+  /** The buyer's choices from the product's options: at most 3, each side at most 40 chars. */
+  options?: { name: string; value: string }[];
 }
 
 export interface CreateStoreOrderInput {
@@ -205,6 +216,8 @@ export interface StoreOrderResult {
 
 export type StoreOrderStatusCode =
   | "Pending"
+  /** Accepted; the shop is waiting for the goods to arrive (ONLAYN-SOTUVCHI.md §2). */
+  | "Awaiting"
   | "Assembling"
   | "Delivering"
   | "ReadyForPickup"
@@ -243,7 +256,13 @@ export interface StoreOrderStatus {
   canCancel: boolean;
   /** Status transitions, oldest first (from order_status_events). */
   timeline: { status: string; at: string }[];
-  items: { productName: string; quantity: number; lineTotal: string }[];
+  items: {
+    productName: string;
+    quantity: number;
+    lineTotal: string;
+    /** The buyer's choices; absent from servers older than the online-seller release. */
+    options?: { name: string; value: string }[] | null;
+  }[];
 }
 
 /** Client-side: fetch a placed order's status (public; the id is the token). */

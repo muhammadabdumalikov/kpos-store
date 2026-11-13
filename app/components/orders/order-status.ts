@@ -32,13 +32,36 @@ export function normalizeStatus(status: string): string {
   return status === "Confirmed" ? "Assembling" : status;
 }
 
+/** `Awaiting`: the shop accepted the order and waits for the goods to arrive
+ *  (ONLAYN-SOTUVCHI.md §2). It stands where "assembling" does. */
+const AWAITING_STEP: FlowStep = { status: "Awaiting", labelKey: "preorder.statusAwaiting" };
+
+/**
+ * The four stages of this order. While the shop waits for the goods the
+ * second stage reads "waiting for the product" instead of "assembling"; once
+ * the order moves on it is the usual four again. An order cancelled while it
+ * was waiting keeps the waiting stage, since that is where it stopped.
+ */
+export function stepsFor(
+  order: Pick<StoreOrderStatus, "status" | "deliveryType" | "timeline">
+): FlowStep[] {
+  const steps = FLOW_STEPS[flowOf(order)];
+  const status = normalizeStatus(order.status);
+  const seen = (code: string) =>
+    (order.timeline ?? []).some((e) => normalizeStatus(e.status) === code);
+  const waiting =
+    status === "Awaiting" ||
+    (status === "Cancelled" && seen("Awaiting") && !steps.slice(1).some((s) => seen(s.status)));
+  return waiting ? steps.map((s, i) => (i === 1 ? AWAITING_STEP : s)) : steps;
+}
+
 /** Index of the furthest step the order reached, or -1 when the status is
  *  not part of this flow (unknown codes render as "sent"). For cancelled
  *  orders the timeline says where it stopped. */
 export function reachedStep(
   order: Pick<StoreOrderStatus, "status" | "deliveryType" | "timeline">
 ): number {
-  const steps = FLOW_STEPS[flowOf(order)];
+  const steps = stepsFor(order);
   const status = normalizeStatus(order.status);
   if (status !== "Cancelled") {
     const idx = steps.findIndex((s) => s.status === status);
@@ -81,6 +104,7 @@ export function statusLabelKey(status: string, flow: DeliveryType): string {
       ? "orders.statusCompletedDelivery"
       : "orders.statusCompletedPickup";
   }
+  if (s === "Awaiting") return AWAITING_STEP.labelKey;
   return `orders.status${s}`;
 }
 
@@ -88,6 +112,8 @@ export function statusNoteKey(status: string, flow: DeliveryType): string | null
   switch (normalizeStatus(status)) {
     case "Pending":
       return "orders.pendingNote";
+    case "Awaiting":
+      return "preorder.awaitingNote";
     case "Assembling":
       return "orders.assemblingNote";
     case "Delivering":
@@ -107,6 +133,7 @@ export function statusBadgeClass(status: string): string {
   switch (normalizeStatus(status)) {
     case "Pending":
       return "bg-warning-50 text-warning-700 dark:bg-warning-500/10 dark:text-warning-400";
+    case "Awaiting":
     case "Assembling":
     case "Delivering":
     case "ReadyForPickup":

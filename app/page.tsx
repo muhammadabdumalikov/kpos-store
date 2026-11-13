@@ -13,6 +13,7 @@ import {
   type StoreInfo,
 } from "../lib/store-api";
 import { getStoreSlugServer } from "../lib/store-slug-server";
+import { optionGroups } from "../lib/product-options";
 
 const HOME_PRODUCTS = 10;
 
@@ -42,6 +43,11 @@ export default async function Home() {
           image: p.image ?? undefined,
           quantity: p.quantity,
           quantityType: p.quantityType,
+          // Online seller (ONLAYN-SOTUVCHI.md): sold before it is in stock,
+          // and a card with choices opens the product page instead of adding.
+          preorder: p.preorder === true,
+          leadTime: p.leadTime?.trim() || null,
+          hasOptions: optionGroups(p.options).length > 0,
         }))
       : [];
   const total = productsRes.status === "fulfilled" ? productsRes.value.total : 0;

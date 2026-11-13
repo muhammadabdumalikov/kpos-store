@@ -1,10 +1,12 @@
 import { useSyncExternalStore } from "react";
+import { cleanChoices, type OptionChoice } from "./product-options";
 
 const CART_KEY = "KPOS_cart";
 /** Fired on this tab after every write; other tabs hear the `storage` event. */
 const CART_EVENT = "kpos:cart";
 
 export type CartLine = {
+  /** The product id. Several lines may share it: one per set of choices. */
   id: string;
   qty: number;
   selected: boolean;
@@ -15,7 +17,26 @@ export type CartLine = {
    * the cart page and the order always use the live price.
    */
   price?: number;
+  /**
+   * What the shopper chose from the product's options ("Oʼlcham: 41"), in the
+   * product's own group order. Absent for a product without options, and on
+   * carts written before options existed.
+   */
+  options?: OptionChoice[];
 };
+
+/**
+ * A line's identity: the product plus the choices made on it, so size 40 and
+ * size 41 of one product are two lines. Without choices it is the bare product
+ * id, which is what every cart written before options existed already used.
+ */
+export function lineKey(productId: string, options?: OptionChoice[]): string {
+  if (!options || options.length === 0) return productId;
+  return `${productId}|${JSON.stringify(options.map((o) => [o.name, o.value]))}`;
+}
+
+export const cartLineKey = (line: Pick<CartLine, "id" | "options">) =>
+  lineKey(line.id, line.options);
 
 function parse(raw: string | null): CartLine[] {
   if (!raw) return [];
@@ -31,11 +52,13 @@ function parse(raw: string | null): CartLine[] {
           typeof (x as CartLine).qty === "number" &&
           typeof (x as CartLine).selected === "boolean"
       )
-      .map((l) =>
-        typeof l.price === "number" && Number.isFinite(l.price)
-          ? l
-          : { id: l.id, qty: l.qty, selected: l.selected }
-      );
+      .map((l) => {
+        const line: CartLine = { id: l.id, qty: l.qty, selected: l.selected };
+        if (typeof l.price === "number" && Number.isFinite(l.price)) line.price = l.price;
+        const options = cleanChoices(l.options);
+        if (options) line.options = options;
+        return line;
+      });
   } catch {
     return [];
   }
@@ -57,7 +80,8 @@ export function getCart(): CartLine[] {
 export function setCart(lines: CartLine[]): void {
   if (typeof window === "undefined") return;
   // Callers that do not know about price snapshots (the cart page rewrites
-  // lines as {id, qty, selected}) must not wipe them.
+  // lines without them) must not wipe them. The price belongs to the product,
+  // so every line of one product shares the snapshot.
   const previous = new Map(getCart().map((l) => [l.id, l.price]));
   const next = lines.map((l) => {
     if (typeof l.price === "number") return l;
@@ -72,52 +96,75 @@ export function setCart(lines: CartLine[]): void {
   window.dispatchEvent(new Event(CART_EVENT));
 }
 
-export function addToCart(productId: string, qty: number = 1, price?: number): void {
+export function addToCart(
+  productId: string,
+  qty: number = 1,
+  price?: number,
+  options?: OptionChoice[]
+): void {
   const cart = getCart();
-  const existing = cart.find((l) => l.id === productId);
+  const key = lineKey(productId, options);
+  const existing = cart.find((l) => cartLineKey(l) === key);
   const next: CartLine[] = existing
     ? cart.map((l) =>
-        l.id === productId
+        cartLineKey(l) === key
           ? { ...l, qty: l.qty + qty, ...(price !== undefined ? { price } : {}) }
           : l
       )
-    : [...cart, { id: productId, qty, selected: true, ...(price !== undefined ? { price } : {}) }];
+    : [
+        ...cart,
+        {
+          id: productId,
+          qty,
+          selected: true,
+          ...(price !== undefined ? { price } : {}),
+          ...(options && options.length > 0 ? { options } : {}),
+        },
+      ];
   setCart(next);
 }
 
-export function removeFromCart(productId: string): void {
-  setCart(getCart().filter((l) => l.id !== productId));
+export function removeFromCart(productId: string, options?: OptionChoice[]): void {
+  const key = lineKey(productId, options);
+  setCart(getCart().filter((l) => cartLineKey(l) !== key));
 }
 
 export function updateCartLine(
   productId: string,
-  update: Partial<Pick<CartLine, "qty" | "selected" | "price">>
+  update: Partial<Pick<CartLine, "qty" | "selected" | "price">>,
+  options?: OptionChoice[]
 ): void {
+  const key = lineKey(productId, options);
   const cart = getCart();
-  const next = cart.map((l) =>
-    l.id === productId ? { ...l, ...update } : l
-  );
+  const next = cart.map((l) => (cartLineKey(l) === key ? { ...l, ...update } : l));
   setCart(next);
 }
 
 /** Set a line to an absolute quantity; 0 or less removes it. */
-export function setLineQty(productId: string, qty: number, price?: number): void {
+export function setLineQty(
+  productId: string,
+  qty: number,
+  price?: number,
+  options?: OptionChoice[]
+): void {
   if (qty <= 0) {
-    removeFromCart(productId);
+    removeFromCart(productId, options);
     return;
   }
-  const cart = getCart();
-  if (cart.some((l) => l.id === productId)) {
-    updateCartLine(productId, price !== undefined ? { qty, price } : { qty });
+  const key = lineKey(productId, options);
+  if (getCart().some((l) => cartLineKey(l) === key)) {
+    updateCartLine(productId, price !== undefined ? { qty, price } : { qty }, options);
   } else {
-    addToCart(productId, qty, price);
+    addToCart(productId, qty, price, options);
   }
 }
 
-/** Keep a line's price snapshot current when its card shows a newer price. */
+/** Keep a product's price snapshot current when its card shows a newer price
+ *  (on every line of the product, whatever was chosen on it). */
 export function refreshPriceSnapshot(productId: string, price: number): void {
-  const line = getCart().find((l) => l.id === productId);
-  if (line && line.price !== price) updateCartLine(productId, { price });
+  const cart = getCart();
+  if (!cart.some((l) => l.id === productId && l.price !== price)) return;
+  setCart(cart.map((l) => (l.id === productId ? { ...l, price } : l)));
 }
 
 // ── Subscription ───────────────────────────────────────────────────────────
@@ -176,11 +223,22 @@ export function summarizeCart(lines: CartLine[]): CartSummary {
 /**
  * One line's quantity, live. A number snapshot lets React skip every card
  * whose own line did not change, which matters on a 500-product catalogue.
+ * With `options` it is the line for exactly those choices.
  */
-export function useCartQty(productId: string): number {
+export function useCartQty(productId: string, options?: OptionChoice[]): number {
+  const key = lineKey(productId, options);
   return useSyncExternalStore(
     subscribe,
-    () => snapshot().find((l) => l.id === productId)?.qty ?? 0,
+    () => snapshot().find((l) => cartLineKey(l) === key)?.qty ?? 0,
+    () => 0
+  );
+}
+
+/** Units of one product across all its lines (every set of choices), live. */
+export function useProductCartQty(productId: string): number {
+  return useSyncExternalStore(
+    subscribe,
+    () => snapshot().reduce((sum, l) => (l.id === productId ? sum + l.qty : sum), 0),
     () => 0
   );
 }

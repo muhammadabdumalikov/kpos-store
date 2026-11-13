@@ -224,6 +224,9 @@ function CatalogResults({
                   image={p.image}
                   quantity={p.quantity}
                   quantityType={p.quantityType}
+                  preorder={p.preorder}
+                  leadTime={p.leadTime}
+                  hasOptions={p.hasOptions}
                 />
               ))}
               {status === "loading" &&

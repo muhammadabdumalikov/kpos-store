@@ -170,6 +170,12 @@ export function OrderCard({
           >
             <span className="min-w-0 truncate font-medium text-gray-700 dark:text-gray-300">
               {item.quantity} × {item.productName}
+              {item.options && item.options.length > 0 && (
+                <span className="font-normal text-gray-500 dark:text-gray-400">
+                  {" · "}
+                  {item.options.map((o) => o.value).join(" · ")}
+                </span>
+              )}
             </span>
             <span className="shrink-0 font-semibold text-gray-900 dark:text-white/90">
               {formatPrice(toAmount(item.lineTotal))}

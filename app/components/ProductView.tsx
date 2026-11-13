@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
-import { useCartQty } from "@/lib/cart-store";
+import { useCartQty, useProductCartQty } from "@/lib/cart-store";
 import type { CatalogProduct } from "@/lib/catalog-pages";
-import { stockOf } from "@/lib/stock";
+import type { OptionChoice, OptionGroup } from "@/lib/product-options";
+import { onOrderLabel, stockOf } from "@/lib/stock";
 import type { StoreInfo } from "@/lib/store-api";
 import { AddControl } from "./AddControl";
 import { BackButton, useBackFallback } from "./BackButton";
@@ -23,6 +24,14 @@ export type ProductViewProduct = {
   image: string | null;
   quantity: number;
   quantityType: QuantityType;
+  /** Taken on order: with no stock it says "Buyurtmaga" and can still be added. */
+  preorder?: boolean;
+  /** Free text after that label ("15–20 kun"). */
+  leadTime?: string | null;
+  /** Choice groups, already normalised (lib/product-options). */
+  options?: OptionGroup[];
+  /** Plain text; line breaks are kept. */
+  description?: string | null;
 };
 
 export type RelatedProducts = {
@@ -41,8 +50,9 @@ export function categoryHref(categoryId: string | null | undefined) {
 
 /**
  * The product page body: the photo, then what the shopper decides on (name,
- * price, the rare stock warning) and the one action, then more from the same
- * shelf. The server page fetches; this renders, so every string is localised.
+ * price, the rare stock warning, the choices) and the one action, then the
+ * description and more from the same shelf. The server page fetches; this
+ * renders, so every string is localised.
  */
 export function ProductView({
   product,
@@ -61,17 +71,49 @@ export function ProductView({
   const { t } = useTranslations();
   const { parts } = usePrice();
   const { isTelegram } = useTelegram();
-  const qty = useCartQty(product.id);
   const fulfilment = useFulfilmentLines(info);
+
+  // One value per group, picked on chips. A group with a single value needs
+  // no tap. The cart line is the product plus these choices, so another size
+  // is another line with its own count.
+  const groups = product.options ?? [];
+  const [picked, setPicked] = useState<Record<string, string>>(() =>
+    Object.fromEntries(groups.filter((g) => g.values.length === 1).map((g) => [g.name, g.values[0]]))
+  );
+  // The group the shopper was asked for after tapping Add without it.
+  const [asked, setAsked] = useState<string | null>(null);
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const firstMissing = groups.find((g) => !picked[g.name])?.name ?? null;
+  // While a choice is missing this matches no stored line (its value is
+  // empty), so the control shows Add and `beforeAdd` asks for the choice.
+  const choices: OptionChoice[] | undefined =
+    groups.length > 0 ? groups.map((g) => ({ name: g.name, value: picked[g.name] ?? "" })) : undefined;
+  const qty = useCartQty(product.id, choices);
+  const productQty = useProductCartQty(product.id);
+
+  const pick = (group: string, value: string) => {
+    setPicked((prev) => ({ ...prev, [group]: value }));
+    if (asked === group) setAsked(null);
+  };
+  const beforeAdd = () => {
+    if (!firstMissing) return true;
+    setAsked(firstMissing);
+    groupRefs.current[firstMissing]?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return false;
+  };
 
   const backHref = categoryHref(categoryId);
   useBackFallback(backHref);
 
-  const { max, soldOut, lowStock } = stockOf(product.quantity);
+  const { max, soldOut, lowStock, onOrder } = stockOf(product.quantity, product.preorder);
   const weighed = isWeighed(product.quantityType);
   const unit = weighed ? t("common.unitKg") : null;
   const { amount, suffix } = parts(product.price, product.quantityType);
-  const atCap = qty > 0 && qty >= max && Number.isFinite(max);
+  // Stock is per product, not per choice: what the other lines of this
+  // product hold is not available to this one.
+  const lineMax = max - (productQty - qty);
+  const atCap = productQty > 0 && productQty >= max && Number.isFinite(max);
+  const description = product.description?.trim() || null;
 
   return (
     <>
@@ -142,22 +184,48 @@ export function ProductView({
             </p>
           )}
 
+          {onOrder && (
+            <p className="mt-1.5 flex items-center gap-2 text-[14px] font-semibold leading-5 text-gray-600 dark:text-gray-300">
+              <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+              <span className="min-w-0 break-words">{onOrderLabel(t("preorder.label"), product.leadTime)}</span>
+            </p>
+          )}
+
+          {groups.length > 0 && (
+            <div className="mt-5 flex flex-col gap-4 lg:mt-6 lg:max-w-[520px]">
+              {groups.map((group) => (
+                <OptionChips
+                  key={group.name}
+                  group={group}
+                  value={picked[group.name] ?? null}
+                  asked={asked === group.name}
+                  onPick={(value) => pick(group.name, value)}
+                  containerRef={(el) => {
+                    groupRefs.current[group.name] = el;
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
           <div className="mt-5 flex gap-3 lg:mt-7 lg:max-w-[440px]">
             <div className="min-w-0 flex-1">
               <AddControl
                 id={product.id}
                 name={product.name}
                 price={product.price}
-                max={max}
+                max={lineMax}
                 soldOut={soldOut}
                 unit={unit}
                 size="lg"
                 tone="primary"
+                options={choices}
+                beforeAdd={groups.length > 0 ? beforeAdd : undefined}
               />
             </div>
             {/* Desktop has no cart bar: once this product is in the cart, the
                 way to it sits right here. */}
-            {qty > 0 && (
+            {productQty > 0 && (
               <div className="hidden shrink-0 lg:block">
                 <Link href="/cart" className={`${pillSecondary} h-[52px] pr-4`}>
                   {t("cartBar.open")}
@@ -167,8 +235,16 @@ export function ProductView({
             )}
           </div>
           <p aria-live="polite" className="min-h-0 text-[13px] font-medium leading-5 text-gray-500 dark:text-gray-400">
-            {atCap && <span className="mt-2.5 block">{t("product.allInCart")}</span>}
+            {asked ? (
+              <span className="mt-2.5 block text-[14px] font-semibold text-error-600 dark:text-error-400">
+                {t("productOptions.missing").replace("{name}", asked)}
+              </span>
+            ) : (
+              atCap && <span className="mt-2.5 block">{t("product.allInCart")}</span>
+            )}
           </p>
+
+          {description && <Description text={description} />}
 
           {fulfilment.length > 0 && (
             <ul
@@ -226,12 +302,126 @@ export function ProductView({
                 image={p.image}
                 quantity={p.quantity}
                 quantityType={p.quantityType}
+                preorder={p.preorder}
+                leadTime={p.leadTime}
+                hasOptions={p.hasOptions}
               />
             ))}
           </div>
         </section>
       )}
     </>
+  );
+}
+
+/**
+ * One choice group as a row of chips: the group's name with what is picked,
+ * then every value as a 44px pill. Tapping Add without a pick marks the group.
+ */
+function OptionChips({
+  group,
+  value,
+  asked,
+  onPick,
+  containerRef,
+}: {
+  group: OptionGroup;
+  value: string | null;
+  /** The shopper tried to add without choosing here. */
+  asked: boolean;
+  onPick: (value: string) => void;
+  containerRef: (el: HTMLDivElement | null) => void;
+}) {
+  const labelId = useId();
+
+  return (
+    <div ref={containerRef} role="group" aria-labelledby={labelId} className="min-w-0 scroll-mt-24">
+      <p
+        id={labelId}
+        className={`break-words text-[14px] font-semibold leading-5 ${
+          asked ? "text-error-600 dark:text-error-400" : "text-gray-500 dark:text-gray-400"
+        }`}
+      >
+        {group.name}
+        {value && (
+          <>
+            : <span className="text-gray-900 dark:text-white">{value}</span>
+          </>
+        )}
+      </p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {group.values.map((v) => {
+          const active = v === value;
+          return (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onPick(v)}
+              className={`flex h-11 min-w-[52px] max-w-full items-center justify-center rounded-full px-4 text-[15px] leading-none transition-[background-color,color,transform] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-2 focus-visible:ring-offset-white motion-safe:active:scale-[0.97] motion-reduce:transition-none dark:focus-visible:ring-offset-gray-900 ${
+                active
+                  ? "bg-gray-900 font-bold text-white dark:bg-white dark:text-gray-900"
+                  : `bg-gray-900/[0.05] font-semibold text-gray-800 hover:bg-gray-900/[0.08] dark:bg-white/[0.07] dark:text-gray-200 dark:hover:bg-white/[0.11] ${
+                      asked ? "ring-1 ring-inset ring-error-500/50" : ""
+                    }`
+              }`}
+            >
+              <span className="min-w-0 truncate">{v}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The shop's own words about the product: plain text with its line breaks,
+ * folded to six lines when longer, with a toggle to read the rest.
+ */
+function Description({ text }: { text: string }) {
+  const { t } = useTranslations();
+  const bodyId = useId();
+  const ref = useRef<HTMLParagraphElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  // Whether six lines cut the text; measured, since it depends on the width.
+  const [long, setLong] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    // Only the folded text can be measured against its own clamp.
+    if (!el || expanded || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => setLong(el.scrollHeight > el.clientHeight + 1));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [expanded, text]);
+
+  return (
+    <section className="mt-6 lg:mt-8 lg:max-w-[520px]">
+      <h2 className="text-[16px] font-bold leading-6 text-gray-900 dark:text-white">
+        {t("productOptions.description")}
+      </h2>
+      <p
+        ref={ref}
+        id={bodyId}
+        className={`mt-1.5 whitespace-pre-line break-words text-[15px] font-medium leading-6 text-gray-600 dark:text-gray-300 ${
+          expanded ? "" : "line-clamp-6"
+        }`}
+      >
+        {text}
+      </p>
+      {long && (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          aria-controls={bodyId}
+          onClick={() => setExpanded((v) => !v)}
+          className="-ml-1 mt-0.5 inline-flex h-11 items-center rounded-full px-1 text-[14px] font-bold text-gray-900 transition-colors hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 dark:text-white dark:hover:text-gray-300"
+        >
+          {expanded ? t("productOptions.less") : t("productOptions.more")}
+        </button>
+      )}
+    </section>
   );
 }
 

@@ -1,6 +1,7 @@
 // Plain module (not "use client"): the server page reads PAGE_SIZE and the
 // mapper, the client keeps its page cache here.
 
+import { optionGroups } from "./product-options";
 import type { StoreProduct } from "./store-api";
 
 /** Products per catalogue request, first page and every page after it. */
@@ -21,6 +22,12 @@ export type CatalogProduct = {
   image?: string;
   quantity: number;
   quantityType: string | null;
+  /** Taken on order: never sold out, the card says "Buyurtmaga" instead. */
+  preorder?: boolean;
+  /** Free text next to that label ("15–20 kun"). */
+  leadTime?: string | null;
+  /** The product has choices (size, colour); they are made on its page. */
+  hasOptions?: boolean;
 };
 
 export function toCatalogProduct(p: StoreProduct): CatalogProduct {
@@ -32,6 +39,9 @@ export function toCatalogProduct(p: StoreProduct): CatalogProduct {
     image: p.image ?? undefined,
     quantity: p.quantity,
     quantityType: p.quantityType,
+    preorder: p.preorder === true,
+    leadTime: p.leadTime?.trim() || null,
+    hasOptions: optionGroups(p.options).length > 0,
   };
 }
 

@@ -222,6 +222,20 @@
     "noStore": "Doʼkon aniqlanmadi",
     "noStoreHint": "Havola toʼliq emas. Doʼkonning Telegramdagi havolasidan qayta oching."
   },
+  "preorder": {
+    "label": "Buyurtmaga",
+    "cartNote": "Savatda buyurtmaga keladigan mahsulot bor. Buyurtmangiz u kelgach tayyorlanadi.",
+    "cartNoteLead": "Kelish muddati: {lead}.",
+    "statusAwaiting": "Mahsulot kutilmoqda",
+    "awaitingNote": "Doʼkon buyurtmani qabul qildi. Mahsulot kelgach, buyurtmangiz tayyorlanadi."
+  },
+  "productOptions": {
+    "choose": "Tanlash",
+    "missing": "Tanlang: {name}",
+    "description": "Tavsif",
+    "more": "Koʼproq",
+    "less": "Kamroq"
+  },
   "cartBar": {
     "items": "{count} ta mahsulot",
     "open": "Savatga oʼtish"

@@ -8,6 +8,7 @@ import { MobileNav } from "../../components/MobileNav";
 import { ProductView, type RelatedProducts } from "../../components/ProductView";
 import { toCatalogProduct } from "../../../lib/catalog-pages";
 import { formatPrice, toAmount } from "../../../lib/format";
+import { optionGroups } from "../../../lib/product-options";
 import {
   getStoreCategories,
   getStoreInfo,
@@ -68,7 +69,7 @@ async function loadRelated(product: StoreProduct, slug: string | null): Promise<
     if (product.categoryId) {
       const res = await getStoreProducts({ category: product.categoryId, limit: RELATED + 1, slug });
       const same = others(res.products);
-      if (same.some((p) => p.quantity >= 1)) return { kind: "category", products: same };
+      if (same.some((p) => p.quantity >= 1 || p.preorder)) return { kind: "category", products: same };
     }
     const res = await getStoreProducts({ limit: RELATED + 1, slug });
     const shop = others(res.products);
@@ -108,6 +109,8 @@ export default async function ProductPage({ params }: Params) {
 
       <main className="mx-auto max-w-7xl px-4 pb-[calc(var(--nav-total)_+_24px)] lg:pb-16">
         <ProductView
+          // The picked choices are this product's own: start clean on another.
+          key={product.id}
           product={{
             id: product.id,
             name: product.name,
@@ -115,6 +118,10 @@ export default async function ProductPage({ params }: Params) {
             image: product.image ?? null,
             quantity: product.quantity,
             quantityType: product.quantityType,
+            preorder: product.preorder === true,
+            leadTime: product.leadTime?.trim() || null,
+            options: optionGroups(product.options),
+            description: product.description ?? null,
           }}
           category={categoryName && product.categoryId ? { id: product.categoryId, name: categoryName } : null}
           categoryId={product.categoryId ?? null}

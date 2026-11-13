@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "@/hooks/useTranslations";
-import { refreshPriceSnapshot, setLineQty, useCartQty } from "@/lib/cart-store";
-import { MinusIcon, PlusIcon } from "./icons/ShopIcons";
+import { refreshPriceSnapshot, setLineQty, useCartQty, useProductCartQty } from "@/lib/cart-store";
+import type { OptionChoice } from "@/lib/product-options";
+import { ChevronRightIcon, MinusIcon, PlusIcon } from "./icons/ShopIcons";
 
 export type AddControlSize = "md" | "lg";
 /** "quiet": a tinted add pill (the card, where the cart bar is the loud thing).
@@ -44,6 +46,9 @@ const TONES: Record<AddControlTone, string> = {
  * Add to cart, then a stepper in the same place: stops at the whole quantity
  * on hand, a decrement from 1 removes the line, and it never navigates. One
  * implementation for the product card and the product page.
+ *
+ * With `options` it drives the cart line for exactly those choices, so the
+ * same product in another size is its own line with its own count.
  */
 export function AddControl({
   id,
@@ -54,22 +59,32 @@ export function AddControl({
   unit,
   size = "md",
   tone = "quiet",
+  options,
+  beforeAdd,
 }: {
   id: string;
   name: string;
   price: number;
-  /** Whole units that can be bought (Infinity when stock is unknown). */
+  /** Whole units this line may hold (Infinity when stock is unknown or the
+   *  product is taken on order). */
   max: number;
   soldOut: boolean;
   /** "kg" for weighed goods, shown after the count; null for pieces. */
   unit: string | null;
   size?: AddControlSize;
   tone?: AddControlTone;
+  /** The choices this line is for; omit for a product without options. */
+  options?: OptionChoice[];
+  /** Asked before a new line is added; returning false cancels the add (the
+   *  product page uses it to ask for a missing choice). */
+  beforeAdd?: () => boolean;
 }) {
   const { t } = useTranslations();
-  const qty = useCartQty(id);
+  const qty = useCartQty(id, options);
   const inCart = qty > 0;
   const atCap = qty >= max;
+  // Nothing left for a new line: the product's other lines hold all of it.
+  const noRoom = !inCart && !soldOut && max < 1;
   const s = SIZES[size];
 
   // Keyboard focus follows the control across its two shapes: adding moves it
@@ -105,12 +120,17 @@ export function AddControl({
       <button
         ref={addRef}
         type="button"
+        aria-disabled={noRoom || undefined}
         onClick={(e) => {
+          if (noRoom) return;
+          if (beforeAdd && !beforeAdd()) return;
           if (e.detail === 0) focusAfter.current = "plus";
-          setLineQty(id, 1, price);
+          setLineQty(id, 1, price, options);
         }}
-        aria-label={`${label}: ${name}`}
-        className={`flex ${s.height} w-full items-center justify-center gap-1.5 rounded-full ${s.label} font-bold transition-[background-color,transform] duration-100 focus-visible:outline-none motion-safe:active:scale-[0.97] ${TONES[tone]}`}
+        aria-label={`${noRoom ? t("product.maxReached") : label}: ${name}`}
+        className={`flex ${s.height} w-full items-center justify-center gap-1.5 rounded-full ${s.label} font-bold transition-[background-color,transform] duration-100 focus-visible:outline-none ${
+          noRoom ? "cursor-not-allowed opacity-40" : "motion-safe:active:scale-[0.97]"
+        } ${TONES[tone]}`}
       >
         <PlusIcon className={s.icon} strokeWidth={2.2} />
         {label}
@@ -130,7 +150,7 @@ export function AddControl({
         type="button"
         onClick={(e) => {
           if (qty === 1 && e.detail === 0) focusAfter.current = "add";
-          setLineQty(id, qty - 1, price);
+          setLineQty(id, qty - 1, price, options);
         }}
         aria-label={`${t("cart.decrease")}: ${name}`}
         className={`${stepBtn} hover:bg-white/15 motion-safe:active:scale-90`}
@@ -149,7 +169,7 @@ export function AddControl({
         type="button"
         aria-disabled={atCap || undefined}
         onClick={() => {
-          if (!atCap) setLineQty(id, qty + 1, price);
+          if (!atCap) setLineQty(id, qty + 1, price, options);
         }}
         aria-label={atCap ? `${t("product.maxReached")}: ${name}` : `${t("cart.increase")}: ${name}`}
         className={`${stepBtn} ${
@@ -159,5 +179,57 @@ export function AddControl({
         <PlusIcon className={s.icon} strokeWidth={2.4} />
       </button>
     </div>
+  );
+}
+
+/**
+ * The card's control for a product with choices (size, colour): they are made
+ * on the product page, so the pill goes there instead of adding blind. Once
+ * some are in the cart it says how many, across every choice.
+ */
+export function ChooseLink({
+  id,
+  name,
+  soldOut,
+  unit,
+}: {
+  id: string;
+  name: string;
+  soldOut: boolean;
+  /** "kg" for weighed goods, shown after the count; null for pieces. */
+  unit: string | null;
+}) {
+  const { t } = useTranslations();
+  const qty = useProductCartQty(id);
+  const inCart = qty > 0;
+  const s = SIZES.md;
+
+  if (soldOut && !inCart) {
+    return (
+      <span
+        className={`flex ${s.height} w-full select-none items-center justify-center rounded-full ${s.label} font-semibold text-gray-400 ring-1 ring-inset ring-gray-900/[0.08] dark:text-gray-500 dark:ring-white/[0.08]`}
+      >
+        {t("product.soldOut")}
+      </span>
+    );
+  }
+
+  const label = inCart
+    ? t("product.inCart").replace("{count}", unit ? `${qty} ${unit}` : String(qty))
+    : t("productOptions.choose");
+
+  return (
+    <Link
+      href={`/products/${id}`}
+      aria-label={`${label}: ${name}`}
+      className={`flex ${s.height} w-full items-center justify-center gap-1 rounded-full pl-2 ${s.label} font-bold tabular-nums transition-[background-color,transform] duration-100 focus-visible:outline-none motion-safe:active:scale-[0.97] ${
+        inCart
+          ? "bg-brand-500 text-white hover:bg-brand-600 focus-visible:ring-4 focus-visible:ring-brand-500/30"
+          : TONES.quiet
+      }`}
+    >
+      <span className="min-w-0 truncate">{label}</span>
+      <ChevronRightIcon className={`${s.icon} shrink-0 ${inCart ? "text-white/80" : "text-gray-400"}`} strokeWidth={2.2} />
+    </Link>
   );
 }

@@ -13,16 +13,19 @@ import { FulfillmentSection } from "../components/checkout/FulfillmentSection";
 import { OrderSummary } from "../components/checkout/OrderSummary";
 import { useCheckoutFulfillment } from "../components/checkout/useCheckoutFulfillment";
 import { storeErrorMessage } from "../../lib/api-errors";
-import { getCart, setCart, type CartLine } from "../../lib/cart-store";
+import { cartLineKey, getCart, setCart, type CartLine } from "../../lib/cart-store";
 import { formatPrice, toAmount } from "../../lib/format";
 import { LEGACY_PICKUP_ONLY, normalizeFulfillment } from "../../lib/fulfillment";
+import { choicesText, cleanChoices, optionGroups, type OptionChoice } from "../../lib/product-options";
 import {
   fetchStoreInfo,
   fetchStoreProduct,
   createStoreOrder,
   type StoreFulfillment,
   type StoreOrderResult,
+  type StoreProduct,
 } from "../../lib/store-api";
+import { onOrderLabel } from "../../lib/stock";
 import { saveOrderId } from "../../lib/order-store";
 import { getStoreSlugClient } from "../../lib/store-slug";
 import { requestTelegramContact } from "../../lib/telegram";
@@ -30,12 +33,26 @@ import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 
 type CartItem = {
+  /** The line's identity: the product plus the choices made on it. */
+  key: string;
+  /** The product id; two lines share it when the choices differ. */
   id: string;
   name: string;
   price: number;
   image?: string;
   qty: number;
   selected: boolean;
+  /** What was chosen on the product page ("Oʼlcham: 41"). */
+  options?: OptionChoice[];
+  /** Choice groups of the product this line has no value for: the line was
+   *  added before the shop gave the product options, or from a card that
+   *  could not ask. The line says so and links back to the product. */
+  missing: string[];
+  /** Taken on order: what the shelf cannot cover waits for the goods. */
+  preorder: boolean;
+  leadTime: string | null;
+  /** Whole units on hand right now. */
+  stock: number;
 };
 
 function Checkbox({
@@ -183,7 +200,12 @@ function QtyControl({
 
 function persistItems(items: CartItem[]) {
   setCart(
-    items.map((i) => ({ id: i.id, qty: i.qty, selected: i.selected }))
+    items.map((i) => ({
+      id: i.id,
+      qty: i.qty,
+      selected: i.selected,
+      ...(i.options ? { options: i.options } : {}),
+    }))
   );
 }
 
@@ -268,26 +290,37 @@ export default function CartPage() {
     }
     setTopLoading(true);
     const slug = getStoreSlugClient();
+    // One request per product: lines that differ only in the choices made
+    // (size 40, size 41) share it.
+    const ids = [...new Set(lines.map((l) => l.id))];
     Promise.all(
-      lines.map(async (line: CartLine) => {
-        const product = await fetchStoreProduct(line.id, slug);
-        if (!product)
-          return null;
-        return {
-          id: product.id,
-          name: product.name,
-          price: Math.round(parseFloat(String(product.priceOut)) || 0),
-          image: product.image ?? undefined,
-          qty: line.qty,
-          selected: line.selected,
-        } as CartItem;
-      })
-    ).then((results) => {
-      const valid = results.filter((r): r is CartItem => r !== null);
+      ids.map(async (id) => [id, await fetchStoreProduct(id, slug)] as const)
+    ).then((pairs) => {
+      const byId = new Map<string, StoreProduct | null>(pairs);
+      const valid = lines.flatMap((line: CartLine): CartItem[] => {
+        const product = byId.get(line.id);
+        if (!product) return [];
+        return [
+          {
+            key: cartLineKey(line),
+            id: product.id,
+            name: product.name,
+            price: Math.round(parseFloat(String(product.priceOut)) || 0),
+            image: product.image ?? undefined,
+            qty: line.qty,
+            selected: line.selected,
+            options: line.options,
+            missing: optionGroups(product.options)
+              .map((g) => g.name)
+              .filter((name) => !line.options?.some((o) => o.name === name)),
+            preorder: product.preorder === true,
+            leadTime: product.leadTime?.trim() || null,
+            stock: Math.floor(Number(product.quantity) || 0),
+          },
+        ];
+      });
       setItems(valid);
-      if (valid.length !== lines.length) {
-        setCart(valid.map((i) => ({ id: i.id, qty: i.qty, selected: i.selected })));
-      }
+      if (valid.length !== lines.length) persistItems(valid);
     }).finally(() => {
       setLoading(false);
       setTopLoading(false);
@@ -301,6 +334,22 @@ export default function CartPage() {
     const total = items.reduce((sum, i) => sum + (i.selected ? i.price * i.qty : 0), 0);
     const qty = items.reduce((sum, i) => sum + (i.selected ? i.qty : 0), 0);
     return { total, qty };
+  }, [items]);
+
+  // Lines that come on order: a preorder product asked for in a larger
+  // quantity than the shelf holds (stock is per product, so its lines count
+  // together). Nothing is blocked; the shopper is only told once, and given
+  // the lead time when the lines being ordered agree on one.
+  const onOrder = useMemo(() => {
+    const asked = new Map<string, number>();
+    for (const i of items) asked.set(i.id, (asked.get(i.id) ?? 0) + i.qty);
+    const keys = new Set(
+      items.filter((i) => i.preorder && (asked.get(i.id) ?? 0) > i.stock).map((i) => i.key)
+    );
+    const ordered = items.filter((i) => i.selected && keys.has(i.key));
+    const leads = new Set(ordered.map((i) => i.leadTime ?? ""));
+    const lead = leads.size === 1 ? [...leads][0] : "";
+    return { keys, inOrder: ordered.length > 0, lead: lead || null };
   }, [items]);
 
   // Until the shop's settings arrive the hook runs on the legacy default; the
@@ -321,10 +370,10 @@ export default function CartPage() {
     });
   }, [allSelected]);
 
-  const toggleOne = useCallback((id: string) => {
+  const toggleOne = useCallback((key: string) => {
     setItems((prev) => {
       const updated = prev.map((i) =>
-        i.id === id ? { ...i, selected: !i.selected } : i
+        i.key === key ? { ...i, selected: !i.selected } : i
       );
       persistItems(updated);
       return updated;
@@ -339,17 +388,17 @@ export default function CartPage() {
     });
   }, []);
 
-  const deleteOne = useCallback((id: string) => {
+  const deleteOne = useCallback((key: string) => {
     setItems((prev) => {
-      const updated = prev.filter((i) => i.id !== id);
+      const updated = prev.filter((i) => i.key !== key);
       persistItems(updated);
       return updated;
     });
   }, []);
 
-  const setQty = useCallback((id: string, qty: number) => {
+  const setQty = useCallback((key: string, qty: number) => {
     setItems((prev) => {
-      const updated = prev.map((i) => (i.id === id ? { ...i, qty } : i));
+      const updated = prev.map((i) => (i.key === key ? { ...i, qty } : i));
       persistItems(updated);
       return updated;
     });
@@ -368,7 +417,11 @@ export default function CartPage() {
     try {
       const result = await createStoreOrder(
         {
-          items: selected.map((i) => ({ productId: i.id, quantity: i.qty })),
+          items: selected.map((i) => {
+            // Re-checked against the checkout limits (3 choices, 40 chars).
+            const options = cleanChoices(i.options);
+            return { productId: i.id, quantity: i.qty, ...(options ? { options } : {}) };
+          }),
           phone: phone.trim(),
           customerName: customerName.trim() || undefined,
           note: note.trim() || undefined,
@@ -512,7 +565,7 @@ export default function CartPage() {
             <section className="rounded-[18px] bg-white dark:bg-gray-900 px-[16px] py-[12px]">
               <ul className="flex flex-col gap-[24px]">
                 {items.map((item) => (
-                  <li key={item.id} className="border-b border-gray-100 last:border-b-0">
+                  <li key={item.key} className="border-b border-gray-100 last:border-b-0">
                     <div className="flex flex-col gap-[11px] pb-[24px]">
                       <div className="flex justify-between gap-[50px]">
                         <Link href={`/products/${item.id}`} className="flex grow cursor-pointer gap-[12px]">
@@ -537,12 +590,30 @@ export default function CartPage() {
                               {formatPrice(item.price * item.qty)}
                             </h5>
                             <h3 className="text-md font-medium text-black10 line-clamp-2">{item.name}</h3>
+                            {item.options && (
+                              <p className="mt-[4px] break-words text-sm font-medium text-gray-500 dark:text-gray-400">
+                                {choicesText(item.options)}
+                              </p>
+                            )}
+                            {item.missing.length > 0 && (
+                              <p className="mt-[4px] break-words text-sm font-semibold text-warning-700 underline decoration-warning-700/40 underline-offset-2 dark:text-warning-400">
+                                {t("productOptions.missing").replace("{name}", item.missing.join(", "))}
+                              </p>
+                            )}
+                            {onOrder.keys.has(item.key) && (
+                              <p className="mt-[4px] flex min-w-0 items-center gap-1.5 text-sm font-semibold text-gray-600 dark:text-gray-300">
+                                <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+                                <span className="min-w-0 break-words">
+                                  {onOrderLabel(t("preorder.label"), item.leadTime)}
+                                </span>
+                              </p>
+                            )}
                           </div>
                         </Link>
                         <div className="pt-[2px]">
                           <Checkbox
                             checked={item.selected}
-                            onToggle={() => toggleOne(item.id)}
+                            onToggle={() => toggleOne(item.key)}
                             label={`${item.name} ni tanlash`}
                           />
                         </div>
@@ -561,17 +632,26 @@ export default function CartPage() {
                             type="button"
                             className="inline-flex items-center justify-center"
                             aria-label={t("cart.remove")}
-                            onClick={() => deleteOne(item.id)}
+                            onClick={() => deleteOne(item.key)}
                           >
                             <IconTrash />
                           </button>
                         </div>
-                        <QtyControl value={item.qty} onChange={(q) => setQty(item.id, q)} />
+                        <QtyControl value={item.qty} onChange={(q) => setQty(item.key, q)} />
                       </div>
                     </div>
                   </li>
                 ))}
               </ul>
+              {onOrder.inOrder && (
+                <p
+                  role="note"
+                  className="mb-[4px] rounded-xl bg-brand-50 px-3.5 py-2.5 text-sm font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
+                >
+                  {t("preorder.cartNote")}
+                  {onOrder.lead && <> {t("preorder.cartNoteLead").replace("{lead}", onOrder.lead)}</>}
+                </p>
+              )}
             </section>
 
             {/* Pickup or delivery (and where) */}
