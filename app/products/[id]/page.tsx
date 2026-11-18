@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AuthDrawerProvider } from "../../components/AuthDrawerContext";
-import { CartBar } from "../../components/CartBar";
 import { DesktopFooter } from "../../components/DesktopFooter";
 import { DesktopHeader } from "../../components/DesktopHeader";
 import { MobileNav } from "../../components/MobileNav";
@@ -133,7 +132,6 @@ export default async function ProductPage({ params }: Params) {
           related={related}
           info={info}
         />
-        <CartBar />
       </main>
 
       <MobileNav />

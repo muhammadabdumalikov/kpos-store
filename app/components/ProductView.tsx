@@ -5,7 +5,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
-import { useCartQty, useProductCartQty } from "@/lib/cart-store";
+import { summarizeCart, useCart, useCartQty, useProductCartQty } from "@/lib/cart-store";
 import type { CatalogProduct } from "@/lib/catalog-pages";
 import { formatAmount } from "@/lib/format";
 import { discountLabel, discountPercent } from "@/lib/product-badges";
@@ -19,7 +19,7 @@ import { ProductCard } from "./ProductCard";
 import { pillSecondary } from "./StatePanel";
 import { ClockIcon } from "./icons/DeliveryIcons";
 import { useFulfilmentLines } from "./StoreIntro";
-import { BoxIcon, ChatIcon, ChevronRightIcon } from "./icons/ShopIcons";
+import { BagIcon, BoxIcon, ChatIcon, ChevronRightIcon } from "./icons/ShopIcons";
 
 export type ProductViewProduct = {
   id: string;
@@ -102,6 +102,7 @@ export function ProductView({
     groups.length > 0 ? groups.map((g) => ({ name: g.name, value: picked[g.name] ?? "" })) : undefined;
   const qty = useCartQty(product.id, choices);
   const productQty = useProductCartQty(product.id);
+  const cart = summarizeCart(useCart());
 
   const pick = (group: string, value: string) => {
     setPicked((prev) => ({ ...prev, [group]: value }));
@@ -139,7 +140,7 @@ export function ProductView({
         <BackButton fallback={backHref} variant="link" />
       </div>
 
-      <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2 md:items-start md:pt-4 lg:mt-3 lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)] lg:gap-x-14 lg:pt-0">
+      <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2 md:items-start md:pt-4 lg:mt-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-x-12 lg:pt-0 xl:gap-x-16">
         {/* Phone: the photo runs edge to edge from the top of the page, the
             back button on it. Inside Telegram the client's own back button
             (same rule) already sits in the header. */}
@@ -155,7 +156,7 @@ export function ProductView({
           )}
         </div>
 
-        <div className="min-w-0 pt-4 md:pt-0 lg:pt-2">
+        <div className="min-w-0 pt-4 md:pt-0 lg:sticky lg:top-24 lg:pt-2">
           {(category || flag) && (
             <div className="flex min-w-0 flex-wrap items-center gap-x-2">
               {category && (
@@ -253,7 +254,9 @@ export function ProductView({
             </div>
           )}
 
-          <div className="mt-5 flex gap-3 lg:mt-7 lg:max-w-[440px]">
+          {/* From the tablet up. On a phone the same control rides in the bar
+              above the tab bar, always in reach (see the end of this view). */}
+          <div className="mt-5 hidden gap-3 md:flex lg:mt-7 lg:max-w-[440px]">
             <div className="min-w-0 flex-1">
               <AddControl
                 id={product.id}
@@ -268,10 +271,10 @@ export function ProductView({
                 beforeAdd={groups.length > 0 ? beforeAdd : undefined}
               />
             </div>
-            {/* Desktop has no cart bar: once this product is in the cart, the
-                way to it sits right here. */}
+            {/* No cart bar from the tablet up: once this product is in the
+                cart, the way to it sits right here. */}
             {productQty > 0 && (
-              <div className="hidden shrink-0 lg:block">
+              <div className="shrink-0">
                 <Link href="/cart" className={`${pillSecondary} h-[52px] pr-4`}>
                   {t("cartBar.open")}
                   <ChevronRightIcon className="-ml-0.5 h-[18px] w-[18px] text-gray-400" />
@@ -292,7 +295,7 @@ export function ProductView({
           {/* How the order reaches the shopper, and what that costs, next to
               the button that starts it. */}
           {fulfilment.length > 0 && (
-            <ul aria-label={t("home.fulfilmentAria")} className="mt-4 flex flex-col gap-2 lg:mt-5 lg:max-w-[440px]">
+            <ul aria-label={t("home.fulfilmentAria")} className="mt-5 flex flex-col gap-2 md:mt-4 lg:mt-5 lg:max-w-[440px]">
               {fulfilment.map((l) => (
                 <li
                   key={l.key}
@@ -370,6 +373,44 @@ export function ProductView({
           </div>
         </section>
       )}
+
+      {/* Phone: the one action of this page stays above the tab bar however
+          far the shopper has scrolled, with the way to the cart beside it
+          once there is something in it. */}
+      <div aria-hidden className="h-[84px] md:hidden" />
+      <div
+        className="fixed inset-x-0 z-20 bg-gradient-to-t from-white from-70% to-transparent px-4 pb-3 pt-4 dark:from-gray-900 md:hidden"
+        style={{ bottom: "var(--nav-total)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="min-w-0 flex-1">
+            <AddControl
+              id={product.id}
+              name={product.name}
+              price={product.price}
+              max={lineMax}
+              soldOut={soldOut}
+              unit={unit}
+              size="lg"
+              tone="primary"
+              options={choices}
+              beforeAdd={groups.length > 0 ? beforeAdd : undefined}
+            />
+          </div>
+          {cart.lines > 0 && (
+            <Link
+              href="/cart"
+              aria-label={`${t("cartBar.open")}: ${t("cartBar.items").replace("{count}", String(cart.units))}`}
+              className="relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-900 transition-[background-color,transform] duration-100 hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 motion-safe:active:scale-95 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+            >
+              <BagIcon className="h-6 w-6" strokeWidth={1.9} />
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-brand-500 px-1 text-[11px] font-bold leading-none tabular-nums text-white ring-2 ring-white dark:ring-gray-900">
+                {cart.units}
+              </span>
+            </Link>
+          )}
+        </div>
+      </div>
     </>
   );
 }
