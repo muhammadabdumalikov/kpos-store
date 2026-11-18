@@ -53,7 +53,9 @@
     "emptyBody": "Doʼkon mahsulot qoʼshgach, ular shu yerda chiqadi",
     "errorTitle": "Doʼkon ochilmadi",
     "errorBody": "Aloqada muammo boʼldi. Birozdan keyin qayta urinib koʼring.",
-    "newArrivals": "Yangi kelganlar"
+    "newArrivals": "Yangi kelganlar",
+    "call": "Qoʼngʼiroq",
+    "contactsAria": "Doʼkon bilan aloqa"
   },
   "product": {
     "addToCart": "Savatga qoʼshish",
@@ -71,7 +73,8 @@
     "photoFailed": "Rasm yuklanmadi",
     "notFoundTitle": "Mahsulot topilmadi",
     "notFoundBody": "Doʼkon uni olib tashlagan yoki havola xato boʼlishi mumkin",
-    "toCatalog": "Katalogga oʼtish"
+    "toCatalog": "Katalogga oʼtish",
+    "askSeller": "Sotuvchiga yozish"
   },
   "cart": {
     "title": "Savat",

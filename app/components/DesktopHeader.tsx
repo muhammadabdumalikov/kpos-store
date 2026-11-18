@@ -38,9 +38,17 @@ export function DesktopHeader({ store }: { store?: StoreInfo | null }) {
           <Link
             href="/"
             title={info.name}
-            className="mr-2 min-w-0 max-w-[260px] shrink truncate rounded-lg text-[22px] font-extrabold tracking-[-0.02em] text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-white"
+            className="mr-2 flex min-w-0 max-w-[300px] shrink items-center gap-2.5 rounded-lg text-[22px] font-extrabold tracking-[-0.02em] text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-white"
           >
-            {info.name}
+            {info.logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={info.logo}
+                alt=""
+                className="h-9 w-9 shrink-0 rounded-full bg-white object-cover ring-1 ring-gray-900/[0.06]"
+              />
+            )}
+            <span className="min-w-0 truncate">{info.name}</span>
           </Link>
         )}
 

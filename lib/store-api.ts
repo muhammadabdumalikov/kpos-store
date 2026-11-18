@@ -155,6 +155,16 @@ export interface StoreInfo {
   /** Absent on a backend that predates delivery; callers treat that as pickup only. */
   // Wire name as the backend sends it (YETKAZISH.md §4.3): one "l".
   fulfilment?: StoreFulfillment | null;
+  // The shop's face (Settings → Online store). All optional: a backend that
+  // predates them omits them, and a shop may leave any of them empty.
+  /** Round picture next to the shop's name. */
+  logo?: string | null;
+  /** Wide picture across the top of the home page. */
+  cover?: string | null;
+  /** One line under the name, up to 140 characters. */
+  tagline?: string | null;
+  /** `instagram` and `telegram` are bare usernames, no "@" and no URL. */
+  contacts?: { instagram?: string | null; telegram?: string | null; phone?: string | null } | null;
 }
 
 export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {

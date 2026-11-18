@@ -53,7 +53,9 @@
     "emptyBody": "Products will appear here once the shop adds them",
     "errorTitle": "Could not open the shop",
     "errorBody": "There was a connection problem. Please try again in a moment.",
-    "newArrivals": "New arrivals"
+    "newArrivals": "New arrivals",
+    "call": "Call",
+    "contactsAria": "Contact the shop"
   },
   "product": {
     "addToCart": "Add to cart",
@@ -71,7 +73,8 @@
     "photoFailed": "Photo did not load",
     "notFoundTitle": "Product not found",
     "notFoundBody": "The shop may have removed it, or the link has a mistake",
-    "toCatalog": "Go to catalog"
+    "toCatalog": "Go to catalog",
+    "askSeller": "Message the seller"
   },
   "cart": {
     "title": "Cart",

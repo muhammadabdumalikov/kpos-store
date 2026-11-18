@@ -10,12 +10,13 @@ import type { CatalogProduct } from "@/lib/catalog-pages";
 import type { OptionChoice, OptionGroup } from "@/lib/product-options";
 import { onOrderLabel, stockOf } from "@/lib/stock";
 import type { StoreInfo } from "@/lib/store-api";
+import { sellerChatHref } from "@/lib/store-contacts";
 import { AddControl } from "./AddControl";
 import { BackButton, useBackFallback } from "./BackButton";
 import { ProductCard } from "./ProductCard";
 import { pillSecondary } from "./StatePanel";
 import { useFulfilmentLines } from "./StoreIntro";
-import { BoxIcon, ChevronRightIcon } from "./icons/ShopIcons";
+import { BoxIcon, ChatIcon, ChevronRightIcon } from "./icons/ShopIcons";
 
 export type ProductViewProduct = {
   id: string;
@@ -115,6 +116,7 @@ export function ProductView({
   const lineMax = max - (productQty - qty);
   const atCap = productQty > 0 && productQty >= max && Number.isFinite(max);
   const description = product.description?.trim() || null;
+  const chatHref = sellerChatHref(info);
 
   return (
     <>
@@ -264,6 +266,19 @@ export function ProductView({
                 </li>
               ))}
             </ul>
+          )}
+
+          {/* A question about size or delivery goes to the seller's own chat. */}
+          {chatHref && (
+            <a
+              href={chatHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${pillSecondary} mt-4 w-full lg:w-auto`}
+            >
+              <ChatIcon className="h-[18px] w-[18px]" strokeWidth={2} />
+              {t("product.askSeller")}
+            </a>
           )}
 
           {description && <Description text={description} />}

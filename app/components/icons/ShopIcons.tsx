@@ -169,3 +169,30 @@ export function MoonIcon({ className = "h-5 w-5", strokeWidth }: IconProps) {
     </svg>
   );
 }
+
+export function InstagramIcon({ className = "h-5 w-5", strokeWidth }: IconProps) {
+  return (
+    <svg className={className} {...base(strokeWidth)}>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+      <circle cx="12" cy="12" r="3.8" />
+      <path d="M16.9 7.1h.01" />
+    </svg>
+  );
+}
+
+export function TelegramIcon({ className = "h-5 w-5", strokeWidth }: IconProps) {
+  return (
+    <svg className={className} {...base(strokeWidth)}>
+      <path d="M20.5 4.5L3.5 11l5.5 2 2 5.5 3-4 4 3 2.5-13z" />
+      <path d="M9 13l6-4.5" />
+    </svg>
+  );
+}
+
+export function ChatIcon({ className = "h-5 w-5", strokeWidth }: IconProps) {
+  return (
+    <svg className={className} {...base(strokeWidth)}>
+      <path d="M20 11.5a7.5 7.5 0 01-11 6.6L4 19.5l1.4-4.6A7.5 7.5 0 1120 11.5z" />
+    </svg>
+  );
+}
