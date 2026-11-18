@@ -12,6 +12,9 @@ import { MobileNav } from "../components/MobileNav";
 import { FulfillmentSection } from "../components/checkout/FulfillmentSection";
 import { OrderSummary } from "../components/checkout/OrderSummary";
 import { useCheckoutFulfillment } from "../components/checkout/useCheckoutFulfillment";
+import { Money, checkoutTitle, field, panel, pillPrimary } from "../components/checkout/styles";
+import { StatePanel, pillSecondary } from "../components/StatePanel";
+import { BagIcon, BoxIcon, CheckLineIcon, MinusIcon, PlusIcon, TrashIcon } from "../components/icons/ShopIcons";
 import { storeErrorMessage } from "../../lib/api-errors";
 import { cartLineKey, getCart, setCart, type CartLine } from "../../lib/cart-store";
 import { formatPrice, toAmount } from "../../lib/format";
@@ -55,7 +58,8 @@ type CartItem = {
   stock: number;
 };
 
-function Checkbox({
+/** A round tick: which lines go into this order. */
+function Check({
   checked,
   onToggle,
   label,
@@ -69,130 +73,59 @@ function Checkbox({
       type="button"
       role="checkbox"
       aria-checked={checked}
-      onClick={onToggle}
-      className="relative flex h-[20px] w-[20px] items-center justify-center focus:outline-none"
       aria-label={label}
+      onClick={onToggle}
+      className="group/check -m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none"
     >
-      {checked ? (
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 20 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          className="text-success-500"
-          aria-hidden
-        >
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M16 0H4C1.79086 0 0 1.79086 0 4V16C0 18.2091 1.79086 20 4 20H16C18.2091 20 20 18.2091 20 16V4C20 1.79086 18.2091 0 16 0ZM14.592 7.46049C14.8463 7.13353 14.7874 6.66232 14.4605 6.40802C14.1335 6.15372 13.6623 6.21262 13.408 6.53958L9.40099 11.6914C9.31189 11.806 9.14429 11.8209 9.03641 11.7238L6.50173 9.44256C6.19385 9.16547 5.71963 9.19043 5.44254 9.49831C5.16544 9.80619 5.1904 10.2804 5.49828 10.5575L8.03296 12.8387C8.78809 13.5183 9.9613 13.4143 10.585 12.6123L14.592 7.46049Z"
-            fill="currentColor"
-          />
-        </svg>
-      ) : (
-        <span
-          className="h-[20px] w-[20px] rounded-[4px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900"
-          aria-hidden
-        />
-      )}
+      <span
+        className={`flex h-6 w-6 items-center justify-center rounded-full transition-colors duration-100 group-focus-visible/check:ring-2 group-focus-visible/check:ring-brand-500/50 group-focus-visible/check:ring-offset-2 ${
+          checked
+            ? "bg-brand-500 text-white"
+            : "bg-white ring-[1.5px] ring-inset ring-gray-300 dark:bg-transparent dark:ring-gray-600"
+        }`}
+      >
+        {checked && <CheckLineIcon className="h-3.5 w-3.5" strokeWidth={3} />}
+      </span>
     </button>
   );
 }
 
-function IconHeart({ active }: { active: boolean }) {
-  return (
-    <svg
-      width="36"
-      height="36"
-      viewBox="0 0 36 36"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <rect width="36" height="36" rx="10" fill="#F1F3F4" />
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M21.0343 11.3877C20.0891 11.5742 19.2838 12.1394 18.7813 12.6238C18.3514 13.0382 17.6597 13.0382 17.2298 12.6238C16.7274 12.1394 15.922 11.5742 14.9769 11.3877C14.0695 11.2087 12.9706 11.364 11.7844 12.4225L11.7738 12.4318C10.9619 13.1241 10.1612 14.6496 10.3112 16.4815L10.3117 16.4881C10.3936 17.6364 11.0105 18.9332 12.1767 20.3059C13.3375 21.6724 15.0044 23.0684 17.0939 24.408C17.6495 24.7643 18.3617 24.7643 18.9172 24.408C21.0058 23.0685 22.6704 21.6726 23.8292 20.3063C24.9932 18.9337 25.6088 17.6368 25.6907 16.4881L25.6912 16.4815C25.8414 14.6474 25.0476 13.1227 24.2373 12.4318L24.2267 12.4225C23.0405 11.364 21.9417 11.2087 21.0343 11.3877ZM25.0538 11.4853C23.5821 10.1745 22.0892 9.90552 20.7923 10.1614C19.5933 10.3979 18.6188 11.07 18.0056 11.6372C17.3923 11.07 16.4178 10.3979 15.2188 10.1614C13.9219 9.90553 12.429 10.1745 10.9573 11.4853C9.83405 12.4467 8.8847 14.364 9.06508 16.5803C9.17399 18.0941 9.9666 19.635 11.224 21.1152C12.4878 22.6028 14.2601 24.076 16.4192 25.4603C17.3859 26.0801 18.6252 26.0802 19.592 25.4602C21.7506 24.0758 23.5208 22.6025 24.7825 21.1148C26.0381 19.6343 26.8284 18.0936 26.9373 16.5803C27.1175 14.3663 26.1787 12.4481 25.0538 11.4853Z"
-        fill={active ? "#f04438" : "#80868B"}
-      />
-    </svg>
-  );
-}
-
-function IconTrash() {
-  return (
-    <svg
-      width="36"
-      height="36"
-      viewBox="0 0 36 36"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-    >
-      <rect width="36" height="36" rx="10" fill="#F1F3F4" />
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M15.2502 10.75C15.2502 9.23122 16.4814 8 18.0002 8C19.519 8 20.7502 9.23122 20.7502 10.75V10.9157C23.1352 11.2059 25.3632 11.868 27.3287 12.8258C27.7011 13.0073 27.8558 13.4562 27.6744 13.8286C27.4929 14.2009 27.044 14.3557 26.6716 14.1742C24.18 12.96 21.2044 12.25 18.0002 12.25C14.7959 12.25 11.8204 12.96 9.32872 14.1742C8.95637 14.3557 8.50742 14.2009 8.32597 13.8286C8.14451 13.4562 8.29926 13.0073 8.67162 12.8258C10.6371 11.868 12.8652 11.2059 15.2502 10.9156V10.75ZM24.2656 24.283C24.1161 26.3763 22.3743 27.998 20.2757 27.998H15.7247C13.6261 27.998 11.8844 26.3763 11.7349 24.283L11.0466 14.6479C13.164 13.9096 15.5189 13.498 18.0002 13.498C20.4815 13.498 22.8365 13.9096 24.9538 14.6479L24.2656 24.283ZM16.7502 16.998C16.7502 16.5838 16.4144 16.248 16.0002 16.248C15.586 16.248 15.2502 16.5838 15.2502 16.998V22.998C15.2502 23.4123 15.586 23.748 16.0002 23.748C16.4144 23.748 16.7502 23.4123 16.7502 22.998V16.998ZM20.0002 16.248C20.4144 16.248 20.7502 16.5838 20.7502 16.998V22.998C20.7502 23.4123 20.4144 23.748 20.0002 23.748C19.586 23.748 19.2502 23.4123 19.2502 22.998V16.998C19.2502 16.5838 19.586 16.248 20.0002 16.248Z"
-        fill="#80868B"
-      />
-    </svg>
-  );
-}
-
+/** Quantity of one line. Removing is the bin's job, so it stops at 1. */
 function QtyControl({
   value,
   onChange,
+  labels,
 }: {
   value: number;
   onChange: (next: number) => void;
+  labels: { decrease: string; increase: string; quantity: string };
 }) {
+  const step =
+    "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-900 transition-[background-color,transform] duration-100 hover:bg-gray-900/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/50 motion-safe:active:scale-90 disabled:opacity-30 disabled:hover:bg-transparent dark:text-white dark:hover:bg-white/10";
   return (
-    <div className="bg-gray60 flex min-w-[132px] items-center justify-between rounded-[10px] p-[4px]">
+    <div className="flex h-10 shrink-0 items-center rounded-full bg-gray-900/[0.05] dark:bg-white/[0.07]">
       <button
         type="button"
         onClick={() => onChange(Math.max(1, value - 1))}
-        className="inline-flex h-[28px] w-[28px] items-center justify-center rounded-[10px] bg-white dark:bg-gray-900"
-        aria-label="Kamaytirish"
+        disabled={value <= 1}
+        className={step}
+        aria-label={labels.decrease}
       >
-        <svg width="14" height="2" viewBox="0 0 14 2" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M13.75 1C13.75 1.41421 13.4142 1.75 13 1.75L1 1.75C0.585786 1.75 0.25 1.41421 0.25 1C0.25 0.585786 0.585786 0.25 1 0.25L13 0.25C13.4142 0.25 13.75 0.585786 13.75 1Z"
-            fill="var(--color-brand-500)"
-          />
-        </svg>
+        <MinusIcon className="h-[18px] w-[18px]" strokeWidth={2.2} />
       </button>
-      <div className="w-[50px]">
-        <input
-          type="tel"
-          value={String(value)}
-          onChange={(e) => {
-            const next = Number.parseInt(e.target.value.replace(/[^\d]/g, ""), 10);
-            if (Number.isFinite(next)) onChange(Math.max(1, next));
-          }}
-          className="bg-gray10 h-[30px] w-full rounded-[12px] p-0 text-center text-md font-medium text-black dark:text-white/90 outline-transparent"
-          inputMode="numeric"
-          aria-label="Soni"
-        />
-      </div>
-      <button
-        type="button"
-        onClick={() => onChange(value + 1)}
-        className="inline-flex h-[28px] w-[28px] items-center justify-center rounded-[10px] bg-white dark:bg-gray-900"
-        aria-label="Ko‘paytirish"
-      >
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-          <path
-            fillRule="evenodd"
-            clipRule="evenodd"
-            d="M7.75 1C7.75 0.585786 7.41421 0.25 7 0.25C6.58579 0.25 6.25 0.585786 6.25 1V6.25H1C0.585786 6.25 0.25 6.58579 0.25 7C0.25 7.41421 0.585786 7.75 1 7.75H6.25V13C6.25 13.4142 6.58579 13.75 7 13.75C7.41421 13.75 7.75 13.4142 7.75 13V7.75H13C13.4142 7.75 13.75 7.41421 13.75 7C13.75 6.58579 13.4142 6.25 13 6.25H7.75V1Z"
-            fill="var(--color-brand-500)"
-          />
-        </svg>
+      <input
+        type="tel"
+        inputMode="numeric"
+        value={String(value)}
+        onChange={(e) => {
+          const next = Number.parseInt(e.target.value.replace(/[^\d]/g, ""), 10);
+          if (Number.isFinite(next)) onChange(Math.max(1, next));
+        }}
+        className="h-10 w-9 bg-transparent p-0 text-center text-[16px] font-bold tabular-nums text-gray-900 outline-none dark:text-white"
+        aria-label={labels.quantity}
+      />
+      <button type="button" onClick={() => onChange(value + 1)} className={step} aria-label={labels.increase}>
+        <PlusIcon className="h-[18px] w-[18px]" strokeWidth={2.2} />
       </button>
     </div>
   );
@@ -464,350 +397,353 @@ export default function CartPage() {
     t,
   ]);
 
+  const currency = t("common.currency");
+  const qtyLabels = {
+    decrease: t("cart.decrease"),
+    increase: t("cart.increase"),
+    quantity: t("cart.quantity"),
+  };
+  const hasItems = !loading && items.length > 0;
+  const submitLabel = placing ? t("common.sending") : t("cart.checkout");
+
   return (
     <AuthDrawerProvider>
-      {/* Stage 3 restyles this page; until then it keeps the old grey ground
-          its white cards were drawn against (the body is white now). */}
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <DesktopHeader />
       <MobileHeader />
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-[6px] pb-24 lg:pb-8 lg:pt-4">
+      <main className="mx-auto w-full max-w-5xl px-4 pt-4 lg:px-6 lg:pb-16 lg:pt-8">
+        <div className="flex items-baseline justify-between gap-3">
+          <h1 className="text-[26px] font-extrabold leading-8 tracking-[-0.02em] text-gray-900 dark:text-white lg:text-[32px] lg:leading-10">
+            {t("cart.title")}
+          </h1>
+          {hasItems && (
+            <p className="text-[14px] font-medium text-gray-500 dark:text-gray-400">
+              {t("cart.productsTotal")
+                .replace("{count}", String(items.reduce((sum, i) => sum + i.qty, 0)))
+                .replace(/:$/, "")}
+            </p>
+          )}
+        </div>
+
         {placedOrder && (
-          <section className="mx-[8px] flex flex-col items-center gap-[10px] rounded-2xl bg-white dark:bg-gray-900 px-[16px] py-[28px] text-center">
-            <div className="flex h-[56px] w-[56px] items-center justify-center rounded-full bg-brand-50 dark:bg-brand-500/10">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="text-brand-500" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" stroke="currentColor" strokeWidth={1.8} d="M6 12L3.27 3.96a.6.6 0 01.83-.73l16.5 8.23a.6.6 0 010 1.08L4.1 20.77a.6.6 0 01-.83-.73L6 12zm0 0h8" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-semibold text-black dark:text-white/90">{t("cart.sentForConfirmation")}</h2>
-            <p className="max-w-[36ch] text-md font-medium text-gray-500 dark:text-gray-400">
-              {t("cart.sentHint")}
-            </p>
-            <p className="text-md font-medium text-gray-500 dark:text-gray-400">
-              {t("cart.orderNumber")}:{" "}
-              <span className="font-semibold text-black dark:text-white/90">#{placedOrder.id.slice(0, 8).toUpperCase()}</span>
-              {" · "}
-              <span className="font-semibold text-black dark:text-white/90">
-                {formatPrice(toAmount(placedOrder.payable ?? placedOrder.totalAmount))}
-              </span>
-            </p>
-            {placedOrder.deliveryType === "delivery" && (
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                {t("cart.deliveryFee")}:{" "}
-                {toAmount(placedOrder.deliveryFee) === 0
-                  ? t("cart.free")
-                  : formatPrice(toAmount(placedOrder.deliveryFee))}
-              </p>
-            )}
-            <div className="mt-2 flex w-full max-w-sm flex-col gap-2">
-              <Link
-                href="/orders"
-                className="inline-flex h-[44px] items-center justify-center rounded-xl bg-brand-500 px-5 text-md font-semibold text-white transition hover:bg-brand-600 active:scale-[0.98]"
-              >
-                {t("cart.viewOrders")}
-              </Link>
-              <Link
-                href="/"
-                className="inline-flex h-[44px] items-center justify-center rounded-xl border border-gray-200 bg-white px-5 text-md font-semibold text-gray-700 transition hover:bg-gray-50 active:scale-[0.98] dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
-              >
-                {t("cart.continueShopping")}
-              </Link>
-            </div>
-          </section>
+          <StatePanel
+            className="mt-4"
+            titleAs="h2"
+            icon={<CheckLineIcon className="h-7 w-7 text-brand-500" strokeWidth={2.4} />}
+            title={t("cart.sentForConfirmation")}
+            body={
+              <>
+                {t("cart.sentHint")}
+                <span className="mt-3 block text-gray-600 dark:text-gray-300">
+                  {t("cart.orderNumber")}:{" "}
+                  <span className="font-bold text-gray-900 dark:text-white">
+                    #{placedOrder.id.slice(0, 8).toUpperCase()}
+                  </span>
+                  {" · "}
+                  <Money
+                    value={toAmount(placedOrder.payable ?? placedOrder.totalAmount)}
+                    currency={currency}
+                    className="font-bold text-gray-900 dark:text-white"
+                  />
+                </span>
+                {placedOrder.deliveryType === "delivery" && (
+                  <span className="mt-1 block">
+                    {t("cart.deliveryFee")}:{" "}
+                    {toAmount(placedOrder.deliveryFee) === 0
+                      ? t("cart.free")
+                      : formatPrice(toAmount(placedOrder.deliveryFee), currency)}
+                  </span>
+                )}
+              </>
+            }
+            action={
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+                <Link href="/orders" className={pillPrimary}>
+                  {t("cart.viewOrders")}
+                </Link>
+                <Link href="/" className={`${pillSecondary} h-12`}>
+                  {t("cart.continueShopping")}
+                </Link>
+              </div>
+            }
+          />
         )}
 
         {orderError && (
-          <div className="mx-[8px] rounded-[14px] border border-red/30 bg-red/10 px-[16px] py-[12px] text-center text-md font-medium text-red">
+          <p
+            role="alert"
+            className="mt-4 rounded-2xl bg-error-50 px-4 py-3 text-[14px] font-semibold leading-5 text-error-700 dark:bg-error-500/10 dark:text-error-400"
+          >
             {orderError}
-          </div>
+          </p>
         )}
 
-        {/* Title + actions */}
-        <div className="flex flex-col gap-[12px] rounded-b-[18px] bg-white dark:bg-gray-900 px-[16px] pb-[16px] pt-[16px] text-center">
-          <h1 className="text-xl font-semibold text-black dark:text-white/90">{t("cart.title")}</h1>
-          <div className="border-gray20 flex items-center justify-between border-t pt-[12px]">
-            <button
-              type="button"
-              className="rounded-lg px-2 py-1 text-sm font-medium text-red disabled:opacity-50"
-              disabled={selectedCount === 0}
-              onClick={deleteSelected}
-            >
-              {t("cart.deleteSelected")}
-            </button>
-            <div className="flex items-center gap-2">
-              <Checkbox checked={allSelected} onToggle={toggleAll} label={t("cart.selectAll")} />
-              <h6 className="text-sm font-medium text-black dark:text-white/90">{t("cart.selectAll")}</h6>
-            </div>
-          </div>
-        </div>
-
         {loading ? (
-          <section className="flex items-center justify-center rounded-[18px] bg-white dark:bg-gray-900 px-[16px] py-[20px]">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 dark:border-gray-700 border-t-primary" aria-hidden />
-          </section>
+          <ul className="mt-5 flex flex-col gap-5" aria-hidden>
+            {[0, 1].map((i) => (
+              <li key={i} className="flex animate-pulse gap-3">
+                <div className="h-[84px] w-[84px] shrink-0 rounded-2xl bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+                <div className="flex-1 pt-1">
+                  <div className="h-4 w-3/4 rounded bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+                  <div className="mt-2 h-4 w-1/3 rounded bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+                  <div className="mt-4 h-10 w-28 rounded-full bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : items.length === 0 ? (
-          <section className="rounded-[18px] bg-white dark:bg-gray-900 px-[16px] py-[20px] text-center">
-            <h2 className="text-lg font-semibold text-black dark:text-white/90">{t("cart.empty")}</h2>
-            <p className="mt-2 text-md font-medium text-gray-500 dark:text-gray-400">
-              {t("cart.emptyHint")}
-            </p>
-            <Link
-              href="/"
-              className="mt-4 inline-flex h-[44px] items-center justify-center rounded-xl bg-brand-500 px-5 text-md font-semibold text-white transition hover:bg-brand-600 active:scale-[0.98]"
-            >
-              {t("cart.backHome")}
-            </Link>
-          </section>
+          // Right after an order the confirmation above is the whole page.
+          !placedOrder && (
+            <StatePanel
+              className="mt-5"
+              icon={<BagIcon className="h-7 w-7" />}
+              title={t("cart.empty")}
+              body={t("cart.emptyHint")}
+              action={
+                <Link href="/" className={pillPrimary}>
+                  {t("cart.backHome")}
+                </Link>
+              }
+            />
+          )
         ) : (
-          <>
-            {/* Items */}
-            <section className="rounded-[18px] bg-white dark:bg-gray-900 px-[16px] py-[12px]">
-              <ul className="flex flex-col gap-[24px]">
-                {items.map((item) => (
-                  <li key={item.key} className="border-b border-gray-100 last:border-b-0">
-                    <div className="flex flex-col gap-[11px] pb-[24px]">
-                      <div className="flex justify-between gap-[50px]">
-                        <Link href={`/products/${item.id}`} className="flex grow cursor-pointer gap-[12px]">
-                          <div className="relative h-[64px] w-[48px] shrink-0 overflow-hidden rounded-[12px]">
-                            {item.image ? (
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                className="object-cover"
-                                sizes="48px"
-                                unoptimized
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center bg-gray-200 text-sm font-semibold text-gray-500 dark:text-gray-400">
-                                {item.name.slice(0, 1)}
-                              </div>
-                            )}
-                          </div>
-                          <div className="w-full min-w-0">
-                            <h5 className="mb-[6px] mt-[2px] text-lg font-bold text-black dark:text-white/90">
-                              {formatPrice(item.price * item.qty)}
-                            </h5>
-                            <h3 className="text-md font-medium text-black10 line-clamp-2">{item.name}</h3>
+          <div className="mt-4 lg:mt-6 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-12">
+            <div className="flex min-w-0 flex-col gap-8">
+              {/* Lines */}
+              <section aria-label={t("cart.title")}>
+                {items.length > 1 && (
+                  <div className="mb-1 flex min-h-11 items-center justify-between gap-3">
+                    <label className="flex cursor-pointer items-center gap-3 text-[14px] font-semibold text-gray-700 dark:text-gray-300">
+                      <Check checked={allSelected} onToggle={toggleAll} label={t("cart.selectAll")} />
+                      <span aria-hidden>{t("cart.selectAll")}</span>
+                    </label>
+                    {selectedCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={deleteSelected}
+                        className="-mr-2 rounded-full px-3 py-2 text-[14px] font-semibold text-gray-500 transition-colors hover:text-error-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 dark:text-gray-400 dark:hover:text-error-400"
+                      >
+                        {t("cart.deleteSelected")}
+                      </button>
+                    )}
+                  </div>
+                )}
+                <ul className="flex flex-col">
+                  {items.map((item) => (
+                    <li
+                      key={item.key}
+                      className="flex items-start gap-3 border-b border-gray-900/[0.06] py-4 last:border-b-0 dark:border-white/[0.07]"
+                    >
+                      <div className="flex h-[84px] items-center">
+                        <Check checked={item.selected} onToggle={() => toggleOne(item.key)} label={item.name} />
+                      </div>
+                      <Link
+                        href={`/products/${item.id}`}
+                        className="relative h-[84px] w-[84px] shrink-0 overflow-hidden rounded-2xl bg-gray-900/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 dark:bg-white/[0.06]"
+                        aria-label={item.name}
+                      >
+                        {item.image ? (
+                          <Image src={item.image} alt="" fill className="object-cover" sizes="84px" unoptimized />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-gray-300 dark:text-gray-600">
+                            <BoxIcon className="h-7 w-7" />
+                          </span>
+                        )}
+                      </Link>
+                      <div className="flex min-w-0 flex-1 flex-col">
+                        <div className="flex items-start gap-1">
+                          <Link href={`/products/${item.id}`} className="min-w-0 flex-1 focus-visible:outline-none focus-visible:underline">
+                            <h3 className="line-clamp-2 break-words text-[15px] font-semibold leading-5 text-gray-900 dark:text-white">
+                              {item.name}
+                            </h3>
                             {item.options && (
-                              <p className="mt-[4px] break-words text-sm font-medium text-gray-500 dark:text-gray-400">
+                              <p className="mt-0.5 break-words text-[13px] font-medium leading-5 text-gray-500 dark:text-gray-400">
                                 {choicesText(item.options)}
                               </p>
                             )}
                             {item.missing.length > 0 && (
-                              <p className="mt-[4px] break-words text-sm font-semibold text-warning-700 underline decoration-warning-700/40 underline-offset-2 dark:text-warning-400">
+                              <p className="mt-0.5 break-words text-[13px] font-semibold leading-5 text-warning-700 underline decoration-warning-700/40 underline-offset-2 dark:text-warning-400">
                                 {t("productOptions.missing").replace("{name}", item.missing.join(", "))}
                               </p>
                             )}
                             {onOrder.keys.has(item.key) && (
-                              <p className="mt-[4px] flex min-w-0 items-center gap-1.5 text-sm font-semibold text-gray-600 dark:text-gray-300">
-                                <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
-                                <span className="min-w-0 break-words">
-                                  {onOrderLabel(t("preorder.label"), item.leadTime)}
-                                </span>
+                              <p className="mt-0.5 break-words text-[13px] font-medium leading-5 text-gray-500 dark:text-gray-400">
+                                {onOrderLabel(t("preorder.label"), item.leadTime)}
                               </p>
                             )}
-                          </div>
-                        </Link>
-                        <div className="pt-[2px]">
-                          <Checkbox
-                            checked={item.selected}
-                            onToggle={() => toggleOne(item.key)}
-                            label={`${item.name} ni tanlash`}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex gap-[8px]">
+                          </Link>
                           <button
                             type="button"
-                            className="inline-flex items-center justify-center"
-                            aria-label="Sevimlilarga qo‘shish"
-                          >
-                            <IconHeart active={false} />
-                          </button>
-                          <button
-                            type="button"
-                            className="inline-flex items-center justify-center"
-                            aria-label={t("cart.remove")}
                             onClick={() => deleteOne(item.key)}
+                            aria-label={`${t("cart.remove")}: ${item.name}`}
+                            className="-mr-2 -mt-2 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-900/[0.05] hover:text-error-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 dark:text-gray-500 dark:hover:bg-white/[0.07] dark:hover:text-error-400"
                           >
-                            <IconTrash />
+                            <TrashIcon className="h-5 w-5" />
                           </button>
                         </div>
-                        <QtyControl value={item.qty} onChange={(q) => setQty(item.key, q)} />
+                        <div className="mt-2 flex items-center justify-between gap-3">
+                          <Money
+                            value={item.price * item.qty}
+                            currency={currency}
+                            className="text-[17px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white"
+                          />
+                          <QtyControl value={item.qty} onChange={(q) => setQty(item.key, q)} labels={qtyLabels} />
+                        </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-              {onOrder.inOrder && (
-                <p
-                  role="note"
-                  className="mb-[4px] rounded-xl bg-brand-50 px-3.5 py-2.5 text-sm font-medium text-brand-700 dark:bg-brand-500/10 dark:text-brand-300"
-                >
-                  {t("preorder.cartNote")}
-                  {onOrder.lead && <> {t("preorder.cartNoteLead").replace("{lead}", onOrder.lead)}</>}
-                </p>
+                    </li>
+                  ))}
+                </ul>
+                {/* Neutral, not brand-tinted: in a shop whose colour is red or
+                    rose a tinted note would read as an error. */}
+                {onOrder.inOrder && (
+                  <p
+                    role="note"
+                    className={`mt-1 px-4 py-3 text-[14px] font-medium leading-5 text-gray-600 dark:text-gray-300 ${panel}`}
+                  >
+                    {t("preorder.cartNote")}
+                    {onOrder.lead && <> {t("preorder.cartNoteLead").replace("{lead}", onOrder.lead)}</>}
+                  </p>
+                )}
+              </section>
+
+              {/* Pickup or delivery (and where) */}
+              {fulfillment ? (
+                <FulfillmentSection model={checkout} />
+              ) : fulfillmentFailed ? (
+                <section className={`flex items-center justify-between gap-3 px-4 py-3 ${panel}`}>
+                  <p className="text-[14px] font-medium text-gray-600 dark:text-gray-300">
+                    {t("cart.fulfillmentLoadFailed")}
+                  </p>
+                  <button type="button" onClick={retryFulfillment} className={`${pillSecondary} h-10 shrink-0 px-4`}>
+                    {t("cart.retry")}
+                  </button>
+                </section>
+              ) : (
+                <section className="flex animate-pulse flex-col gap-3" aria-hidden>
+                  <div className="h-6 w-32 rounded bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+                  <div className="h-[60px] w-full rounded-full bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+                  <div className="h-16 w-full rounded-3xl bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+                </section>
               )}
-            </section>
 
-            {/* Pickup or delivery (and where) */}
-            {fulfillment ? (
-              <FulfillmentSection model={checkout} />
-            ) : fulfillmentFailed ? (
-              <section className="flex items-center justify-between gap-3 rounded-[18px] bg-white px-[16px] py-[14px] dark:bg-gray-900">
-                <p className="text-md font-medium text-gray-600 dark:text-gray-300">
-                  {t("cart.fulfillmentLoadFailed")}
-                </p>
-                <button
-                  type="button"
-                  onClick={retryFulfillment}
-                  className="shrink-0 rounded-lg px-2 py-1 text-sm font-semibold text-brand-500 transition hover:text-brand-600 dark:text-brand-400"
-                >
-                  {t("cart.retry")}
-                </button>
-              </section>
-            ) : (
-              <section
-                className="flex animate-pulse flex-col gap-3 rounded-[18px] bg-white px-[16px] py-[12px] dark:bg-gray-900"
-                aria-hidden
-              >
-                <div className="h-6 w-32 rounded bg-gray-100 dark:bg-gray-800" />
-                <div className="h-[62px] w-full rounded-2xl bg-gray-100 dark:bg-gray-800" />
-                <div className="h-16 w-full rounded-xl bg-gray-100 dark:bg-gray-800" />
-              </section>
-            )}
-
-            {/* Customer info (required for the store to call back) */}
-            <section className="flex flex-col gap-[12px] rounded-[18px] bg-white dark:bg-gray-900 px-[16px] py-[12px]">
-              <h2 className="text-xl font-semibold text-black dark:text-white/90">{t("cart.customerInfo")}</h2>
-              <div className="flex flex-col gap-[10px]">
-                <div className="flex flex-col gap-[4px]">
-                  <label htmlFor="checkout-phone" className="text-sm font-medium text-gray90">
-                    {t("cart.phone")} *
-                  </label>
+              {/* Customer info (required for the store to call back) */}
+              <section className="flex flex-col gap-3">
+                <h2 className={checkoutTitle}>{t("cart.customerInfo")}</h2>
+                <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="checkout-phone" className="px-1 text-[13px] font-semibold text-gray-600 dark:text-gray-300">
+                      {t("cart.phone")} *
+                    </label>
+                    <input
+                      id="checkout-phone"
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel"
+                      value={phone}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").replace(/^998/, "");
+                        setPhone("+998 " + digits.slice(0, 9));
+                      }}
+                      onBlur={() => setPhoneTouched(true)}
+                      aria-invalid={(phoneTouched && !phoneValid) || undefined}
+                      aria-describedby={phoneTouched && !phoneValid ? "checkout-phone-error" : undefined}
+                      className={`${field(phoneTouched && !phoneValid)} h-[52px] tabular-nums`}
+                      placeholder="+998 90 123 45 67"
+                    />
+                    {phoneTouched && !phoneValid && (
+                      <p id="checkout-phone-error" className="px-1 text-[13px] font-semibold text-error-600 dark:text-error-400">
+                        {t("cart.phoneRequired")}
+                      </p>
+                    )}
+                    {/* Inside Telegram the number is one tap away — no keyboard. */}
+                    {isTelegram && (
+                      <button
+                        type="button"
+                        onClick={useTelegramPhone}
+                        disabled={contactPending}
+                        className={`${pillSecondary} mt-1 h-10 self-start px-4 disabled:opacity-60`}
+                      >
+                        {contactPending ? t("common.loading") : t("cart.phoneFromTelegram")}
+                      </button>
+                    )}
+                    {contactFailed && (
+                      <p className="px-1 text-[13px] font-medium text-gray-500 dark:text-gray-400">
+                        {t("cart.phoneFromTelegramFailed")}
+                      </p>
+                    )}
+                  </div>
                   <input
-                    id="checkout-phone"
-                    type="tel"
-                    inputMode="tel"
-                    value={phone}
-                    onChange={(e) => {
-                      const digits = e.target.value.replace(/\D/g, "").replace(/^998/, "");
-                      setPhone("+998 " + digits.slice(0, 9));
-                    }}
-                    onBlur={() => setPhoneTouched(true)}
-                    className={`h-[44px] w-full rounded-[12px] border bg-white px-3 text-md font-medium text-black outline-none dark:bg-gray-900 dark:text-white/90 ${
-                      phoneTouched && !phoneValid
-                        ? "border-red"
-                        : "border-gray-300 dark:border-gray-700 focus:border-brand-500"
-                    }`}
-                    placeholder="+998 90 123 45 67"
+                    type="text"
+                    autoComplete="name"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    maxLength={255}
+                    className={`${field()} h-[52px]`}
+                    placeholder={t("cart.namePlaceholder")}
+                    aria-label={t("cart.namePlaceholder")}
                   />
-                  {phoneTouched && !phoneValid && (
-                    <p className="text-sm font-medium text-red">{t("cart.phoneRequired")}</p>
-                  )}
-                  {/* Inside Telegram the number is one tap away — no keyboard. */}
-                  {isTelegram && (
-                    <button
-                      type="button"
-                      onClick={useTelegramPhone}
-                      disabled={contactPending}
-                      className="self-start rounded-lg px-1 py-0.5 text-sm font-semibold text-brand-500 transition hover:text-brand-600 disabled:opacity-60"
-                    >
-                      {contactPending
-                        ? t("common.loading")
-                        : t("cart.phoneFromTelegram")}
-                    </button>
-                  )}
-                  {contactFailed && (
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                      {t("cart.phoneFromTelegramFailed")}
-                    </p>
-                  )}
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    maxLength={500}
+                    rows={2}
+                    className={`${field()} resize-none py-3`}
+                    placeholder={t("cart.notePlaceholder")}
+                    aria-label={t("cart.notePlaceholder")}
+                  />
                 </div>
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  maxLength={255}
-                  className="h-[44px] w-full rounded-[12px] border border-gray-300 bg-white px-3 text-md font-medium text-black outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-                  placeholder={t("cart.namePlaceholder")}
-                  aria-label={t("cart.namePlaceholder")}
-                />
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  maxLength={500}
-                  rows={2}
-                  className="w-full resize-none rounded-[12px] border border-gray-300 bg-white px-3 py-2 text-md font-medium text-black outline-none focus:border-brand-500 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-                  placeholder={t("cart.notePlaceholder")}
-                  aria-label={t("cart.notePlaceholder")}
-                />
-              </div>
-            </section>
+              </section>
+            </div>
 
-            {/* Order summary */}
-            <div className="flex w-full flex-col gap-[16px]">
-              <OrderSummary
-                subtotal={selectedTotals.total}
-                count={selectedTotals.qty}
-                model={checkout}
-              />
-
-              <div className="hidden w-full lg:flex">
+            {/* What it comes to; on a wide screen it stays in view. */}
+            <aside className="mt-8 flex flex-col gap-4 lg:sticky lg:top-24 lg:mt-0">
+              <OrderSummary subtotal={selectedTotals.total} count={selectedTotals.qty} model={checkout} />
+              {/* The phone has its own bar for this, above the tab bar. */}
+              <div className="hidden lg:block">
                 <button
                   type="button"
                   onClick={placeOrder}
-                  className="h-[56px] w-full rounded-[16px] bg-brand-500 text-md font-semibold text-white hover:bg-brand-600 disabled:bg-gray-200 disabled:text-gray-500 dark:text-gray-400"
                   disabled={!canSubmit}
+                  className={`${pillPrimary} h-14 w-full text-[16px] disabled:bg-gray-900/[0.08] disabled:text-gray-400 dark:disabled:bg-white/[0.08] dark:disabled:text-gray-500`}
                 >
-                  {placing ? t("common.sending") : t("cart.checkout")}
+                  {submitLabel}
                 </button>
               </div>
+            </aside>
+          </div>
+        )}
+
+        {/* Phone: the order button rides above the tab bar, like the cart bar
+            does on the other pages. */}
+        {hasItems && (
+          <>
+            <div className="lg:hidden" style={{ height: "calc(var(--nav-total) + 92px)" }} aria-hidden />
+            <div
+              className="fixed inset-x-0 z-20 bg-gradient-to-t from-white from-70% to-transparent px-4 pb-3 pt-4 dark:from-gray-900 lg:hidden"
+              style={{ bottom: "var(--nav-total)" }}
+            >
+              <button
+                type="button"
+                onClick={placeOrder}
+                disabled={!canSubmit}
+                className="flex h-14 w-full items-center justify-between gap-3 rounded-full bg-brand-500 pl-6 pr-5 text-white transition-[background-color,transform] duration-100 hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 motion-safe:active:scale-[0.98] disabled:bg-gray-200 disabled:text-gray-500 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
+              >
+                <span className="min-w-0 truncate text-[16px] font-bold">{submitLabel}</span>
+                <Money
+                  value={checkout.payable}
+                  currency={currency}
+                  className="shrink-0 text-[17px] font-bold tracking-[-0.01em]"
+                  suffixClassName="opacity-80"
+                />
+              </button>
             </div>
           </>
         )}
-
-        {/* Mobile sticky checkout bar */}
-        <div
-          className="fixed left-0 right-0 z-20 w-full border-t border-gray60 bg-gray50/95 backdrop-blur-[20px] lg:hidden"
-          style={{ bottom: "var(--nav-total)" }}
-        >
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-[16px] py-[10px]">
-            <div className="flex flex-col gap-[2px]">
-              <h3 className="text-lg font-bold text-black dark:text-white/90">{formatPrice(checkout.payable)}</h3>
-              <h4 className="text-md font-medium text-gray-500 dark:text-gray-400">
-                {t("cart.productsTotal").replace("{count}", String(selectedTotals.qty)).replace(/:$/, "")}
-                {checkout.type === "delivery" && checkout.fee > 0 && (
-                  <> + {t("cart.deliveryFee").toLocaleLowerCase()}</>
-                )}
-              </h4>
-            </div>
-            <button
-              type="button"
-              onClick={placeOrder}
-              className="h-[36px] rounded-lg bg-brand-500 px-4 text-md font-semibold text-white hover:bg-brand-600 disabled:bg-gray-200 disabled:text-gray-500"
-              disabled={!canSubmit}
-            >
-              {placing ? t("common.sending") : t("cart.checkout")}
-            </button>
-          </div>
-        </div>
-
-        {/* Spacer: the nav (plus its inset) and the checkout bar above it. */}
-        <div
-          className="lg:hidden"
-          style={{ minHeight: "calc(var(--nav-total) + 56px)" }}
-        />
+        {!hasItems && <div className="lg:hidden" style={{ height: "calc(var(--nav-total) + 24px)" }} aria-hidden />}
       </main>
 
       <MobileNav />
       <DesktopFooter />
-      </div>
     </AuthDrawerProvider>
   );
 }
-
