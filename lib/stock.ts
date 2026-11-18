@@ -25,3 +25,23 @@ export function onOrderLabel(label: string, leadTime?: string | null): string {
   const lead = leadTime?.trim();
   return lead ? `${label} · ${lead}` : label;
 }
+
+/**
+ * When every product shown is taken on order with the same lead time, the
+ * shop says it once (in its header) instead of on every card. Returns that
+ * shared lead ("" when the shop gave none), or null when the products differ
+ * or there are too few to call it the shop's way of selling.
+ */
+export function sharedOrderLead(
+  products: { quantity?: number | null; preorder?: boolean; leadTime?: string | null }[]
+): string | null {
+  if (products.length < 4) return null;
+  let lead: string | null = null;
+  for (const p of products) {
+    if (!stockOf(p.quantity, p.preorder === true).onOrder) return null;
+    const own = p.leadTime?.trim() ?? "";
+    if (lead === null) lead = own;
+    else if (lead !== own) return null;
+  }
+  return lead;
+}

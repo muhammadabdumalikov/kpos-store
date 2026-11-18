@@ -30,7 +30,7 @@ export type HomeProduct = {
 /** One category's shelf on the home page: its first few products. */
 export type HomeSection = { id: string; name: string; products: HomeProduct[] };
 
-function HomeCard({ product: p }: { product: HomeProduct }) {
+function HomeCard({ product: p, sharedLead }: { product: HomeProduct; sharedLead: string | null }) {
   return (
     <ProductCard
       id={p.id}
@@ -45,6 +45,7 @@ function HomeCard({ product: p }: { product: HomeProduct }) {
       oldPrice={p.oldPrice}
       isNew={p.isNew}
       popular={p.popular}
+      sharedLead={sharedLead}
     />
   );
 }
@@ -58,6 +59,7 @@ export function HomeContent({
   sections,
   total,
   failed,
+  sharedLead = null,
 }: {
   categories: HomeCategory[];
   products: HomeProduct[];
@@ -67,6 +69,8 @@ export function HomeContent({
   total: number;
   /** The product request failed: say so instead of showing an empty shop. */
   failed: boolean;
+  /** The lead time the shop header states for every product, if it does. */
+  sharedLead?: string | null;
 }) {
   const { t } = useTranslations();
   const router = useRouter();
@@ -107,11 +111,13 @@ export function HomeContent({
     <>
       {categories.length > 0 && (
         <section aria-labelledby="home-categories" className="mt-4 lg:mt-8">
-          <h2 id="home-categories" className={sectionTitle}>
+          {/* On a phone the tiles speak for themselves; the heading stays
+              for screen readers and comes back on wide screens. */}
+          <h2 id="home-categories" className={`${sectionTitle} max-lg:sr-only`}>
             {t("home.categories")}
           </h2>
           {photoTiles ? (
-            <ul className="no-scrollbar -mx-4 mt-3 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:gap-4 lg:px-0">
+            <ul className="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:mt-3 lg:gap-4 lg:px-0">
               {categories.map((cat) => (
                 <li key={cat.id} className="w-[76px] shrink-0 snap-start lg:w-[112px]">
                   <CategoryCard id={cat.id} name={cat.name} image={cat.image} />
@@ -119,7 +125,7 @@ export function HomeContent({
               ))}
             </ul>
           ) : (
-            <div className="no-scrollbar -mx-4 mt-2 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:flex-wrap lg:px-0">
+            <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:mt-2 lg:flex-wrap lg:px-0">
               {categories.map((cat) => (
                 <ChipLink key={cat.id} href={`/catalog?category=${encodeURIComponent(cat.id)}`}>
                   {cat.name}
@@ -139,7 +145,7 @@ export function HomeContent({
             <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:mt-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8">
               {products.map((p, i) => (
                 <div key={p.id} className={`min-w-0 ${gridHide(i)}`}>
-                  <HomeCard product={p} />
+                  <HomeCard product={p} sharedLead={sharedLead} />
                 </div>
               ))}
             </div>
@@ -167,7 +173,7 @@ export function HomeContent({
                       key={p.id}
                       className={`w-[42%] shrink-0 snap-start sm:w-[30%] md:w-[23%] lg:w-auto ${i >= 5 ? "lg:hidden" : ""}`}
                     >
-                      <HomeCard product={p} />
+                      <HomeCard product={p} sharedLead={sharedLead} />
                     </li>
                   ))}
                 </ul>

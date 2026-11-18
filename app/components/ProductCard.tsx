@@ -30,6 +30,9 @@ type ProductCardProps = {
   /** The shop's flags; at most one of them reaches the photo's corner. */
   isNew?: boolean;
   popular?: boolean;
+  /** The lead time the shop header already states for every product
+   *  (lib/stock sharedOrderLead); a card with that same lead does not repeat it. */
+  sharedLead?: string | null;
 };
 
 const cornerPill = "absolute left-2 top-2 rounded-full px-2 py-[3px] text-[11px] font-bold leading-4";
@@ -56,6 +59,7 @@ export function ProductCard({
   oldPrice,
   isNew,
   popular,
+  sharedLead = null,
 }: ProductCardProps) {
   const { t } = useTranslations();
   const { parts, format } = usePrice();
@@ -65,6 +69,8 @@ export function ProductCard({
   const showImage = Boolean(image) && !broken;
   const { amount, suffix } = parts(price, quantityType);
   const orderLabel = onOrder ? onOrderLabel(t("preorder.label"), leadTime) : null;
+  // Said once in the shop header when it holds for everything on sale.
+  const showOrderLabel = orderLabel !== null && (sharedLead === null || sharedLead !== (leadTime?.trim() ?? ""));
   const unit = isWeighed(quantityType) ? t("common.unitKg") : null;
 
   // A sold-out card is greyed and says only that; no markdown, no flags.
@@ -154,10 +160,10 @@ export function ProductCard({
         <h3 className="mt-0.5 line-clamp-2 break-words px-0.5 text-[14px] font-medium leading-5 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white">
           {name}
         </h3>
-        {orderLabel && (
-          <p className="mt-1 flex min-w-0 items-center gap-1.5 px-0.5 text-[13px] font-semibold leading-5 text-gray-500 dark:text-gray-400">
-            <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
-            <span className="min-w-0 truncate">{orderLabel}</span>
+        {/* Plain grey, no dot: it is a fact about delivery, not an alert. */}
+        {showOrderLabel && (
+          <p className="mt-0.5 truncate px-0.5 text-[13px] font-medium leading-5 text-gray-500 dark:text-gray-400">
+            {orderLabel}
           </p>
         )}
       </Link>

@@ -6,7 +6,8 @@ import { usePrice } from "@/hooks/usePrice";
 import { normalizeFulfillment } from "@/lib/fulfillment";
 import type { StoreInfo } from "@/lib/store-api";
 import { storeContacts, type StoreContact } from "@/lib/store-contacts";
-import { PhoneIcon, StoreIcon, TruckIcon } from "./icons/DeliveryIcons";
+import { onOrderLabel } from "@/lib/stock";
+import { ClockIcon, PhoneIcon, StoreIcon, TruckIcon } from "./icons/DeliveryIcons";
 import { InstagramIcon, TelegramIcon } from "./icons/ShopIcons";
 
 export type FulfilmentLine = { key: string; icon: React.ReactNode; label: string; detail: string | null };
@@ -69,9 +70,29 @@ function useShopImage(src: string | null | undefined) {
  * hands orders over, and where to reach it. Everything but the name is
  * optional; a shop that set nothing gets the name and the handover lines.
  */
-export function StoreIntro({ info }: { info: StoreInfo | null }) {
+export function StoreIntro({
+  info,
+  orderLead = null,
+}: {
+  info: StoreInfo | null;
+  /** Set when everything on sale comes on order with this one lead time
+   *  ("" when the shop gave none): said here once instead of on every card. */
+  orderLead?: string | null;
+}) {
   const { t } = useTranslations();
-  const lines = useFulfilmentLines(info);
+  const handover = useFulfilmentLines(info);
+  const lines: FulfilmentLine[] =
+    orderLead === null
+      ? handover
+      : [
+          ...handover,
+          {
+            key: "on-order",
+            icon: <ClockIcon className="h-[18px] w-[18px]" />,
+            label: onOrderLabel(t("preorder.label"), orderLead),
+            detail: null,
+          },
+        ];
   const cover = useShopImage(info?.cover);
   const logo = useShopImage(info?.logo);
   if (!info?.name) return null;
@@ -117,6 +138,20 @@ export function StoreIntro({ info }: { info: StoreInfo | null }) {
     </div>
   );
 
+  // Phone: round icon buttons, so three contacts take one short row (beside
+  // the logo when there is a cover). Wide screens have room for the names.
+  const contactList = (className: string) =>
+    contacts.length > 0 && (
+      <ul aria-label={t("home.contactsAria")} className={`flex flex-wrap gap-2 ${className}`}>
+        {contacts.map((c) => (
+          <li key={c.key}>
+            <ContactPill contact={c} />
+          </li>
+        ))}
+      </ul>
+    );
+  const contactsBesideLogo = Boolean(cover.url && logo.url);
+
   return (
     <section aria-labelledby="store-title" className="mx-auto max-w-7xl lg:px-4 lg:pt-6">
       {cover.url && (
@@ -127,7 +162,7 @@ export function StoreIntro({ info }: { info: StoreInfo | null }) {
           decoding="async"
           fetchPriority="high"
           onError={cover.onError}
-          className="aspect-[5/2] w-full bg-gray-900/[0.035] object-cover lg:aspect-[4/1] lg:rounded-[28px]"
+          className="aspect-[3/1] w-full bg-gray-900/[0.035] object-cover lg:aspect-[4/1] lg:rounded-[28px]"
         />
       )}
 
@@ -136,7 +171,12 @@ export function StoreIntro({ info }: { info: StoreInfo | null }) {
             under it; without one the logo stands beside the name. */}
         {cover.url ? (
           <div className={logo.url ? "lg:flex lg:items-end lg:gap-5 lg:px-6" : "lg:px-1"}>
-            {logoImg}
+            {logo.url ? (
+              <div className="flex items-end justify-between gap-3 lg:block">
+                {logoImg}
+                {contactList("mt-2 justify-end lg:hidden")}
+              </div>
+            ) : null}
             <div className={logo.url ? "mt-2.5 min-w-0 lg:mt-0 lg:pb-1" : ""}>{title}</div>
           </div>
         ) : (
@@ -149,7 +189,7 @@ export function StoreIntro({ info }: { info: StoreInfo | null }) {
         {lines.length > 0 && (
           <ul
             aria-label={t("home.fulfilmentAria")}
-            className={`flex flex-col gap-1.5 lg:flex-row lg:flex-wrap lg:gap-x-10 lg:gap-y-2 lg:rounded-[20px] lg:bg-gray-900/[0.035] lg:px-6 lg:py-4 dark:lg:bg-white/[0.04] ${
+            className={`flex flex-wrap gap-x-3.5 gap-y-1.5 lg:gap-x-10 lg:gap-y-2 lg:rounded-[20px] lg:bg-gray-900/[0.035] lg:px-6 lg:py-4 dark:lg:bg-white/[0.04] ${
               branded ? "mt-3 lg:mt-5" : "mt-2.5 lg:mt-0"
             }`}
           >
@@ -173,15 +213,7 @@ export function StoreIntro({ info }: { info: StoreInfo | null }) {
           </ul>
         )}
 
-        {contacts.length > 0 && (
-          <ul aria-label={t("home.contactsAria")} className="mt-3.5 flex flex-wrap gap-2 lg:mt-4">
-            {contacts.map((c) => (
-              <li key={c.key}>
-                <ContactPill contact={c} />
-              </li>
-            ))}
-          </ul>
-        )}
+        {contactList(`mt-3.5 lg:mt-4 ${contactsBesideLogo ? "max-lg:hidden" : ""}`)}
       </div>
     </section>
   );
@@ -190,13 +222,15 @@ export function StoreIntro({ info }: { info: StoreInfo | null }) {
 /** One way to reach the shop: its Instagram, its Telegram, or a call. */
 function ContactPill({ contact }: { contact: StoreContact }) {
   const { t } = useTranslations();
-  const icon = "h-[18px] w-[18px] shrink-0";
+  const icon = "h-5 w-5 shrink-0 lg:h-[18px] lg:w-[18px]";
   const external = contact.key !== "phone";
+  const name = contact.key === "instagram" ? "Instagram" : contact.key === "telegram" ? "Telegram" : t("home.call");
   return (
     <a
       href={contact.href}
       {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-      className="flex h-11 items-center gap-2 rounded-full bg-gray-900/[0.05] pl-3.5 pr-4 text-[14px] font-semibold text-gray-900 transition-[background-color,transform] duration-100 hover:bg-gray-900/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 motion-safe:active:scale-[0.97] dark:bg-white/[0.07] dark:text-white dark:hover:bg-white/[0.11]"
+      aria-label={name}
+      className="flex h-11 w-11 items-center justify-center gap-2 rounded-full bg-gray-900/[0.05] text-[14px] font-semibold text-gray-900 transition-[background-color,transform] duration-100 hover:bg-gray-900/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 motion-safe:active:scale-[0.97] dark:bg-white/[0.07] dark:text-white dark:hover:bg-white/[0.11] lg:w-auto lg:justify-start lg:pl-3.5 lg:pr-4"
     >
       {contact.key === "instagram" ? (
         <InstagramIcon className={icon} />
@@ -205,7 +239,7 @@ function ContactPill({ contact }: { contact: StoreContact }) {
       ) : (
         <PhoneIcon className={icon} />
       )}
-      {contact.key === "instagram" ? "Instagram" : contact.key === "telegram" ? "Telegram" : t("home.call")}
+      <span className="max-lg:hidden">{name}</span>
     </a>
   );
 }

@@ -73,3 +73,12 @@ export function CrossIcon({ className = "h-3 w-3" }: IconProps) {
     </svg>
   );
 }
+
+export function ClockIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </svg>
+  );
+}

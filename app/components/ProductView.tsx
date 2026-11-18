@@ -17,6 +17,7 @@ import { AddControl } from "./AddControl";
 import { BackButton, useBackFallback } from "./BackButton";
 import { ProductCard } from "./ProductCard";
 import { pillSecondary } from "./StatePanel";
+import { ClockIcon } from "./icons/DeliveryIcons";
 import { useFulfilmentLines } from "./StoreIntro";
 import { BoxIcon, ChatIcon, ChevronRightIcon } from "./icons/ShopIcons";
 
@@ -229,8 +230,8 @@ export function ProductView({
           )}
 
           {onOrder && (
-            <p className="mt-1.5 flex items-center gap-2 text-[14px] font-semibold leading-5 text-gray-600 dark:text-gray-300">
-              <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />
+            <p className="mt-1.5 flex items-center gap-1.5 text-[14px] font-semibold leading-5 text-gray-600 dark:text-gray-300">
+              <ClockIcon className="h-4 w-4 shrink-0 text-gray-400 dark:text-gray-500" />
               <span className="min-w-0 break-words">{onOrderLabel(t("preorder.label"), product.leadTime)}</span>
             </p>
           )}
