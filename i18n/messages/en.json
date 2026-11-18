@@ -58,6 +58,9 @@
     "contactsAria": "Contact the shop"
   },
   "product": {
+    "oldPrice": "Old price",
+    "badgeNew": "New",
+    "badgePopular": "Popular",
     "addToCart": "Add to cart",
     "add": "Add",
     "soldOut": "Sold out",

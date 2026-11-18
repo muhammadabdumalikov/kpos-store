@@ -7,6 +7,8 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
 import { useCartQty, useProductCartQty } from "@/lib/cart-store";
 import type { CatalogProduct } from "@/lib/catalog-pages";
+import { formatAmount } from "@/lib/format";
+import { discountLabel, discountPercent } from "@/lib/product-badges";
 import type { OptionChoice, OptionGroup } from "@/lib/product-options";
 import { onOrderLabel, stockOf } from "@/lib/stock";
 import type { StoreInfo } from "@/lib/store-api";
@@ -35,6 +37,11 @@ export type ProductViewProduct = {
   options?: OptionGroup[];
   /** Plain text; line breaks are kept. */
   description?: string | null;
+  /** The price it was marked down from; null when there is no markdown. */
+  oldPrice?: number | null;
+  /** The shop's flags; one of them is shown above the name. */
+  isNew?: boolean;
+  popular?: boolean;
 };
 
 export type RelatedProducts = {
@@ -120,6 +127,10 @@ export function ProductView({
   const description = product.description?.trim() || null;
   const chatHref = sellerChatHref(info);
   const gallery = product.images?.length ? product.images : product.image ? [product.image] : [];
+  // As on the card: a sold-out product shows no markdown and no flags.
+  const was = !soldOut && product.oldPrice && product.oldPrice > product.price ? product.oldPrice : null;
+  const percent = was ? discountPercent(product.price, was) : null;
+  const flag = soldOut ? null : product.popular ? "popular" : product.isNew ? "new" : null;
 
   return (
     <>
@@ -144,20 +155,37 @@ export function ProductView({
         </div>
 
         <div className="min-w-0 pt-4 md:pt-0 lg:pt-2">
-          {category && (
-            <Link
-              href={categoryHref(category.id)}
-              className="group -my-1.5 inline-flex h-11 max-w-full items-center rounded-full outline-none focus-visible:[&>span]:ring-2 focus-visible:[&>span]:ring-brand-500/60 focus-visible:[&>span]:ring-offset-2 focus-visible:[&>span]:ring-offset-white dark:focus-visible:[&>span]:ring-offset-gray-900"
-            >
-              <span className="flex h-8 min-w-0 items-center rounded-full bg-gray-900/[0.05] px-3.5 text-[13px] font-semibold text-gray-600 transition-colors duration-100 group-hover:bg-gray-900/[0.08] group-hover:text-gray-900 dark:bg-white/[0.07] dark:text-gray-300 dark:group-hover:bg-white/[0.11] dark:group-hover:text-white">
-                <span className="truncate">{category.name}</span>
-              </span>
-            </Link>
+          {(category || flag) && (
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2">
+              {category && (
+                <Link
+                  href={categoryHref(category.id)}
+                  className="group -my-1.5 inline-flex h-11 min-w-0 max-w-full items-center rounded-full outline-none focus-visible:[&>span]:ring-2 focus-visible:[&>span]:ring-brand-500/60 focus-visible:[&>span]:ring-offset-2 focus-visible:[&>span]:ring-offset-white dark:focus-visible:[&>span]:ring-offset-gray-900"
+                >
+                  <span className="flex h-8 min-w-0 items-center rounded-full bg-gray-900/[0.05] px-3.5 text-[13px] font-semibold text-gray-600 transition-colors duration-100 group-hover:bg-gray-900/[0.08] group-hover:text-gray-900 dark:bg-white/[0.07] dark:text-gray-300 dark:group-hover:bg-white/[0.11] dark:group-hover:text-white">
+                    <span className="truncate">{category.name}</span>
+                  </span>
+                </Link>
+              )}
+              {/* The shop's own flag, in the category's pill shape but
+                  coloured: it is a label, not a link. */}
+              {flag && (
+                <span
+                  className={`flex h-8 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold ${
+                    flag === "popular"
+                      ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                      : "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
+                  }`}
+                >
+                  {t(flag === "popular" ? "product.badgePopular" : "product.badgeNew")}
+                </span>
+              )}
+            </div>
           )}
 
           <h1
             className={`${
-              category ? "mt-2" : ""
+              category || flag ? "mt-2" : ""
             } break-words text-[24px] font-bold leading-[30px] tracking-[-0.02em] text-gray-900 dark:text-white lg:text-[32px] lg:leading-[40px]`}
           >
             {product.name}
@@ -178,6 +206,19 @@ export function ProductView({
             >
               {suffix}
             </span>
+            {was && (
+              <s className="ml-1 whitespace-nowrap text-[17px] font-medium leading-6 text-gray-500 dark:text-gray-400 lg:text-[19px]">
+                <span className="sr-only">{t("product.oldPrice")}: </span>
+                {formatAmount(was)}
+              </s>
+            )}
+            {/* Fixed sale red, whatever the shop's accent: white on error-600
+                is 4.83:1. */}
+            {percent && (
+              <span className="ml-1 self-center whitespace-nowrap rounded-full bg-error-600 px-2.5 py-0.5 text-[13px] font-bold leading-5 text-white">
+                {discountLabel(percent)}
+              </span>
+            )}
           </p>
 
           {lowStock && (
@@ -320,6 +361,9 @@ export function ProductView({
                 preorder={p.preorder}
                 leadTime={p.leadTime}
                 hasOptions={p.hasOptions}
+                oldPrice={p.oldPrice}
+                isNew={p.isNew}
+                popular={p.popular}
               />
             ))}
           </div>

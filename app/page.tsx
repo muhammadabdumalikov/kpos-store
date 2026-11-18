@@ -22,6 +22,7 @@ import {
 } from "../lib/store-api";
 import { getStoreSlugServer } from "../lib/store-slug-server";
 import { optionGroups } from "../lib/product-options";
+import { toOldPrice } from "../lib/product-badges";
 
 const HOME_PRODUCTS = 10;
 // Category shelves under the newest products: how many, and how long each is.
@@ -29,10 +30,11 @@ const HOME_SHELVES = 4;
 const SHELF_PRODUCTS = 8;
 
 function toHomeProduct(p: StoreProduct): HomeProduct {
+  const price = Math.round(parseFloat(String(p.priceOut)) || 0);
   return {
     id: p.id,
     name: p.name,
-    price: Math.round(parseFloat(String(p.priceOut)) || 0),
+    price,
     image: p.image ?? undefined,
     quantity: p.quantity,
     quantityType: p.quantityType,
@@ -41,6 +43,10 @@ function toHomeProduct(p: StoreProduct): HomeProduct {
     preorder: p.preorder === true,
     leadTime: p.leadTime?.trim() || null,
     hasOptions: optionGroups(p.options).length > 0,
+    // A markdown and the shop's flags, for the label on the card's photo.
+    oldPrice: toOldPrice(p.oldPrice, price),
+    isNew: p.isNew === true,
+    popular: p.popular === true,
   };
 }
 

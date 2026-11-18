@@ -8,6 +8,7 @@ import { MobileNav } from "../../components/MobileNav";
 import { ProductView, type RelatedProducts } from "../../components/ProductView";
 import { toCatalogProduct } from "../../../lib/catalog-pages";
 import { formatPrice, toAmount } from "../../../lib/format";
+import { toOldPrice } from "../../../lib/product-badges";
 import { optionGroups } from "../../../lib/product-options";
 import {
   getStoreCategories,
@@ -123,6 +124,9 @@ export default async function ProductPage({ params }: Params) {
             leadTime: product.leadTime?.trim() || null,
             options: optionGroups(product.options),
             description: product.description ?? null,
+            oldPrice: toOldPrice(product.oldPrice, toAmount(product.priceOut)),
+            isNew: product.isNew === true,
+            popular: product.popular === true,
           }}
           category={categoryName && product.categoryId ? { id: product.categoryId, name: categoryName } : null}
           categoryId={product.categoryId ?? null}

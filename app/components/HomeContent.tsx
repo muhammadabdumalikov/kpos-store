@@ -22,6 +22,10 @@ export type HomeProduct = {
   preorder?: boolean;
   leadTime?: string | null;
   hasOptions?: boolean;
+  /** The price it was marked down from, and the shop's "new" / "popular" flags. */
+  oldPrice?: number | null;
+  isNew?: boolean;
+  popular?: boolean;
 };
 /** One category's shelf on the home page: its first few products. */
 export type HomeSection = { id: string; name: string; products: HomeProduct[] };
@@ -38,6 +42,9 @@ function HomeCard({ product: p }: { product: HomeProduct }) {
       preorder={p.preorder}
       leadTime={p.leadTime}
       hasOptions={p.hasOptions}
+      oldPrice={p.oldPrice}
+      isNew={p.isNew}
+      popular={p.popular}
     />
   );
 }

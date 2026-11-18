@@ -58,6 +58,9 @@
     "contactsAria": "Дўкон билан алоқа"
   },
   "product": {
+    "oldPrice": "Эски нарх",
+    "badgeNew": "Янги",
+    "badgePopular": "Оммабоп",
     "addToCart": "Саватга қўшиш",
     "add": "Қўшиш",
     "soldOut": "Тугаган",

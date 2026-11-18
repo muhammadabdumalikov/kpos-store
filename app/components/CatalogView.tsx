@@ -227,6 +227,9 @@ function CatalogResults({
                   preorder={p.preorder}
                   leadTime={p.leadTime}
                   hasOptions={p.hasOptions}
+                  oldPrice={p.oldPrice}
+                  isNew={p.isNew}
+                  popular={p.popular}
                 />
               ))}
               {status === "loading" &&

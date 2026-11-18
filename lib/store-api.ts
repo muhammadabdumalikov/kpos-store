@@ -38,6 +38,13 @@ export interface StoreProduct {
   leadTime?: string | null;
   /** Plain text with line breaks, up to 2000 characters. */
   description?: string | null;
+  // Storefront step 4. Optional: a backend that predates them omits them.
+  /** The price before a markdown; the backend sends it only when it is above `priceOut`. */
+  oldPrice?: string | null;
+  /** Added recently (never while the whole shop is new). */
+  isNew?: boolean;
+  /** Among the shop's most ordered; about one card in five at most. */
+  popular?: boolean;
 }
 
 export interface StoreProductsResponse {
@@ -168,6 +175,8 @@ export interface StoreInfo {
   tagline?: string | null;
   /** `instagram` and `telegram` are bare usernames, no "@" and no URL. */
   contacts?: { instagram?: string | null; telegram?: string | null; phone?: string | null } | null;
+  /** The shop's accent colour, a key of lib/store-accent; null is the KPOS blue. */
+  accent?: string | null;
 }
 
 export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {

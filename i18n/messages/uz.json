@@ -58,6 +58,9 @@
     "contactsAria": "Doʼkon bilan aloqa"
   },
   "product": {
+    "oldPrice": "Eski narx",
+    "badgeNew": "Yangi",
+    "badgePopular": "Ommabop",
     "addToCart": "Savatga qoʼshish",
     "add": "Qoʼshish",
     "soldOut": "Tugagan",

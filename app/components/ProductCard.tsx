@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
+import { formatAmount } from "@/lib/format";
+import { discountLabel, discountPercent } from "@/lib/product-badges";
 import { onOrderLabel, stockOf } from "@/lib/stock";
 import { AddControl, CartCount } from "./AddControl";
 import { BoxIcon } from "./icons/ShopIcons";
@@ -23,13 +25,23 @@ type ProductCardProps = {
   leadTime?: string | null;
   /** The product has choices; the control leads to its page to make them. */
   hasOptions?: boolean;
+  /** The price it was marked down from; shown struck through beside the price. */
+  oldPrice?: number | null;
+  /** The shop's flags; at most one of them reaches the photo's corner. */
+  isNew?: boolean;
+  popular?: boolean;
 };
+
+const cornerPill = "absolute left-2 top-2 rounded-full px-2 py-[3px] text-[11px] font-bold leading-4";
 
 /**
  * The shop's product tile: photo, price and name, all one link to the product.
  * Adding is a round "+" on the photo's corner that never leaves the page; it
  * sits outside the link so a tap on it only changes the cart. A product with
  * choices has no "+": its card leads to the page where they are made.
+ *
+ * The photo's top-left corner holds one label at most: sold out wins, then the
+ * markdown, running low, popular, new. The "+" keeps the bottom-right corner.
  */
 export function ProductCard({
   id,
@@ -41,6 +53,9 @@ export function ProductCard({
   preorder,
   leadTime,
   hasOptions,
+  oldPrice,
+  isNew,
+  popular,
 }: ProductCardProps) {
   const { t } = useTranslations();
   const { parts, format } = usePrice();
@@ -52,11 +67,38 @@ export function ProductCard({
   const orderLabel = onOrder ? onOrderLabel(t("preorder.label"), leadTime) : null;
   const unit = isWeighed(quantityType) ? t("common.unitKg") : null;
 
+  // A sold-out card is greyed and says only that; no markdown, no flags.
+  const was = !soldOut && oldPrice && oldPrice > price ? oldPrice : null;
+  const percent = was ? discountPercent(price, was) : null;
+  // The sale red is fixed (white on error-600 is 4.83:1) so it reads as a
+  // markdown under any shop accent.
+  const pill = soldOut
+    ? { text: t("product.soldOut"), tone: "bg-white text-gray-600" }
+    : percent
+      ? { text: discountLabel(percent), tone: "bg-error-600 text-white tabular-nums" }
+      : lowStock
+        ? { text: t("product.lowStock"), tone: "bg-white text-warning-700" }
+        : popular
+          ? { text: t("product.badgePopular"), tone: "bg-white text-gray-900" }
+          : isNew
+            ? { text: t("product.badgeNew"), tone: "bg-white text-brand-600" }
+            : null;
+  // Read out with the link: the corner label, unless it is the markdown,
+  // which the old price already says.
+  const spoken = [
+    `${name}, ${format(price, quantityType)}`,
+    was ? `${t("product.oldPrice")} ${format(was, quantityType)}` : null,
+    pill && !percent ? pill.text : null,
+    orderLabel,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   return (
     <article className="relative flex h-full min-w-0 flex-col">
       <Link
         href={`/products/${id}`}
-        aria-label={`${name}, ${format(price, quantityType)}${soldOut ? `, ${t("product.soldOut")}` : ""}${orderLabel ? `, ${orderLabel}` : ""}`}
+        aria-label={spoken}
         className="group flex min-w-0 flex-col rounded-[22px] outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-4 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900"
       >
         <div
@@ -87,16 +129,7 @@ export function ProductCard({
               <span className="sr-only">{t("product.noPhoto")}</span>
             </span>
           )}
-          {lowStock && (
-            <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-[3px] text-[11px] font-bold leading-4 text-warning-700">
-              {t("product.lowStock")}
-            </span>
-          )}
-          {soldOut && (
-            <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-[3px] text-[11px] font-bold leading-4 text-gray-600">
-              {t("product.soldOut")}
-            </span>
-          )}
+          {pill && <span className={`${cornerPill} ${pill.tone}`}>{pill.text}</span>}
         </div>
 
         <p
@@ -112,6 +145,11 @@ export function ProductCard({
           >
             {suffix}
           </span>
+          {was && (
+            <s className="ml-0.5 whitespace-nowrap text-[13px] font-medium leading-5 text-gray-500 dark:text-gray-400">
+              {formatAmount(was)}
+            </s>
+          )}
         </p>
         <h3 className="mt-0.5 line-clamp-2 break-words px-0.5 text-[14px] font-medium leading-5 text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white">
           {name}

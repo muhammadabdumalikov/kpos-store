@@ -58,6 +58,9 @@
     "contactsAria": "Связь с магазином"
   },
   "product": {
+    "oldPrice": "Старая цена",
+    "badgeNew": "Новинка",
+    "badgePopular": "Популярное",
     "addToCart": "В корзину",
     "add": "Добавить",
     "soldOut": "Нет в наличии",

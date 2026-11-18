@@ -2,6 +2,7 @@
 // mapper, the client keeps its page cache here.
 
 import { optionGroups } from "./product-options";
+import { toOldPrice } from "./product-badges";
 import type { StoreProduct } from "./store-api";
 
 /** Products per catalogue request, first page and every page after it. */
@@ -28,13 +29,19 @@ export type CatalogProduct = {
   leadTime?: string | null;
   /** The product has choices (size, colour); they are made on its page. */
   hasOptions?: boolean;
+  /** The price it was marked down from; null when there is no markdown. */
+  oldPrice?: number | null;
+  /** The shop's own flags for the card's corner label. */
+  isNew?: boolean;
+  popular?: boolean;
 };
 
 export function toCatalogProduct(p: StoreProduct): CatalogProduct {
+  const price = Math.round(parseFloat(String(p.priceOut)) || 0);
   return {
     id: p.id,
     name: p.name,
-    price: Math.round(parseFloat(String(p.priceOut)) || 0),
+    price,
     categoryId: p.categoryId ?? null,
     image: p.image ?? undefined,
     quantity: p.quantity,
@@ -42,6 +49,9 @@ export function toCatalogProduct(p: StoreProduct): CatalogProduct {
     preorder: p.preorder === true,
     leadTime: p.leadTime?.trim() || null,
     hasOptions: optionGroups(p.options).length > 0,
+    oldPrice: toOldPrice(p.oldPrice, price),
+    isNew: p.isNew === true,
+    popular: p.popular === true,
   };
 }
 
