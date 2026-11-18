@@ -177,6 +177,9 @@ export interface StoreInfo {
   contacts?: { instagram?: string | null; telegram?: string | null; phone?: string | null } | null;
   /** The shop's accent colour, a key of lib/store-accent; null is the KPOS blue. */
   accent?: string | null;
+  /** How product cards frame their photo: "portrait" is 4:5 (clothes), the
+   *  default "square" is 1:1. Older backends omit it. */
+  photoShape?: "square" | "portrait" | null;
 }
 
 export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {

@@ -21,14 +21,18 @@ export const metadata: Metadata = {
  * colour. The same request as the pages make, so within one render it is
  * deduplicated, and across renders it is the 60-second data cache.
  */
-async function loadAccentCss(): Promise<string | null> {
+async function loadShopCss(): Promise<string | null> {
   // Outside the try: reading the host is what makes the route per-request,
   // and Next signals that by throwing; it must not be swallowed.
   const slug = await getStoreSlugServer();
   try {
-    return storeAccentCss((await getStoreInfo(slug)).accent);
+    const info = await getStoreInfo(slug);
+    // Portrait cards (4:5) for shops that photograph clothes on people; a
+    // fixed string, never API text. Square needs nothing: it is the default.
+    const shape = info.photoShape === "portrait" ? ":root{--card-aspect:4/5}" : "";
+    return (storeAccentCss(info.accent) ?? "") + shape || null;
   } catch {
-    // The colour is decoration: the shop opens in the default one.
+    // Colour and shape are decoration: the shop opens in the defaults.
     return null;
   }
 }
@@ -38,13 +42,14 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const accentCss = await loadAccentCss();
+  const shopCss = await loadShopCss();
   return (
     <html lang="uz" className={gilroy.variable} style={{ ["--tg-viewport-height" as string]: "100vh", ["--tg-viewport-stable-height" as string]: "100vh" }} suppressHydrationWarning>
       <head>
-        {/* Overrides the brand scale from globals.css for this shop. Built
-            from a fixed table (lib/store-accent), never from API text. */}
-        {accentCss && <style dangerouslySetInnerHTML={{ __html: accentCss }} />}
+        {/* This shop's look over the defaults in globals.css: its brand
+            scale and its card photo shape. Built from fixed tables and
+            strings (lib/store-accent), never from API text. */}
+        {shopCss && <style dangerouslySetInnerHTML={{ __html: shopCss }} />}
         {/* Telegram Mini App SDK. Loaded on every page: the same build serves
             the plain web storefront (where it stays inert) and the mini app. */}
         <Script

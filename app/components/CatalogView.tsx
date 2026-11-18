@@ -292,7 +292,7 @@ function LoadMoreSentinel({ onVisible }: { onVisible: () => void }) {
 function ProductCardSkeleton() {
   return (
     <div aria-hidden className="flex h-full min-w-0 flex-col motion-safe:animate-pulse">
-      <div className="aspect-square w-full rounded-[20px] bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+      <div className="aspect-card w-full rounded-[20px] bg-gray-900/[0.05] dark:bg-white/[0.06]" />
       <div className="mt-2.5 px-0.5">
         <div className="mt-1 h-[18px] w-2/5 rounded-md bg-gray-900/[0.05] dark:bg-white/[0.06]" />
         <div className="mt-2.5 h-3.5 w-4/5 rounded-md bg-gray-900/[0.05] dark:bg-white/[0.06]" />

@@ -108,7 +108,7 @@ export function ProductCard({
         className="group flex min-w-0 flex-col rounded-[22px] outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-4 focus-visible:ring-offset-white dark:focus-visible:ring-offset-gray-900"
       >
         <div
-          className={`relative aspect-square w-full overflow-hidden rounded-[20px] ${
+          className={`relative aspect-card w-full overflow-hidden rounded-[20px] ${
             showImage ? "bg-gray-900/[0.035] dark:bg-gray-200" : "bg-gray-900/[0.035] dark:bg-white/[0.04]"
           } ${soldOut && showImage ? "dark:opacity-60" : ""}`}
         >
@@ -168,9 +168,9 @@ export function ProductCard({
         )}
       </Link>
 
-      {/* Laid over the photo (the same square, at the top of the tile); only
+      {/* Laid over the photo (the same shape, at the top of the tile); only
           the control itself takes taps, the rest falls through to the link. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 aspect-square">
+      <div className="pointer-events-none absolute inset-x-0 top-0 aspect-card">
         <div className="absolute inset-x-2 bottom-2 flex justify-end">
           {hasOptions ? (
             <CartCount id={id} unit={unit} />

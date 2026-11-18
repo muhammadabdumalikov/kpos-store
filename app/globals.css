@@ -220,6 +220,12 @@
   --nav-height: 72px;
 }
 
+/* A product card's photo tile. Square unless the root layout sets
+   --card-aspect for a shop that asked for portrait photos (4:5). */
+@utility aspect-card {
+  aspect-ratio: var(--card-aspect, 1 / 1);
+}
+
 @utility no-scrollbar {
   &::-webkit-scrollbar {
     display: none;
