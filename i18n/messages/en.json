@@ -52,7 +52,8 @@
     "emptyTitle": "No products yet",
     "emptyBody": "Products will appear here once the shop adds them",
     "errorTitle": "Could not open the shop",
-    "errorBody": "There was a connection problem. Please try again in a moment."
+    "errorBody": "There was a connection problem. Please try again in a moment.",
+    "newArrivals": "New arrivals"
   },
   "product": {
     "addToCart": "Add to cart",

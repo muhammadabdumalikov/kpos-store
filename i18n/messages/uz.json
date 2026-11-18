@@ -52,7 +52,8 @@
     "emptyTitle": "Doʼkonda hozircha mahsulot yoʼq",
     "emptyBody": "Doʼkon mahsulot qoʼshgach, ular shu yerda chiqadi",
     "errorTitle": "Doʼkon ochilmadi",
-    "errorBody": "Aloqada muammo boʼldi. Birozdan keyin qayta urinib koʼring."
+    "errorBody": "Aloqada muammo boʼldi. Birozdan keyin qayta urinib koʼring.",
+    "newArrivals": "Yangi kelganlar"
   },
   "product": {
     "addToCart": "Savatga qoʼshish",

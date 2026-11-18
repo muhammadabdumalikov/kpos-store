@@ -5,7 +5,12 @@ import { MobileNav } from "./components/MobileNav";
 import { AuthDrawerProvider } from "./components/AuthDrawerContext";
 import { BannerCarousel } from "./components/BannerCarousel";
 import { CartBar } from "./components/CartBar";
-import { HomeContent, type HomeCategory, type HomeProduct } from "./components/HomeContent";
+import {
+  HomeContent,
+  type HomeCategory,
+  type HomeProduct,
+  type HomeSection,
+} from "./components/HomeContent";
 import { StoreIntro } from "./components/StoreIntro";
 import {
   getStoreProducts,
@@ -13,11 +18,31 @@ import {
   getStoreBanners,
   getStoreInfo,
   type StoreInfo,
+  type StoreProduct,
 } from "../lib/store-api";
 import { getStoreSlugServer } from "../lib/store-slug-server";
 import { optionGroups } from "../lib/product-options";
 
 const HOME_PRODUCTS = 10;
+// Category shelves under the newest products: how many, and how long each is.
+const HOME_SHELVES = 4;
+const SHELF_PRODUCTS = 8;
+
+function toHomeProduct(p: StoreProduct): HomeProduct {
+  return {
+    id: p.id,
+    name: p.name,
+    price: Math.round(parseFloat(String(p.priceOut)) || 0),
+    image: p.image ?? undefined,
+    quantity: p.quantity,
+    quantityType: p.quantityType,
+    // Online seller (ONLAYN-SOTUVCHI.md): sold before it is in stock, and a
+    // card with choices opens the product page instead of adding.
+    preorder: p.preorder === true,
+    leadTime: p.leadTime?.trim() || null,
+    hasOptions: optionGroups(p.options).length > 0,
+  };
+}
 
 export default async function Home() {
   const slug = await getStoreSlugServer();
@@ -39,22 +64,30 @@ export default async function Home() {
       : [];
   const failed = productsRes.status === "rejected";
   const products: HomeProduct[] =
-    productsRes.status === "fulfilled"
-      ? productsRes.value.products.map((p) => ({
-          id: p.id,
-          name: p.name,
-          price: Math.round(parseFloat(String(p.priceOut)) || 0),
-          image: p.image ?? undefined,
-          quantity: p.quantity,
-          quantityType: p.quantityType,
-          // Online seller (ONLAYN-SOTUVCHI.md): sold before it is in stock,
-          // and a card with choices opens the product page instead of adding.
-          preorder: p.preorder === true,
-          leadTime: p.leadTime?.trim() || null,
-          hasOptions: optionGroups(p.options).length > 0,
-        }))
-      : [];
+    productsRes.status === "fulfilled" ? productsRes.value.products.map(toHomeProduct) : [];
   const total = productsRes.status === "fulfilled" ? productsRes.value.total : 0;
+
+  // A shop with more than one page of products gets a shelf per category, so
+  // the home page shows its range instead of only the newest ten. A small
+  // shop already shows everything in the grid; shelves would repeat it.
+  let sections: HomeSection[] = [];
+  if (total > products.length && categories.length > 1) {
+    const shelves = categories.slice(0, HOME_SHELVES);
+    const results = await Promise.all(
+      shelves.map((c) => settle(getStoreProducts({ category: c.id, limit: SHELF_PRODUCTS, slug })))
+    );
+    sections = shelves
+      .map((c, i) => {
+        const res = results[i];
+        return {
+          id: c.id,
+          name: c.name,
+          products: res.status === "fulfilled" ? res.value.products.map(toHomeProduct) : [],
+        };
+      })
+      // One product is not a shelf.
+      .filter((section) => section.products.length > 1);
+  }
 
   return (
     <AuthDrawerProvider>
@@ -67,7 +100,13 @@ export default async function Home() {
       <main className="mx-auto max-w-7xl px-4 pb-[calc(var(--nav-total)_+_24px)] lg:pb-16">
         {/* Not when the shop could not be opened: the error panel stands alone. */}
         {!failed && <BannerCarousel banners={banners} />}
-        <HomeContent categories={categories} products={products} total={total} failed={failed} />
+        <HomeContent
+          categories={categories}
+          products={products}
+          sections={sections}
+          total={total}
+          failed={failed}
+        />
         <CartBar />
       </main>
 

@@ -23,6 +23,24 @@ export type HomeProduct = {
   leadTime?: string | null;
   hasOptions?: boolean;
 };
+/** One category's shelf on the home page: its first few products. */
+export type HomeSection = { id: string; name: string; products: HomeProduct[] };
+
+function HomeCard({ product: p }: { product: HomeProduct }) {
+  return (
+    <ProductCard
+      id={p.id}
+      name={p.name}
+      price={p.price}
+      image={p.image}
+      quantity={p.quantity}
+      quantityType={p.quantityType}
+      preorder={p.preorder}
+      leadTime={p.leadTime}
+      hasOptions={p.hasOptions}
+    />
+  );
+}
 
 const sectionTitle =
   "text-[20px] font-bold leading-7 tracking-[-0.01em] text-gray-900 dark:text-white lg:text-[22px]";
@@ -30,11 +48,15 @@ const sectionTitle =
 export function HomeContent({
   categories,
   products,
+  sections,
   total,
   failed,
 }: {
   categories: HomeCategory[];
   products: HomeProduct[];
+  /** Category shelves under the newest products; empty for a small shop,
+   *  whose whole range already fits the grid above. */
+  sections: HomeSection[];
   total: number;
   /** The product request failed: say so instead of showing an empty shop. */
   failed: boolean;
@@ -69,6 +91,11 @@ export function HomeContent({
   const withImage = categories.filter((c) => c.image).length;
   const photoTiles = categories.length > 0 && withImage * 2 >= categories.length;
 
+  // With shelves below, the grid is a short "new arrivals" block (three rows
+  // at most at each width) rather than the whole first page.
+  const shelved = sections.length > 0;
+  const gridHide = (i: number) => (!shelved ? "" : i >= 8 ? "max-lg:hidden" : i >= 6 ? "max-md:hidden" : "");
+
   return (
     <>
       {categories.length > 0 && (
@@ -98,30 +125,52 @@ export function HomeContent({
 
       <section aria-labelledby="home-products" className="mt-7 lg:mt-10">
         <h2 id="home-products" className={sectionTitle}>
-          {t("home.popular")}
+          {shelved ? t("home.newArrivals") : t("home.popular")}
         </h2>
         {products.length > 0 ? (
           <>
             <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:mt-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8">
-              {products.map((p) => (
-                <ProductCard
-                  key={p.id}
-                  id={p.id}
-                  name={p.name}
-                  price={p.price}
-                  image={p.image}
-                  quantity={p.quantity}
-                  quantityType={p.quantityType}
-                  preorder={p.preorder}
-                  leadTime={p.leadTime}
-                  hasOptions={p.hasOptions}
-                />
+              {products.map((p, i) => (
+                <div key={p.id} className={`min-w-0 ${gridHide(i)}`}>
+                  <HomeCard product={p} />
+                </div>
               ))}
             </div>
+
+            {sections.map((section) => (
+              <section key={section.id} aria-labelledby={`home-shelf-${section.id}`} className="mt-9 lg:mt-12">
+                <div className="flex items-center justify-between gap-3">
+                  <h2 id={`home-shelf-${section.id}`} className={`${sectionTitle} min-w-0 truncate`}>
+                    {section.name}
+                  </h2>
+                  <Link
+                    href={`/catalog?category=${encodeURIComponent(section.id)}`}
+                    aria-label={`${t("home.seeAll")}: ${section.name}`}
+                    className="-mr-2 inline-flex h-11 shrink-0 items-center gap-0.5 rounded-full pl-3 pr-2 text-[14px] font-semibold text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 dark:text-gray-400 dark:hover:text-white"
+                  >
+                    {t("home.seeAll")}
+                    <ChevronRightIcon className="h-[18px] w-[18px]" />
+                  </Link>
+                </div>
+                {/* Phone: a shelf to swipe, the third card peeking in. Desktop:
+                    one row of the grid. */}
+                <ul className="no-scrollbar -mx-4 mt-2 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:mt-3 lg:grid lg:grid-cols-5 lg:gap-x-5 lg:overflow-visible lg:px-0 lg:pb-0">
+                  {section.products.map((p, i) => (
+                    <li
+                      key={p.id}
+                      className={`w-[42%] shrink-0 snap-start sm:w-[30%] md:w-[23%] lg:w-auto ${i >= 5 ? "lg:hidden" : ""}`}
+                    >
+                      <HomeCard product={p} />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+
             {total > products.length && (
               <Link
                 href="/catalog"
-                className={`${pillSecondary} mt-6 flex h-12 w-full lg:mx-auto lg:mt-8 lg:max-w-[360px]`}
+                className={`${pillSecondary} mt-8 flex h-12 w-full lg:mx-auto lg:mt-10 lg:max-w-[360px]`}
               >
                 {t("home.allProducts")}
                 <span className="font-semibold tabular-nums text-gray-500 dark:text-gray-400">{total}</span>

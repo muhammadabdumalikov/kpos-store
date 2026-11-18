@@ -30,8 +30,9 @@ export function BackButton({
   className = "",
 }: {
   fallback: string;
-  /** "round": the phone's icon button. "link": desktop's quiet text link. */
-  variant: "round" | "link";
+  /** "round": the phone's icon button. "float": the same button laid over a
+   *  photo, on its own solid disc. "link": desktop's quiet text link. */
+  variant: "round" | "float" | "link";
   className?: string;
 }) {
   const { t } = useTranslations();
@@ -45,14 +46,16 @@ export function BackButton({
         e.preventDefault();
         navigateBack(router, fallback);
       }}
-      aria-label={variant === "round" ? t("common.back") : undefined}
+      aria-label={variant === "link" ? undefined : t("common.back")}
       className={
-        variant === "round"
+        variant === "float"
+          ? `flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-gray-900 ring-1 ring-gray-900/[0.08] transition-[background-color,transform] duration-100 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 motion-safe:active:scale-95 ${className}`
+          : variant === "round"
           ? `flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gray-900/[0.05] text-gray-900 transition-[background-color,transform] duration-100 hover:bg-gray-900/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 motion-safe:active:scale-95 dark:bg-white/[0.07] dark:text-white dark:hover:bg-white/[0.11] ${className}`
           : `-ml-3 inline-flex h-11 items-center gap-1 rounded-full pl-2 pr-4 text-[14px] font-semibold text-gray-500 transition-colors duration-100 hover:bg-gray-900/[0.04] hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 dark:text-gray-400 dark:hover:bg-white/[0.05] dark:hover:text-white ${className}`
       }
     >
-      <ChevronLeftIcon className={variant === "round" ? "h-6 w-6" : "h-5 w-5"} strokeWidth={2.2} />
+      <ChevronLeftIcon className={variant === "link" ? "h-5 w-5" : "h-6 w-6"} strokeWidth={2.2} />
       {variant === "link" && t("common.back")}
     </a>
   );

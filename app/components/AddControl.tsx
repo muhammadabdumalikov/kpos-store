@@ -1,16 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { refreshPriceSnapshot, setLineQty, useCartQty, useProductCartQty } from "@/lib/cart-store";
 import type { OptionChoice } from "@/lib/product-options";
-import { ChevronRightIcon, MinusIcon, PlusIcon } from "./icons/ShopIcons";
+import { MinusIcon, PlusIcon } from "./icons/ShopIcons";
 
 export type AddControlSize = "md" | "lg";
 /** "quiet": a tinted add pill (the card, where the cart bar is the loud thing).
  *  "primary": a brand add pill (the product page, where adding is the action). */
 export type AddControlTone = "quiet" | "primary";
+/** "pill": a full-width pill with a label (the product page).
+ *  "corner": a round "+" that sits on the card's photo and grows into the
+ *  stepper along the photo's bottom edge once the product is in the cart. */
+export type AddControlShape = "pill" | "corner";
 
 // Everything that differs between the card (md) and the product page (lg).
 const SIZES: Record<
@@ -59,6 +62,7 @@ export function AddControl({
   unit,
   size = "md",
   tone = "quiet",
+  shape = "pill",
   options,
   beforeAdd,
 }: {
@@ -73,6 +77,7 @@ export function AddControl({
   unit: string | null;
   size?: AddControlSize;
   tone?: AddControlTone;
+  shape?: AddControlShape;
   /** The choices this line is for; omit for a product without options. */
   options?: OptionChoice[];
   /** Asked before a new line is added; returning false cancels the add (the
@@ -105,6 +110,8 @@ export function AddControl({
   }, [inCart, id, price]);
 
   if (soldOut && !inCart) {
+    // On the card the photo already carries a "sold out" badge.
+    if (shape === "corner") return null;
     return (
       <span
         className={`flex ${s.height} w-full select-none items-center justify-center rounded-full ${s.label} font-semibold text-gray-400 ring-1 ring-inset ring-gray-900/[0.08] dark:text-gray-500 dark:ring-white/[0.08]`}
@@ -116,17 +123,34 @@ export function AddControl({
 
   if (!inCart) {
     const label = tone === "primary" ? t("product.addToCart") : t("product.add");
+    const add = (e: React.MouseEvent) => {
+      if (noRoom) return;
+      if (beforeAdd && !beforeAdd()) return;
+      if (e.detail === 0) focusAfter.current = "plus";
+      setLineQty(id, 1, price, options);
+    };
+    if (shape === "corner") {
+      return (
+        <button
+          ref={addRef}
+          type="button"
+          aria-disabled={noRoom || undefined}
+          onClick={add}
+          aria-label={`${noRoom ? t("product.maxReached") : label}: ${name}`}
+          className={`pointer-events-auto flex ${s.step} shrink-0 items-center justify-center rounded-full bg-white text-gray-900 ring-1 ring-gray-900/[0.08] transition-[background-color,transform] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
+            noRoom ? "cursor-not-allowed opacity-40" : "hover:bg-gray-50 motion-safe:active:scale-90"
+          }`}
+        >
+          <PlusIcon className="h-5 w-5" strokeWidth={2.2} />
+        </button>
+      );
+    }
     return (
       <button
         ref={addRef}
         type="button"
         aria-disabled={noRoom || undefined}
-        onClick={(e) => {
-          if (noRoom) return;
-          if (beforeAdd && !beforeAdd()) return;
-          if (e.detail === 0) focusAfter.current = "plus";
-          setLineQty(id, 1, price, options);
-        }}
+        onClick={add}
         aria-label={`${noRoom ? t("product.maxReached") : label}: ${name}`}
         className={`flex ${s.height} w-full items-center justify-center gap-1.5 rounded-full ${s.label} font-bold transition-[background-color,transform] duration-100 focus-visible:outline-none ${
           noRoom ? "cursor-not-allowed opacity-40" : "motion-safe:active:scale-[0.97]"
@@ -144,7 +168,7 @@ export function AddControl({
     <div
       role="group"
       aria-label={name}
-      className={`flex ${s.height} w-full items-center justify-between rounded-full bg-brand-500 text-white motion-safe:animate-[popover-in_0.16s_cubic-bezier(0.23,1,0.32,1)]`}
+      className={`${shape === "corner" ? "pointer-events-auto " : ""}flex ${s.height} w-full items-center justify-between rounded-full bg-brand-500 text-white motion-safe:animate-[popover-in_0.16s_cubic-bezier(0.23,1,0.32,1)]`}
     >
       <button
         type="button"
@@ -183,53 +207,24 @@ export function AddControl({
 }
 
 /**
- * The card's control for a product with choices (size, colour): they are made
- * on the product page, so the pill goes there instead of adding blind. Once
- * some are in the cart it says how many, across every choice.
+ * The card's mark for a product with choices (size, colour): they are made on
+ * the product page, so the card adds nothing itself. Once some are in the cart
+ * it says how many, across every choice.
  */
-export function ChooseLink({
-  id,
-  name,
-  soldOut,
-  unit,
-}: {
-  id: string;
-  name: string;
-  soldOut: boolean;
-  /** "kg" for weighed goods, shown after the count; null for pieces. */
-  unit: string | null;
-}) {
+export function CartCount({ id, unit }: { id: string; unit: string | null }) {
   const { t } = useTranslations();
   const qty = useProductCartQty(id);
-  const inCart = qty > 0;
-  const s = SIZES.md;
-
-  if (soldOut && !inCart) {
-    return (
-      <span
-        className={`flex ${s.height} w-full select-none items-center justify-center rounded-full ${s.label} font-semibold text-gray-400 ring-1 ring-inset ring-gray-900/[0.08] dark:text-gray-500 dark:ring-white/[0.08]`}
-      >
-        {t("product.soldOut")}
-      </span>
-    );
-  }
-
-  const label = inCart
-    ? t("product.inCart").replace("{count}", unit ? `${qty} ${unit}` : String(qty))
-    : t("productOptions.choose");
+  if (qty <= 0) return null;
 
   return (
-    <Link
-      href={`/products/${id}`}
-      aria-label={`${label}: ${name}`}
-      className={`flex ${s.height} w-full items-center justify-center gap-1 rounded-full pl-2 ${s.label} font-bold tabular-nums transition-[background-color,transform] duration-100 focus-visible:outline-none motion-safe:active:scale-[0.97] ${
-        inCart
-          ? "bg-brand-500 text-white hover:bg-brand-600 focus-visible:ring-4 focus-visible:ring-brand-500/30"
-          : TONES.quiet
-      }`}
-    >
-      <span className="min-w-0 truncate">{label}</span>
-      <ChevronRightIcon className={`${s.icon} shrink-0 ${inCart ? "text-white/80" : "text-gray-400"}`} strokeWidth={2.2} />
-    </Link>
+    <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-brand-500 px-2.5 text-[14px] font-bold tabular-nums text-white">
+      <span aria-hidden>
+        {qty}
+        {unit && <span className="ml-0.5 text-[12px] font-semibold text-white/80">{unit}</span>}
+      </span>
+      <span className="sr-only" role="status">
+        {t("product.inCart").replace("{count}", unit ? `${qty} ${unit}` : String(qty))}
+      </span>
+    </span>
   );
 }

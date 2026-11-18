@@ -295,9 +295,6 @@ function ProductCardSkeleton() {
         <div className="mt-2.5 h-3.5 w-4/5 rounded-md bg-gray-900/[0.05] dark:bg-white/[0.06]" />
         <div className="mt-1.5 h-3.5 w-3/5 rounded-md bg-gray-900/[0.05] dark:bg-white/[0.06]" />
       </div>
-      <div className="mt-auto pt-2.5">
-        <div className="h-11 w-full rounded-full bg-gray-900/[0.04] dark:bg-white/[0.05]" />
-      </div>
     </div>
   );
 }

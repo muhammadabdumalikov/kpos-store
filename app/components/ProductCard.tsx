@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
 import { onOrderLabel, stockOf } from "@/lib/stock";
-import { AddControl, ChooseLink } from "./AddControl";
+import { AddControl, CartCount } from "./AddControl";
 import { BoxIcon } from "./icons/ShopIcons";
 
 type ProductCardProps = {
@@ -26,9 +26,10 @@ type ProductCardProps = {
 };
 
 /**
- * The shop's product tile: photo, price, name, and an add control that never
- * leaves the page. The photo and text link to the product; the control sits
- * outside the link so a tap on it only changes the cart.
+ * The shop's product tile: photo, price and name, all one link to the product.
+ * Adding is a round "+" on the photo's corner that never leaves the page; it
+ * sits outside the link so a tap on it only changes the cart. A product with
+ * choices has no "+": its card leads to the page where they are made.
  */
 export function ProductCard({
   id,
@@ -52,7 +53,7 @@ export function ProductCard({
   const unit = isWeighed(quantityType) ? t("common.unitKg") : null;
 
   return (
-    <article className="flex h-full min-w-0 flex-col">
+    <article className="relative flex h-full min-w-0 flex-col">
       <Link
         href={`/products/${id}`}
         aria-label={`${name}, ${format(price, quantityType)}${soldOut ? `, ${t("product.soldOut")}` : ""}${orderLabel ? `, ${orderLabel}` : ""}`}
@@ -91,6 +92,11 @@ export function ProductCard({
               {t("product.lowStock")}
             </span>
           )}
+          {soldOut && (
+            <span className="absolute left-2 top-2 rounded-full bg-white px-2 py-[3px] text-[11px] font-bold leading-4 text-gray-600">
+              {t("product.soldOut")}
+            </span>
+          )}
         </div>
 
         <p
@@ -118,12 +124,16 @@ export function ProductCard({
         )}
       </Link>
 
-      <div className="mt-auto pt-2.5">
-        {hasOptions ? (
-          <ChooseLink id={id} name={name} soldOut={soldOut} unit={unit} />
-        ) : (
-          <AddControl id={id} name={name} price={price} max={max} soldOut={soldOut} unit={unit} />
-        )}
+      {/* Laid over the photo (the same square, at the top of the tile); only
+          the control itself takes taps, the rest falls through to the link. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 aspect-square">
+        <div className="absolute inset-x-2 bottom-2 flex justify-end">
+          {hasOptions ? (
+            <CartCount id={id} unit={unit} />
+          ) : (
+            <AddControl id={id} name={name} price={price} max={max} soldOut={soldOut} unit={unit} shape="corner" />
+          )}
+        </div>
       </div>
     </article>
   );

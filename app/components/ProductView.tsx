@@ -50,8 +50,9 @@ export function categoryHref(categoryId: string | null | undefined) {
 
 /**
  * The product page body: the photo, then what the shopper decides on (name,
- * price, the rare stock warning, the choices) and the one action, then the
- * description and more from the same shelf. The server page fetches; this
+ * price, the rare stock warning, the choices), the one action with how the
+ * order reaches them right under it, then the description and more from the
+ * same shelf. The server page fetches; this
  * renders, so every string is localised.
  */
 export function ProductView({
@@ -117,30 +118,27 @@ export function ProductView({
 
   return (
     <>
-      {/* Phone: one round back button above the photo. Inside Telegram the
-          client's own back button (same rule) already sits in the header. */}
-      {!isTelegram && (
-        <div className="flex h-[60px] items-center md:h-16 lg:hidden">
-          <BackButton fallback={backHref} variant="round" />
-        </div>
-      )}
       <div className="hidden pt-5 lg:block">
         <BackButton fallback={backHref} variant="link" />
       </div>
 
-      <div
-        className={`grid grid-cols-1 gap-x-8 md:grid-cols-2 md:items-start lg:mt-3 lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)] lg:gap-x-14 ${
-          isTelegram ? "pt-3 lg:pt-0" : ""
-        }`}
-      >
-        <ProductPhoto
-          key={product.image ?? ""}
-          image={product.image}
-          name={product.name}
-          soldOut={soldOut}
-        />
+      <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2 md:items-start md:pt-4 lg:mt-3 lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)] lg:gap-x-14 lg:pt-0">
+        {/* Phone: the photo runs edge to edge from the top of the page, the
+            back button on it. Inside Telegram the client's own back button
+            (same rule) already sits in the header. */}
+        <div className="relative -mx-4 md:mx-0">
+          <ProductPhoto
+            key={product.image ?? ""}
+            image={product.image}
+            name={product.name}
+            soldOut={soldOut}
+          />
+          {!isTelegram && (
+            <BackButton fallback={backHref} variant="float" className="absolute left-3 top-3 lg:hidden" />
+          )}
+        </div>
 
-        <div className="min-w-0 pt-3 md:pt-0 lg:pt-2">
+        <div className="min-w-0 pt-4 md:pt-0 lg:pt-2">
           {category && (
             <Link
               href={categoryHref(category.id)}
@@ -244,13 +242,10 @@ export function ProductView({
             )}
           </p>
 
-          {description && <Description text={description} />}
-
+          {/* How the order reaches the shopper, and what that costs, next to
+              the button that starts it. */}
           {fulfilment.length > 0 && (
-            <ul
-              aria-label={t("home.fulfilmentAria")}
-              className="mt-6 flex flex-col gap-2.5 rounded-[20px] bg-gray-900/[0.035] px-4 py-3.5 dark:bg-white/[0.04] lg:mt-10 lg:max-w-[440px] lg:px-5 lg:py-4"
-            >
+            <ul aria-label={t("home.fulfilmentAria")} className="mt-4 flex flex-col gap-2 lg:mt-5 lg:max-w-[440px]">
               {fulfilment.map((l) => (
                 <li
                   key={l.key}
@@ -270,6 +265,8 @@ export function ProductView({
               ))}
             </ul>
           )}
+
+          {description && <Description text={description} />}
         </div>
       </div>
 
@@ -425,19 +422,33 @@ function Description({ text }: { text: string }) {
   );
 }
 
+// The photo tile follows the photo's own shape between portrait 4:5 and
+// landscape 5:4; anything beyond is contained inside the nearest of the two.
+const MIN_RATIO = 4 / 5;
+const MAX_RATIO = 5 / 4;
+
 /**
- * The whole product, never cropped: packshots are contained on a tinted tile
- * and multiplied into it, as on the card. Sold out ghosts the photo the same
- * way the card does.
+ * The whole product, never cropped: the tile takes the photo's own shape, so
+ * a square or portrait shot fills it, and the photo is multiplied into the
+ * tint, as on the card. Edge to edge on the phone, a rounded tile from the
+ * tablet up. Sold out ghosts the photo the same way the card does.
  */
 function ProductPhoto({ image, name, soldOut }: { image: string | null; name: string; soldOut: boolean }) {
   const { t } = useTranslations();
   const [broken, setBroken] = useState(false);
+  // Square until the photo says otherwise.
+  const [ratio, setRatio] = useState(1);
   const showImage = Boolean(image) && !broken;
+
+  const measure = (el: HTMLImageElement) => {
+    if (el.naturalWidth > 0 && el.naturalHeight > 0)
+      setRatio(Math.min(MAX_RATIO, Math.max(MIN_RATIO, el.naturalWidth / el.naturalHeight)));
+  };
 
   return (
     <div
-      className={`relative aspect-square w-full overflow-hidden rounded-[28px] ${
+      style={{ aspectRatio: showImage ? ratio : 1 }}
+      className={`relative w-full overflow-hidden md:rounded-[28px] ${
         showImage ? "bg-gray-900/[0.035] dark:bg-gray-200" : "bg-gray-900/[0.035] dark:bg-white/[0.04]"
       } ${soldOut && showImage ? "dark:opacity-60" : ""}`}
     >
@@ -450,13 +461,16 @@ function ProductPhoto({ image, name, soldOut }: { image: string | null; name: st
           alt={name}
           decoding="async"
           fetchPriority="high"
+          onLoad={(e) => measure(e.currentTarget)}
           onError={() => setBroken(true)}
-          // A photo that failed before hydration fired its error event with
-          // no listener attached yet; catch that case when React attaches.
+          // A photo that loaded or failed before hydration fired its event
+          // with no listener attached yet; catch both when React attaches.
           ref={(el) => {
-            if (el?.complete && el.naturalWidth === 0) setBroken(true);
+            if (!el?.complete) return;
+            if (el.naturalWidth === 0) setBroken(true);
+            else measure(el);
           }}
-          className={`absolute inset-0 h-full w-full object-contain p-[7%] mix-blend-multiply ${
+          className={`absolute inset-0 h-full w-full object-contain mix-blend-multiply ${
             soldOut ? "opacity-40 grayscale" : ""
           }`}
         />
