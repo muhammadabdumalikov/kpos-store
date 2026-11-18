@@ -116,6 +116,7 @@ export default async function ProductPage({ params }: Params) {
             name: product.name,
             price: toAmount(product.priceOut),
             image: product.image ?? null,
+            images: product.images ?? undefined,
             quantity: product.quantity,
             quantityType: product.quantityType,
             preorder: product.preorder === true,

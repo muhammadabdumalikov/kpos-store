@@ -23,6 +23,8 @@ export type ProductViewProduct = {
   name: string;
   price: number;
   image: string | null;
+  /** Every photo, main one first; absent when the shop gave only `image`. */
+  images?: string[];
   quantity: number;
   quantityType: QuantityType;
   /** Taken on order: with no stock it says "Buyurtmaga" and can still be added. */
@@ -117,6 +119,7 @@ export function ProductView({
   const atCap = productQty > 0 && productQty >= max && Number.isFinite(max);
   const description = product.description?.trim() || null;
   const chatHref = sellerChatHref(info);
+  const gallery = product.images?.length ? product.images : product.image ? [product.image] : [];
 
   return (
     <>
@@ -129,9 +132,9 @@ export function ProductView({
             back button on it. Inside Telegram the client's own back button
             (same rule) already sits in the header. */}
         <div className="relative -mx-4 md:mx-0">
-          <ProductPhoto
-            key={product.image ?? ""}
-            image={product.image}
+          <ProductGallery
+            key={gallery.join("|")}
+            images={gallery}
             name={product.name}
             soldOut={soldOut}
           />
@@ -437,59 +440,44 @@ function Description({ text }: { text: string }) {
   );
 }
 
-// The photo tile follows the photo's own shape between portrait 4:5 and
+// The photo tile follows the first photo's own shape between portrait 4:5 and
 // landscape 5:4; anything beyond is contained inside the nearest of the two.
 const MIN_RATIO = 4 / 5;
 const MAX_RATIO = 5 / 4;
 
 /**
- * The whole product, never cropped: the tile takes the photo's own shape, so
- * a square or portrait shot fills it, and the photo is multiplied into the
- * tint, as on the card. Edge to edge on the phone, a rounded tile from the
- * tablet up. Sold out ghosts the photo the same way the card does.
+ * The product's photos, never cropped: one tile in the first photo's own
+ * shape, the photos side by side inside it to swipe through, each multiplied
+ * into the tint as on the card. Dots say where you are; from the tablet up a
+ * row of thumbnails under the tile jumps to a photo. Edge to edge on the
+ * phone, a rounded tile from the tablet up. A single photo is just the tile.
+ * Sold out ghosts the photos the same way the card does.
  */
-function ProductPhoto({ image, name, soldOut }: { image: string | null; name: string; soldOut: boolean }) {
+function ProductGallery({ images, name, soldOut }: { images: string[]; name: string; soldOut: boolean }) {
   const { t } = useTranslations();
-  const [broken, setBroken] = useState(false);
-  // Square until the photo says otherwise.
+  const [failed, setFailed] = useState<string[]>([]);
+  // Square until the first photo says otherwise.
   const [ratio, setRatio] = useState(1);
-  const showImage = Boolean(image) && !broken;
+  const [index, setIndex] = useState(0);
+  const scroller = useRef<HTMLDivElement>(null);
 
+  const shown = images.filter((src) => !failed.includes(src));
+  const many = shown.length > 1;
+  const fail = (src: string) => setFailed((list) => (list.includes(src) ? list : [...list, src]));
   const measure = (el: HTMLImageElement) => {
     if (el.naturalWidth > 0 && el.naturalHeight > 0)
       setRatio(Math.min(MAX_RATIO, Math.max(MIN_RATIO, el.naturalWidth / el.naturalHeight)));
   };
+  const goTo = (i: number) => {
+    const el = scroller.current;
+    if (!el) return;
+    const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollTo({ left: i * el.clientWidth, behavior: calm ? "auto" : "smooth" });
+  };
 
-  return (
-    <div
-      style={{ aspectRatio: showImage ? ratio : 1 }}
-      className={`relative w-full overflow-hidden md:rounded-[28px] ${
-        showImage ? "bg-gray-900/[0.035] dark:bg-gray-200" : "bg-gray-900/[0.035] dark:bg-white/[0.04]"
-      } ${soldOut && showImage ? "dark:opacity-60" : ""}`}
-    >
-      {showImage ? (
-        // Plain <img>: shop photos come from whatever host the shop's storage
-        // uses, and next/image throws on hosts missing from config.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={image!}
-          alt={name}
-          decoding="async"
-          fetchPriority="high"
-          onLoad={(e) => measure(e.currentTarget)}
-          onError={() => setBroken(true)}
-          // A photo that loaded or failed before hydration fired its event
-          // with no listener attached yet; catch both when React attaches.
-          ref={(el) => {
-            if (!el?.complete) return;
-            if (el.naturalWidth === 0) setBroken(true);
-            else measure(el);
-          }}
-          className={`absolute inset-0 h-full w-full object-contain mix-blend-multiply ${
-            soldOut ? "opacity-40 grayscale" : ""
-          }`}
-        />
-      ) : (
+  if (shown.length === 0) {
+    return (
+      <div className="relative aspect-square w-full overflow-hidden bg-gray-900/[0.035] md:rounded-[28px] dark:bg-white/[0.04]">
         <div
           className={`flex h-full w-full flex-col items-center justify-center gap-3 text-gray-900/25 dark:text-white/25 ${
             soldOut ? "opacity-60" : ""
@@ -497,9 +485,103 @@ function ProductPhoto({ image, name, soldOut }: { image: string | null; name: st
         >
           <BoxIcon className="h-16 w-16" strokeWidth={1.2} />
           <p className="text-[14px] font-semibold text-gray-900/40 dark:text-white/40">
-            {broken ? t("product.photoFailed") : t("product.noPhoto")}
+            {images.length > 0 ? t("product.photoFailed") : t("product.noPhoto")}
           </p>
         </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div
+        style={{ aspectRatio: ratio }}
+        className={`relative w-full overflow-hidden bg-gray-900/[0.035] md:rounded-[28px] dark:bg-gray-200 ${
+          soldOut ? "dark:opacity-60" : ""
+        }`}
+      >
+        <div
+          ref={scroller}
+          role={many ? "group" : undefined}
+          aria-label={many ? t("product.gallery") : undefined}
+          tabIndex={many ? 0 : undefined}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            if (el.clientWidth > 0) setIndex(Math.round(el.scrollLeft / el.clientWidth));
+          }}
+          className="no-scrollbar absolute inset-0 flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500/60"
+        >
+          {shown.map((src, i) => (
+            <div key={src} className="relative h-full w-full shrink-0 snap-center">
+              {/* Plain <img>: shop photos come from whatever host the shop's
+                  storage uses, and next/image throws on hosts missing from
+                  config. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={src}
+                alt={i === 0 ? name : `${name}, ${t("product.photoN").replace("{n}", String(i + 1))}`}
+                decoding="async"
+                loading={i === 0 ? undefined : "lazy"}
+                fetchPriority={i === 0 ? "high" : undefined}
+                onLoad={i === 0 ? (e) => measure(e.currentTarget) : undefined}
+                onError={() => fail(src)}
+                // The first photo may have loaded or failed before hydration,
+                // its event fired with no listener attached yet; catch both
+                // when React attaches. Not the lazy ones: a photo the browser
+                // has not asked for yet also reports complete with no size.
+                ref={
+                  i === 0
+                    ? (el) => {
+                        if (!el?.complete) return;
+                        if (el.naturalWidth === 0) fail(src);
+                        else measure(el);
+                      }
+                    : undefined
+                }
+                className={`absolute inset-0 h-full w-full object-contain mix-blend-multiply ${
+                  soldOut ? "opacity-40 grayscale" : ""
+                }`}
+              />
+            </div>
+          ))}
+        </div>
+
+        {many && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white/85 px-2 py-1.5"
+          >
+            {shown.map((src, i) => (
+              <span
+                key={src}
+                className={`h-1.5 rounded-full transition-[width,background-color] duration-200 motion-reduce:transition-none ${
+                  i === index ? "w-4 bg-gray-900" : "w-1.5 bg-gray-900/30"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {many && (
+        <ul className="mt-3 hidden flex-wrap gap-2 md:flex">
+          {shown.map((src, i) => (
+            <li key={src}>
+              <button
+                type="button"
+                onClick={() => goTo(i)}
+                aria-label={t("product.photoN").replace("{n}", String(i + 1))}
+                aria-current={i === index ? "true" : undefined}
+                className={`block h-16 w-16 overflow-hidden rounded-[14px] bg-gray-900/[0.035] outline-none transition-shadow duration-100 focus-visible:ring-2 focus-visible:ring-brand-500/60 dark:bg-gray-200 ${
+                  i === index ? "ring-2 ring-gray-900 dark:ring-white" : "ring-1 ring-gray-900/[0.06] hover:ring-gray-900/30"
+                }`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" loading="lazy" className="h-full w-full object-cover mix-blend-multiply" />
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

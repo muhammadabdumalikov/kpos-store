@@ -74,7 +74,9 @@
     "notFoundTitle": "Mahsulot topilmadi",
     "notFoundBody": "Doʼkon uni olib tashlagan yoki havola xato boʼlishi mumkin",
     "toCatalog": "Katalogga oʼtish",
-    "askSeller": "Sotuvchiga yozish"
+    "askSeller": "Sotuvchiga yozish",
+    "gallery": "Mahsulot rasmlari",
+    "photoN": "{n}-rasm"
   },
   "cart": {
     "title": "Savat",

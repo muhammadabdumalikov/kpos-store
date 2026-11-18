@@ -74,7 +74,9 @@
     "notFoundTitle": "Product not found",
     "notFoundBody": "The shop may have removed it, or the link has a mistake",
     "toCatalog": "Go to catalog",
-    "askSeller": "Message the seller"
+    "askSeller": "Message the seller",
+    "gallery": "Product photos",
+    "photoN": "Photo {n}"
   },
   "cart": {
     "title": "Cart",

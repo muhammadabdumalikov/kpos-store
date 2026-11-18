@@ -23,6 +23,9 @@ export interface StoreProduct {
   name: string;
   priceOut: string;
   image: string | null;
+  /** The whole gallery, main photo first; only on the single-product
+   *  endpoint, and absent on a backend that predates it. */
+  images?: string[] | null;
   categoryId: string | null;
   quantity: number;
   quantityType: string | null;
