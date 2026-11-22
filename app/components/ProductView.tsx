@@ -15,6 +15,7 @@ import type { StoreInfo } from "@/lib/store-api";
 import { sellerChatHref } from "@/lib/store-contacts";
 import { AddControl } from "./AddControl";
 import { BackButton, useBackFallback } from "./BackButton";
+import { PlatformCredit } from "./PlatformCredit";
 import { ProductCard } from "./ProductCard";
 import { pillSecondary } from "./StatePanel";
 import { ClockIcon } from "./icons/DeliveryIcons";
@@ -373,6 +374,10 @@ export function ProductView({
           </div>
         </section>
       )}
+
+      {/* The platform credit closes the page on the phone. It sits above the
+          spacer below, so the fixed add button never covers it. */}
+      <PlatformCredit store={info} phone />
 
       {/* Phone: the one action of this page stays above the tab bar however
           far the shopper has scrolled, with the way to the cart beside it

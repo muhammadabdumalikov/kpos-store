@@ -6,6 +6,7 @@ import { normalizeFulfillment } from "@/lib/fulfillment";
 import type { StoreInfo } from "@/lib/store-api";
 import { useStoreInfo } from "@/lib/use-store-info";
 import { StoreIcon } from "./icons/DeliveryIcons";
+import { PlatformCredit } from "./PlatformCredit";
 
 /**
  * Desktop footer: only what is real. The shop's name, where to collect an
@@ -43,8 +44,8 @@ export function DesktopFooter({ store }: { store?: StoreInfo | null }) {
             </p>
           )}
         </div>
-        <p className="shrink-0 pt-1 text-[13px] font-medium text-gray-400 dark:text-gray-500">
-          {t("footer.poweredBy")}
+        <p className="shrink-0 pt-1">
+          <PlatformCredit store={store} />
         </p>
       </div>
     </footer>

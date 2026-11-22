@@ -1,4 +1,5 @@
 import { DesktopFooter } from "./components/DesktopFooter";
+import { PlatformCredit } from "./components/PlatformCredit";
 import { DesktopHeader } from "./components/DesktopHeader";
 import { MobileHeader } from "./components/MobileHeader";
 import { MobileNav } from "./components/MobileNav";
@@ -143,6 +144,7 @@ export default async function Home() {
           failed={failed}
           sharedLead={sharedLead}
         />
+        <PlatformCredit store={info} phone />
         <CartBar />
       </main>
 
