@@ -1,3 +1,4 @@
+import { Cormorant_Garamond, JetBrains_Mono, Mulish, Onest, Unbounded } from 'next/font/google';
 import localFont from 'next/font/local';
 
 // Gilroy is self-hosted from public/font/Gilroy. It covers Latin + Russian Cyrillic,
@@ -26,4 +27,49 @@ export const gilroy = localFont({
   ],
   display: 'swap',
   variable: '--font-gilroy',
+});
+
+// Storefront theme fonts (lib/store-theme). Not preloaded: a shop uses one
+// theme, and the browser fetches a font file only when the page actually sets
+// text in that family, so only the active theme's fonts ever download. The
+// root layout puts just the active theme's variables on <html>. Variable
+// fonts, so one file per subset covers every weight. Every family here has
+// cyrillic-ext, so the Uzbek letters қ ғ ҳ render in the theme's own font
+// (Jost, the mockup's body font, lacks them; Mulish has close metrics).
+// next/font needs literal options here, hence the repetition.
+
+/** Jurnal: editorial serif headings. */
+export const cormorant = Cormorant_Garamond({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-cormorant',
+});
+/** Jurnal: body. */
+export const mulish = Mulish({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-mulish',
+});
+/** Afisha: poster headings. */
+export const unbounded = Unbounded({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-unbounded',
+});
+/** Afisha: body. */
+export const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-jetbrains',
+});
+/** Tungi: headings and body. */
+export const onest = Onest({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-onest',
 });

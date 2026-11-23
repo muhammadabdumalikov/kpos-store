@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useTransition } from "react";
+import { useStoreTheme } from "@/context/StoreThemeContext";
 import { useCatalogPages } from "@/hooks/useCatalogPages";
 import { useTranslations } from "@/hooks/useTranslations";
 import { CATALOG_PAGE_SIZE, type CatalogProduct } from "@/lib/catalog-pages";
@@ -10,6 +11,7 @@ import { CategoryChips, SortMenu } from "./CatalogToolbar";
 import { ProductCard } from "./ProductCard";
 import { StatePanel, pillSecondary } from "./StatePanel";
 import { BoxIcon, CloudOffIcon, SearchIcon } from "./icons/ShopIcons";
+import { themedGrid, themedTitle } from "./themes/classes";
 
 export type { CatalogProduct };
 
@@ -72,7 +74,7 @@ export function CatalogView({
   if (failed) {
     return (
       <div className="pt-4 lg:pt-8">
-        <h1 className="text-[26px] font-extrabold leading-8 tracking-[-0.02em] text-gray-900 dark:text-white">
+        <h1 className={`text-[26px] font-extrabold leading-8 tracking-[-0.02em] text-gray-900 dark:text-white ${themedTitle}`}>
           {t("catalog.title")}
         </h1>
         <StatePanel
@@ -99,7 +101,9 @@ export function CatalogView({
     <div className="pt-2 lg:pt-8">
       {/* Phone: the active chip (or the search field) already says what is
           listed, so the title is for assistive tech only. */}
-      <h1 className="sr-only line-clamp-2 min-w-0 break-words font-extrabold tracking-[-0.02em] text-gray-900 dark:text-white lg:not-sr-only lg:text-[32px] lg:leading-10">
+      <h1
+        className={`sr-only line-clamp-2 min-w-0 break-words font-extrabold tracking-[-0.02em] text-gray-900 dark:text-white lg:not-sr-only lg:text-[32px] lg:leading-10 ${themedTitle} jurnal:lg:text-[44px] jurnal:lg:leading-[48px]`}
+      >
         {heading}
       </h1>
 
@@ -148,6 +152,7 @@ function CatalogResults({
   go: Go;
 }) {
   const { t } = useTranslations();
+  const theme = useStoreTheme();
   const { products, total, done, status, loadMore } = useCatalogPages({
     initialProducts,
     initialTotal,
@@ -214,7 +219,13 @@ function CatalogResults({
       >
         {empty ?? (
           <>
-            <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8">
+            <div
+              className={
+                theme === "default"
+                  ? "grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8"
+                  : `${themedGrid(theme)} ${theme === "afisha" ? "border-t" : ""}`
+              }
+            >
               {products.map((p) => (
                 <ProductCard
                   key={p.id}
@@ -291,7 +302,10 @@ function LoadMoreSentinel({ onVisible }: { onVisible: () => void }) {
 /** A product tile's shape while its data is on the way (same grid cell). */
 function ProductCardSkeleton() {
   return (
-    <div aria-hidden className="flex h-full min-w-0 flex-col motion-safe:animate-pulse">
+    <div
+      aria-hidden
+      className="flex h-full min-w-0 flex-col motion-safe:animate-pulse afisha:border-b afisha:border-r afisha:border-gray-900 afisha:pb-3 tungi:rounded-[24px] tungi:bg-gray-800 tungi:p-1.5 tungi:pb-3"
+    >
       <div className="aspect-card w-full rounded-[20px] bg-gray-900/[0.05] dark:bg-white/[0.06]" />
       <div className="mt-2.5 px-0.5">
         <div className="mt-1 h-[18px] w-2/5 rounded-md bg-gray-900/[0.05] dark:bg-white/[0.06]" />

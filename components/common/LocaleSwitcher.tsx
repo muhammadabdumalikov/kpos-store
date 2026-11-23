@@ -6,7 +6,12 @@ import { locales, localeLabels, type Locale } from '@/i18n/config';
 import { Dropdown } from '@/components/ui/dropdown/Dropdown';
 import { DropdownItem } from '@/components/ui/dropdown/DropdownItem';
 
-export default function LocaleSwitcher() {
+export default function LocaleSwitcher({
+  buttonClassName,
+}: {
+  /** A theme's own look for the button (lib/store-theme); the default pill otherwise. */
+  buttonClassName?: string;
+} = {}) {
   const { locale, setLocale, t } = useTranslations();
   const [open, setOpen] = useState(false);
 
@@ -18,7 +23,10 @@ export default function LocaleSwitcher() {
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={`${t('common.selectLanguage')}: ${localeLabels[locale]}`}
-        className="dropdown-toggle flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-gray-900/[0.05] text-[13px] font-bold text-gray-700 transition-colors hover:bg-gray-900/[0.08] hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+        className={`dropdown-toggle flex cursor-pointer items-center justify-center transition-colors focus-visible:outline-none ${
+          buttonClassName ??
+          "h-11 w-11 rounded-full bg-gray-900/[0.05] text-[13px] font-bold text-gray-700 hover:bg-gray-900/[0.08] hover:text-gray-900 focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:bg-white/[0.06] dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+        }`}
       >
         {localeLabels[locale]}
       </button>

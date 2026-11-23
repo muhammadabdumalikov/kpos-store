@@ -18,13 +18,18 @@ const STORAGE_KEY = "kpos-store-theme";
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const ThemeProvider: React.FC<{
+  children: React.ReactNode;
+  /** Set for a themed shop (lib/store-theme themeScheme): the scheme is the
+   *  theme's, the server already rendered its class, and the shopper's stored
+   *  choice is neither read nor overwritten. */
+  forced?: Theme | null;
+}> = ({ children, forced = null }) => {
   const [theme, setTheme] = useState<Theme>("light");
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    if (forced) return;
     // This code will only run on the client side
     localStorage.removeItem("theme");
     const initialTheme: Theme =
@@ -32,10 +37,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
     setTheme(initialTheme);
     setIsInitialized(true);
-  }, []);
+  }, [forced]);
 
   useEffect(() => {
-    if (isInitialized) {
+    if (!forced && isInitialized) {
       localStorage.setItem(STORAGE_KEY, theme);
       if (theme === "dark") {
         document.documentElement.classList.add("dark");
@@ -43,14 +48,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         document.documentElement.classList.remove("dark");
       }
     }
-  }, [theme, isInitialized]);
+  }, [theme, isInitialized, forced]);
 
   const toggleTheme = () => {
+    if (forced) return;
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"));
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: forced ?? theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

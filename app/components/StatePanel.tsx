@@ -27,7 +27,7 @@ export function StatePanel({
       <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-gray-400 dark:bg-white/[0.06] dark:text-gray-500">
         {icon}
       </span>
-      <Title className="mt-4 text-[17px] font-bold text-gray-900 dark:text-white">{title}</Title>
+      <Title className="mt-4 text-[17px] font-bold text-gray-900 dark:text-white jurnal:font-head jurnal:text-[24px] jurnal:font-medium afisha:uppercase">{title}</Title>
       {body && (
         <p className="mt-1 max-w-[300px] text-[14px] font-medium leading-snug text-gray-500 dark:text-gray-400">
           {body}

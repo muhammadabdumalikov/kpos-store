@@ -180,6 +180,9 @@ export interface StoreInfo {
   /** How product cards frame their photo: "portrait" is 4:5 (clothes), the
    *  default "square" is 1:1. Older backends omit it. */
   photoShape?: "square" | "portrait" | null;
+  /** The storefront theme, a key of lib/store-theme. Older backends omit it;
+   *  missing or unknown is "default" (normalizeStoreTheme). */
+  theme?: string | null;
 }
 
 export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {

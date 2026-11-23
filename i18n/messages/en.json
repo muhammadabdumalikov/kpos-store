@@ -54,6 +54,7 @@
     "errorTitle": "Could not open the shop",
     "errorBody": "There was a connection problem. Please try again in a moment.",
     "newArrivals": "New arrivals",
+    "viewProduct": "View",
     "call": "Call",
     "contactsAria": "Contact the shop"
   },

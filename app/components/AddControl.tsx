@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { refreshPriceSnapshot, setLineQty, useCartQty, useProductCartQty } from "@/lib/cart-store";
 import type { OptionChoice } from "@/lib/product-options";
@@ -12,8 +13,10 @@ export type AddControlSize = "md" | "lg";
 export type AddControlTone = "quiet" | "primary";
 /** "pill": a full-width pill with a label (the product page).
  *  "corner": a round "+" that sits on the card's photo and grows into the
- *  stepper along the photo's bottom edge once the product is in the cart. */
-export type AddControlShape = "pill" | "corner";
+ *  stepper along the photo's bottom edge once the product is in the cart.
+ *  "inline": the Afisha and Tungi cards' "+" beside the price; the card moves
+ *  the stepper to a row of its own once the product is in the cart. */
+export type AddControlShape = "pill" | "corner" | "inline";
 
 // Everything that differs between the card (md) and the product page (lg).
 const SIZES: Record<
@@ -41,8 +44,18 @@ const SIZES: Record<
 const TONES: Record<AddControlTone, string> = {
   quiet:
     "bg-gray-900/[0.05] text-gray-900 hover:bg-gray-900/[0.08] focus-visible:ring-2 focus-visible:ring-brand-500/60 dark:bg-white/[0.07] dark:text-white dark:hover:bg-white/[0.11]",
+  // The primary colour is the shop's accent; a theme may swap it (globals.css).
   primary:
-    "bg-brand-500 text-white hover:bg-brand-600 focus-visible:ring-4 focus-visible:ring-brand-500/30",
+    "bg-primary text-on-primary hover:bg-primary-hover focus-visible:ring-4 focus-visible:ring-primary/30",
+};
+
+/** Labels on the theme's buttons: Jurnal's letter-spaced caps, Afisha's mono caps. */
+const THEMED_LABEL = "jurnal:text-[13px] jurnal:font-medium jurnal:uppercase jurnal:tracking-[0.16em] afisha:uppercase afisha:tracking-[0.06em]";
+
+/** The inline "+" (Afisha, Tungi): a 44px target around a smaller mark. */
+const INLINE_MARK: Record<string, string> = {
+  afisha: "h-9 w-9 border border-gray-900 bg-brand-300 text-gray-900 group-hover/add:bg-brand-200",
+  tungi: "h-9 w-9 rounded-full bg-white text-gray-950 group-hover/add:bg-gray-200",
 };
 
 /**
@@ -85,6 +98,7 @@ export function AddControl({
   beforeAdd?: () => boolean;
 }) {
   const { t } = useTranslations();
+  const theme = useStoreTheme();
   const qty = useCartQty(id, options);
   const inCart = qty > 0;
   const atCap = qty >= max;
@@ -111,7 +125,7 @@ export function AddControl({
 
   if (soldOut && !inCart) {
     // On the card the photo already carries a "sold out" badge.
-    if (shape === "corner") return null;
+    if (shape === "corner" || shape === "inline") return null;
     return (
       <span
         className={`flex ${s.height} w-full select-none items-center justify-center rounded-full ${s.label} font-semibold text-gray-400 ring-1 ring-inset ring-gray-900/[0.08] dark:text-gray-500 dark:ring-white/[0.08]`}
@@ -141,7 +155,26 @@ export function AddControl({
             noRoom ? "cursor-not-allowed opacity-40" : "hover:bg-gray-50 motion-safe:active:scale-90"
           }`}
         >
-          <PlusIcon className="h-5 w-5" strokeWidth={2.2} />
+          {/* Jurnal draws in hairlines. */}
+          <PlusIcon className="h-5 w-5" strokeWidth={theme === "jurnal" ? 1.5 : 2.2} />
+        </button>
+      );
+    }
+    if (shape === "inline") {
+      return (
+        <button
+          ref={addRef}
+          type="button"
+          aria-disabled={noRoom || undefined}
+          onClick={add}
+          aria-label={`${noRoom ? t("product.maxReached") : label}: ${name}`}
+          className={`group/add -m-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-full outline-none focus-visible:[&>span]:ring-2 focus-visible:[&>span]:ring-brand-400 focus-visible:[&>span]:ring-offset-2 focus-visible:[&>span]:ring-offset-white dark:focus-visible:[&>span]:ring-offset-gray-900 ${
+            noRoom ? "cursor-not-allowed opacity-40" : "motion-safe:active:scale-90"
+          }`}
+        >
+          <span className={`flex items-center justify-center transition-colors duration-100 ${INLINE_MARK[theme] ?? INLINE_MARK.tungi}`}>
+            <PlusIcon className={theme === "afisha" ? "h-4 w-4" : "h-[18px] w-[18px]"} strokeWidth={theme === "afisha" ? 3 : 2.6} />
+          </span>
         </button>
       );
     }
@@ -154,7 +187,7 @@ export function AddControl({
         aria-label={`${noRoom ? t("product.maxReached") : label}: ${name}`}
         className={`flex ${s.height} w-full items-center justify-center gap-1.5 rounded-full ${s.label} font-bold transition-[background-color,transform] duration-100 focus-visible:outline-none ${
           noRoom ? "cursor-not-allowed opacity-40" : "motion-safe:active:scale-[0.97]"
-        } ${TONES[tone]}`}
+        } ${TONES[tone]} ${THEMED_LABEL}`}
       >
         <PlusIcon className={s.icon} strokeWidth={2.2} />
         {label}
@@ -162,13 +195,15 @@ export function AddControl({
     );
   }
 
-  const stepBtn = `flex ${s.step} shrink-0 items-center justify-center rounded-full transition-[background-color,transform] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/80`;
+  // On the primary colour, which a theme may make light (Tungi): the hover
+  // tint and the focus ring follow the text colour on it.
+  const stepBtn = `flex ${s.step} shrink-0 items-center justify-center rounded-full transition-[background-color,transform] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-on-primary/80`;
 
   return (
     <div
       role="group"
       aria-label={name}
-      className={`${shape === "corner" ? "pointer-events-auto " : ""}flex ${s.height} w-full items-center justify-between rounded-full bg-brand-500 text-white motion-safe:animate-[popover-in_0.16s_cubic-bezier(0.23,1,0.32,1)]`}
+      className={`${shape === "corner" ? "pointer-events-auto " : ""}flex ${s.height} w-full items-center justify-between rounded-full bg-primary text-on-primary motion-safe:animate-[popover-in_0.16s_cubic-bezier(0.23,1,0.32,1)]`}
     >
       <button
         type="button"
@@ -177,13 +212,13 @@ export function AddControl({
           setLineQty(id, qty - 1, price, options);
         }}
         aria-label={`${t("cart.decrease")}: ${name}`}
-        className={`${stepBtn} hover:bg-white/15 motion-safe:active:scale-90`}
+        className={`${stepBtn} hover:bg-on-primary/15 motion-safe:active:scale-90`}
       >
         <MinusIcon className={s.icon} strokeWidth={2.4} />
       </button>
       <span className={`min-w-0 truncate text-center ${s.qty} font-bold tabular-nums`} aria-hidden>
         {qty}
-        {unit && <span className={`ml-0.5 ${s.unit} font-semibold text-white/80`}>{unit}</span>}
+        {unit && <span className={`ml-0.5 ${s.unit} font-semibold text-on-primary/80`}>{unit}</span>}
       </span>
       <span className="sr-only" role="status">
         {t("product.inCart").replace("{count}", unit ? `${qty} ${unit}` : String(qty))}
@@ -197,7 +232,7 @@ export function AddControl({
         }}
         aria-label={atCap ? `${t("product.maxReached")}: ${name}` : `${t("cart.increase")}: ${name}`}
         className={`${stepBtn} ${
-          atCap ? "cursor-not-allowed opacity-40" : "hover:bg-white/15 motion-safe:active:scale-90"
+          atCap ? "cursor-not-allowed opacity-40" : "hover:bg-on-primary/15 motion-safe:active:scale-90"
         }`}
       >
         <PlusIcon className={s.icon} strokeWidth={2.4} />
@@ -217,10 +252,10 @@ export function CartCount({ id, unit }: { id: string; unit: string | null }) {
   if (qty <= 0) return null;
 
   return (
-    <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-brand-500 px-2.5 text-[14px] font-bold tabular-nums text-white">
+    <span className="flex h-8 min-w-8 items-center justify-center rounded-full bg-primary px-2.5 text-[14px] font-bold tabular-nums text-on-primary">
       <span aria-hidden>
         {qty}
-        {unit && <span className="ml-0.5 text-[12px] font-semibold text-white/80">{unit}</span>}
+        {unit && <span className="ml-0.5 text-[12px] font-semibold text-on-primary/80">{unit}</span>}
       </span>
       <span className="sr-only" role="status">
         {t("product.inCart").replace("{count}", unit ? `${qty} ${unit}` : String(qty))}

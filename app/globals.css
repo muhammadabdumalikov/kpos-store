@@ -2,12 +2,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Storefront themes (lib/store-theme): `jurnal:…`, `afisha:…` and `tungi:…`
+   apply only under that theme's `data-theme` on <html>, so the default look
+   never matches them. Declared after `dark` and as specific as it, so a theme
+   class wins over a `dark:` one (Tungi is always dark). */
+@custom-variant jurnal (&:is([data-theme="jurnal"] *));
+@custom-variant afisha (&:is([data-theme="afisha"] *));
+@custom-variant tungi (&:is([data-theme="tungi"] *));
+
 @theme {
   /* From KPOS-nextjs */
   --font-*: initial;
   /* Gilroy (self-hosted) for Latin + Russian Cyrillic. The trailing families cover the
      Uzbek-specific letters қ Қ ғ Ғ ҳ Ҳ that Gilroy lacks, via per-glyph fallback. */
   --font-outfit: var(--font-gilroy), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  /* Theme headings (`font-head`); only themed markup uses it. */
+  --font-head: var(--font-outfit);
 
   --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
@@ -53,6 +63,14 @@
   --color-brand-800: #252dae;
   --color-brand-900: #262e89;
   --color-brand-950: #161950;
+
+  /* The loud button of a screen (add to cart, place the order). The shop's
+     accent unless a theme says otherwise (Jurnal and Afisha: ink; Tungi: the
+     light accent with dark text). Resolved on :root, where the shop's accent
+     scale is set too, so it follows the accent. */
+  --color-primary: var(--color-brand-500);
+  --color-primary-hover: var(--color-brand-600);
+  --color-on-primary: #ffffff;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -170,6 +188,16 @@
       transform: scale(1) translateY(0);
     }
   }
+  /* Tungi's strip of new arrivals: the list is doubled, so -50% loops. */
+  --animate-ticker: ticker 38s linear infinite;
+  @keyframes ticker {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
   --animate-ledger-in: ledger-in 0.22s cubic-bezier(0.23, 1, 0.32, 1) both;
   @keyframes ledger-in {
     from {
@@ -250,4 +278,93 @@
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #344054;
+}
+
+/* ── Storefront themes (lib/store-theme) ─────────────────────────────────────
+   Each theme repaints the grey scale, the fonts and the primary button, so
+   every page (product, cart, checkout, orders) reads as the same shop without
+   its own layout; the home page, cards, cart bar and navigation add their own
+   shapes in the components. The shop's accent (brand-*) and photo shape
+   (--card-aspect) are untouched. These sit outside any layer, so they win over
+   the utilities' theme values. Text greys keep 4.5:1: 500 on the page, 400
+   only where 400 already was (icons, sold-out). */
+
+/* Jurnal: an editorial page. White paper, warm greys, ink #161616, a serif
+   for headings over Mulish. */
+:root[data-theme="jurnal"] {
+  --font-outfit: var(--font-mulish), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: var(--font-cormorant), Georgia, 'Times New Roman', serif;
+  --color-black: #161616;
+  --color-gray-25: #fcfbfa;
+  --color-gray-50: #f8f7f5;
+  --color-gray-100: #f3f1ee;
+  --color-gray-200: #e6e2dc;
+  --color-gray-300: #d3cec6;
+  --color-gray-400: #9a948b;
+  --color-gray-500: #6b6b6b; /* 5.33:1 on white, 4.72:1 on gray-100 */
+  --color-gray-600: #4a4a4a;
+  --color-gray-700: #363636;
+  --color-gray-800: #242424;
+  --color-gray-900: #161616;
+  --color-gray-950: #0d0d0d;
+  --color-primary: #161616;
+  --color-primary-hover: #000000;
+  --color-on-primary: #ffffff;
+}
+
+/* Afisha: a poster. Pure white and black, thin black rules, Unbounded for
+   headings over JetBrains Mono. */
+:root[data-theme="afisha"] {
+  --font-outfit: var(--font-jetbrains), ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --font-head: var(--font-unbounded), 'Arial Black', 'Segoe UI', sans-serif;
+  --color-black: #0a0a0a;
+  --color-gray-25: #fcfcfc;
+  --color-gray-50: #f7f7f7;
+  --color-gray-100: #efefef;
+  --color-gray-200: #e2e2e2;
+  --color-gray-300: #c8c8c8;
+  --color-gray-400: #8e8e8e;
+  --color-gray-500: #5c5c5c; /* 6.7:1 on white */
+  --color-gray-600: #444444;
+  --color-gray-700: #2e2e2e;
+  --color-gray-800: #1c1c1c;
+  --color-gray-900: #0a0a0a;
+  --color-gray-950: #000000;
+  --color-primary: #0a0a0a;
+  --color-primary-hover: #2e2e2e;
+  --color-on-primary: #ffffff;
+}
+
+/* Jurnal and Afisha have square corners everywhere. `.keep-round` opts out
+   (a spinner). */
+:root:is([data-theme="jurnal"], [data-theme="afisha"]) :where(*:not(.keep-round)),
+:root:is([data-theme="jurnal"], [data-theme="afisha"]) :where(*:not(.keep-round))::before,
+:root:is([data-theme="jurnal"], [data-theme="afisha"]) :where(*:not(.keep-round))::after {
+  border-radius: 0;
+}
+
+/* Tungi: night. Always dark (the root layout sets .dark), so the existing
+   `dark:` styles carry it; these turn the default blue-grey night into
+   Tungi's neutral one (#121417 page, #1b1e22 surfaces) and set Onest. The
+   primary button is the light end of the accent with dark text on it. */
+:root[data-theme="tungi"] {
+  --font-outfit: var(--font-onest), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: var(--font-onest), 'Segoe UI', 'Noto Sans', Arial, sans-serif;
+  --color-black: #0b0c0e;
+  --color-gray-25: #fbfbfc;
+  --color-gray-50: #f5f6f7;
+  --color-gray-100: #eceef0;
+  --color-gray-200: #e2e5e9;
+  --color-gray-300: #c9ced6;
+  --color-gray-400: #a3aab3; /* 7.2:1 on gray-800 */
+  --color-gray-500: #838b95; /* 4.8:1 on gray-800 */
+  --color-gray-600: #5a616b;
+  --color-gray-700: #2c3036;
+  --color-gray-800: #1b1e22;
+  --color-gray-900: #121417;
+  --color-gray-950: #0b0c0e;
+  --color-gray-dark: #16181c;
+  --color-primary: var(--color-brand-300);
+  --color-primary-hover: var(--color-brand-200);
+  --color-on-primary: #0b0c0e;
 }

@@ -13,6 +13,7 @@ import {
   type HomeSection,
 } from "./components/HomeContent";
 import { StoreIntro } from "./components/StoreIntro";
+import { AfishaIntro, JurnalIntro, TungiIntro, TungiTicker } from "./components/themes/HomeTop";
 import {
   getStoreProducts,
   getStoreCategories,
@@ -22,9 +23,11 @@ import {
   type StoreProduct,
 } from "../lib/store-api";
 import { getStoreSlugServer } from "../lib/store-slug-server";
+import { pickAnyHero, pickFeatured, pickNewArrival } from "../lib/home-picks";
 import { optionGroups } from "../lib/product-options";
 import { toOldPrice } from "../lib/product-badges";
 import { sharedOrderLead } from "../lib/stock";
+import { normalizeStoreTheme } from "../lib/store-theme";
 
 const HOME_PRODUCTS = 10;
 // Most categories that may each cost one extra request for a borrowed photo.
@@ -32,6 +35,10 @@ const CATEGORY_PHOTO_LOOKUPS = 6;
 // Category shelves under the newest products: how many, and how long each is.
 const HOME_SHELVES = 4;
 const SHELF_PRODUCTS = 8;
+// Jurnal lists this many categories with their product counts.
+const JURNAL_CATEGORIES = 6;
+// Most new-arrival names in Tungi's ticker.
+const TICKER_NAMES = 8;
 
 function toHomeProduct(p: StoreProduct): HomeProduct {
   const price = Math.round(parseFloat(String(p.priceOut)) || 0);
@@ -68,6 +75,7 @@ export default async function Home() {
   ]);
 
   const info: StoreInfo | null = infoRes.status === "fulfilled" ? infoRes.value : null;
+  const theme = normalizeStoreTheme(info?.theme);
   let categories: HomeCategory[] =
     categoriesRes.status === "fulfilled"
       ? categoriesRes.value.map((c) => ({ id: c.id, name: c.name, image: c.image }))
@@ -98,12 +106,28 @@ export default async function Home() {
     .filter((c) => !c.image && !photoOf.has(c.id) && !shelves.some((s) => s.id === c.id))
     .slice(0, CATEGORY_PHOTO_LOOKUPS);
 
-  const [results, lookups] = await Promise.all([
+  // Jurnal states each listed category's size; the shelf and photo requests
+  // already carry most of those totals, the rest cost one small request each.
+  const countable = theme === "jurnal" ? categories.slice(0, JURNAL_CATEGORIES) : [];
+  const counted = new Set([...shelves, ...uncovered].map((c) => c.id));
+  const toCount = countable.filter((c) => !counted.has(c.id));
+
+  const [results, lookups, countLookups] = await Promise.all([
     Promise.all(shelves.map((c) => settle(getStoreProducts({ category: c.id, limit: SHELF_PRODUCTS, slug })))),
     Promise.all(uncovered.map((c) => settle(getStoreProducts({ category: c.id, limit: 1, slug })))),
+    Promise.all(toCount.map((c) => settle(getStoreProducts({ category: c.id, limit: 1, slug })))),
   ]);
   for (const res of [...results, ...lookups]) {
     if (res.status === "fulfilled") notePhotos(res.value.products);
+  }
+  const counts: Record<string, number> = {};
+  const noteCount = (id: string, res: PromiseSettledResult<{ total: number }>) => {
+    if (res.status === "fulfilled" && typeof res.value.total === "number") counts[id] = res.value.total;
+  };
+  if (theme === "jurnal") {
+    shelves.forEach((c, i) => noteCount(c.id, results[i]));
+    uncovered.forEach((c, i) => noteCount(c.id, lookups[i]));
+    toCount.forEach((c, i) => noteCount(c.id, countLookups[i]));
   }
   categories = categories.map((c) => (c.image ? c : { ...c, image: photoOf.get(c.id) ?? null }));
 
@@ -125,15 +149,54 @@ export default async function Home() {
   // once and the cards stay quiet.
   const sharedLead = sharedOrderLead(products);
 
+  // What a storefront theme lifts above the grid: Tungi's hero card (a new
+  // arrival, else the cover, else the popular product) and Afisha's
+  // featured product. Only from the shop's own flags.
+  const newArrival = theme === "tungi" ? pickNewArrival(products) : null;
+  const tungiHero = theme === "tungi" ? (newArrival ?? (info?.cover ? null : pickAnyHero(products))) : null;
+  const hero = theme === "tungi" ? tungiHero : theme === "afisha" ? pickFeatured(products) : null;
+  const tickerNames =
+    theme === "tungi"
+      ? [...new Set([...products, ...sections.flatMap((s) => s.products)].filter((p) => p.isNew).map((p) => p.name))].slice(
+          0,
+          TICKER_NAMES,
+        )
+      : [];
+
   return (
     <AuthDrawerProvider>
       <DesktopHeader store={info} />
       {/* On the phone the shop's name opens the page and scrolls away; the
-          search under it then sticks to the top. */}
-      <StoreIntro info={info} orderLead={sharedLead} />
-      <MobileHeader />
+          search under it then sticks to the top. A storefront theme orders
+          its own top: Jurnal's header lies over its cover, Tungi's sits
+          under the new-arrivals strip and carries the shop's name. */}
+      {theme === "default" && (
+        <>
+          <StoreIntro info={info} orderLead={sharedLead} />
+          <MobileHeader />
+        </>
+      )}
+      {theme === "jurnal" && (
+        <>
+          <MobileHeader store={info} overlay={Boolean(info?.cover)} />
+          <JurnalIntro info={info} orderLead={sharedLead} />
+        </>
+      )}
+      {theme === "afisha" && (
+        <>
+          <AfishaIntro info={info} orderLead={sharedLead} />
+          <MobileHeader store={info} />
+        </>
+      )}
+      {theme === "tungi" && (
+        <>
+          <TungiTicker names={tickerNames} />
+          <MobileHeader store={info} home />
+        </>
+      )}
 
       <main className="mx-auto max-w-7xl px-4 pb-[calc(var(--nav-total)_+_24px)] lg:pb-16">
+        {theme === "tungi" && !failed && <TungiIntro info={info} product={tungiHero} orderLead={sharedLead} />}
         {/* Not when the shop could not be opened: the error panel stands alone. */}
         {!failed && <BannerCarousel banners={banners} />}
         <HomeContent
@@ -143,6 +206,8 @@ export default async function Home() {
           total={total}
           failed={failed}
           sharedLead={sharedLead}
+          counts={counts}
+          hero={hero}
         />
         <PlatformCredit store={info} phone />
         <CartBar />

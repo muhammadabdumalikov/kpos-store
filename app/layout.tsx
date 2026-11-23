@@ -1,4 +1,5 @@
 import { LocaleProvider } from "@/context/LocaleContext";
+import { StoreThemeProvider } from "@/context/StoreThemeContext";
 import { TelegramProvider } from "@/context/TelegramContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import type { Metadata } from "next";
@@ -7,7 +8,8 @@ import TopLoadingBar from "./components/TopLoadingBar";
 import { getStoreInfo } from "../lib/store-api";
 import { storeAccentCss } from "../lib/store-accent";
 import { getStoreSlugServer } from "../lib/store-slug-server";
-import { gilroy } from "./fonts";
+import { normalizeStoreTheme, themeScheme, type StoreTheme } from "../lib/store-theme";
+import { cormorant, gilroy, jetbrainsMono, mulish, onest, unbounded } from "./fonts";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,12 +18,13 @@ export const metadata: Metadata = {
 };
 
 /**
- * The shop's accent colour as CSS for the `<head>`, or null for the default.
- * Read here, on the server, so the first paint is already in the shop's
- * colour. The same request as the pages make, so within one render it is
+ * The shop's look for the `<head>` and `<html>`: its accent colour and photo
+ * shape as CSS (null for the defaults), and its storefront theme. Read here,
+ * on the server, so the first paint is already in the shop's colour and
+ * theme. The same request as the pages make, so within one render it is
  * deduplicated, and across renders it is the 60-second data cache.
  */
-async function loadShopCss(): Promise<string | null> {
+async function loadShopLook(): Promise<{ css: string | null; theme: StoreTheme }> {
   // Outside the try: reading the host is what makes the route per-request,
   // and Next signals that by throwing; it must not be swallowed.
   const slug = await getStoreSlugServer();
@@ -30,25 +33,41 @@ async function loadShopCss(): Promise<string | null> {
     // Portrait cards (4:5) for shops that photograph clothes on people; a
     // fixed string, never API text. Square needs nothing: it is the default.
     const shape = info.photoShape === "portrait" ? ":root{--card-aspect:4/5}" : "";
-    return (storeAccentCss(info.accent) ?? "") + shape || null;
+    return {
+      css: (storeAccentCss(info.accent) ?? "") + shape || null,
+      theme: normalizeStoreTheme(info.theme),
+    };
   } catch {
-    // Colour and shape are decoration: the shop opens in the defaults.
-    return null;
+    // Colour, shape and theme are decoration: the shop opens in the defaults.
+    return { css: null, theme: "default" };
   }
 }
+
+/** Font variables for the active theme only; default keeps Gilroy alone. */
+const THEME_FONTS: Record<StoreTheme, string> = {
+  default: "",
+  jurnal: `${cormorant.variable} ${mulish.variable}`,
+  afisha: `${unbounded.variable} ${jetbrainsMono.variable}`,
+  tungi: onest.variable,
+};
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const shopCss = await loadShopCss();
+  const { css: shopCss, theme } = await loadShopLook();
+  const scheme = themeScheme(theme);
+  // A themed shop's scheme is fixed (lib/store-theme): Tungi is dark from the
+  // first paint; the provider below keeps the class as it is.
+  const htmlClass = [gilroy.variable, THEME_FONTS[theme], scheme === "dark" ? "dark" : ""].filter(Boolean).join(" ");
   return (
-    <html lang="uz" className={gilroy.variable} style={{ ["--tg-viewport-height" as string]: "100vh", ["--tg-viewport-stable-height" as string]: "100vh" }} suppressHydrationWarning>
+    <html lang="uz" data-theme={theme} className={htmlClass} style={{ ["--tg-viewport-height" as string]: "100vh", ["--tg-viewport-stable-height" as string]: "100vh" }} suppressHydrationWarning>
       <head>
         {/* This shop's look over the defaults in globals.css: its brand
             scale and its card photo shape. Built from fixed tables and
-            strings (lib/store-accent), never from API text. */}
+            strings (lib/store-accent), never from API text. The theme's own
+            tokens key off data-theme on <html>. */}
         {shopCss && <style dangerouslySetInnerHTML={{ __html: shopCss }} />}
         {/* Telegram Mini App SDK. Loaded on every page: the same build serves
             the plain web storefront (where it stays inert) and the mini app. */}
@@ -58,13 +77,15 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-white dark:bg-gray-900" suppressHydrationWarning>
-        <ThemeProvider>
-          <LocaleProvider>
-            <TelegramProvider>
-              <TopLoadingBar>{children}</TopLoadingBar>
-            </TelegramProvider>
-          </LocaleProvider>
-        </ThemeProvider>
+        <StoreThemeProvider theme={theme}>
+          <ThemeProvider forced={scheme}>
+            <LocaleProvider>
+              <TelegramProvider>
+                <TopLoadingBar>{children}</TopLoadingBar>
+              </TelegramProvider>
+            </LocaleProvider>
+          </ThemeProvider>
+        </StoreThemeProvider>
       </body>
     </html>
   );

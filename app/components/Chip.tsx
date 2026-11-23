@@ -11,8 +11,12 @@ export function chipClass(active: boolean) {
     active
       ? "bg-gray-900 font-bold text-white dark:bg-white dark:text-gray-900"
       : "bg-gray-900/[0.05] font-medium text-gray-700 group-hover:bg-gray-900/[0.08] group-hover:text-gray-900 dark:bg-white/[0.06] dark:text-gray-300 dark:group-hover:bg-white/10 dark:group-hover:text-white"
-  }`;
+  } ${TUNGI_CHIP} ${active ? "tungi:bg-white tungi:text-gray-950" : "tungi:bg-gray-800 tungi:text-white"}`;
 }
+
+/** Tungi's chips are the full 44px pill, bold. (Jurnal and Afisha draw their
+ *  category rows themselves: CatalogToolbar, HomeContent.) */
+const TUNGI_CHIP = "tungi:h-11 tungi:px-[18px] tungi:font-bold";
 
 const hitArea =
   "group flex h-11 max-w-[260px] shrink-0 items-center rounded-full outline-none focus-visible:[&>span]:ring-2 focus-visible:[&>span]:ring-brand-500/60 focus-visible:[&>span]:ring-offset-2 focus-visible:[&>span]:ring-offset-white dark:focus-visible:[&>span]:ring-offset-gray-900";

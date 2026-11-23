@@ -23,13 +23,13 @@ export function DesktopFooter({ store }: { store?: StoreInfo | null }) {
       : null;
 
   return (
-    <footer className="hidden border-t border-gray-900/[0.06] bg-white dark:border-white/[0.06] dark:bg-gray-900 lg:block">
+    <footer className="hidden border-t border-gray-900/[0.06] bg-white dark:border-white/[0.06] dark:bg-gray-900 lg:block jurnal:border-gray-200 afisha:border-gray-900">
       <div className="mx-auto flex max-w-7xl items-start justify-between gap-8 px-4 py-8">
         <div className="min-w-0">
           {info?.name && (
             <Link
               href="/"
-              className="block max-w-[420px] truncate text-[18px] font-bold text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-white/80"
+              className="block max-w-[420px] truncate text-[18px] font-bold text-gray-900 hover:text-gray-700 dark:text-white dark:hover:text-white/80 jurnal:font-head jurnal:text-[22px] jurnal:font-medium jurnal:uppercase jurnal:tracking-[0.22em] afisha:font-head afisha:font-black afisha:uppercase"
             >
               {info.name}
             </Link>

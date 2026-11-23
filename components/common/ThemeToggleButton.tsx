@@ -1,4 +1,5 @@
 import React from "react";
+import { useStoreTheme } from "@/context/StoreThemeContext";
 import { useTheme } from "@/context/ThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { MoonIcon, SunIcon } from "@/app/components/icons/ShopIcons";
@@ -6,6 +7,9 @@ import { MoonIcon, SunIcon } from "@/app/components/icons/ShopIcons";
 export const ThemeToggleButton: React.FC = () => {
   const { toggleTheme } = useTheme();
   const { t } = useTranslations();
+  const storeTheme = useStoreTheme();
+  // A themed shop has one scheme (lib/store-theme): nothing to toggle.
+  if (storeTheme !== "default") return null;
 
   return (
     <button

@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { CategoryCard } from "./CategoryCard";
 import { ChipLink } from "./Chip";
 import { ProductCard } from "./ProductCard";
 import { StatePanel, pillSecondary } from "./StatePanel";
 import { BoxIcon, ChevronRightIcon, CloudOffIcon } from "./icons/ShopIcons";
+import { ThemedHome } from "./themes/ThemedHome";
 
 export type HomeCategory = { id: string; name: string; image: string | null };
 export type HomeProduct = {
@@ -30,7 +32,7 @@ export type HomeProduct = {
 /** One category's shelf on the home page: its first few products. */
 export type HomeSection = { id: string; name: string; products: HomeProduct[] };
 
-function HomeCard({ product: p, sharedLead }: { product: HomeProduct; sharedLead: string | null }) {
+export function HomeCard({ product: p, sharedLead }: { product: HomeProduct; sharedLead: string | null }) {
   return (
     <ProductCard
       id={p.id}
@@ -60,6 +62,8 @@ export function HomeContent({
   total,
   failed,
   sharedLead = null,
+  counts = {},
+  hero = null,
 }: {
   categories: HomeCategory[];
   products: HomeProduct[];
@@ -71,8 +75,13 @@ export function HomeContent({
   failed: boolean;
   /** The lead time the shop header states for every product, if it does. */
   sharedLead?: string | null;
+  /** Storefront themes: products per category where known (Jurnal shows
+   *  them), and the product the theme lifts above the grid. */
+  counts?: Record<string, number>;
+  hero?: HomeProduct | null;
 }) {
   const { t } = useTranslations();
+  const theme = useStoreTheme();
   const router = useRouter();
   const [retrying, startRetry] = useTransition();
 
@@ -93,6 +102,21 @@ export function HomeContent({
             {retrying ? t("common.loading") : t("common.retry")}
           </button>
         }
+      />
+    );
+  }
+
+  if (theme !== "default") {
+    return (
+      <ThemedHome
+        theme={theme}
+        categories={categories}
+        products={products}
+        sections={sections}
+        total={total}
+        sharedLead={sharedLead}
+        counts={counts}
+        hero={hero}
       />
     );
   }

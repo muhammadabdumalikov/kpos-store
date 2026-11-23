@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { SORT_VALUES, type SortValue } from "@/lib/catalog-sort";
 import { ChipButton } from "./Chip";
@@ -15,6 +16,26 @@ const SORT_LABEL_KEYS: Record<SortValue, string> = {
 
 type Category = { id: string; name: string };
 
+/**
+ * One category in Jurnal's tab row or Afisha's ruled strip: a 44px cell. The
+ * active one is underlined (Jurnal) or inverted (Afisha).
+ */
+export function themedCategoryCell(theme: "jurnal" | "afisha", active: boolean) {
+  return theme === "jurnal"
+    ? `-mb-px flex h-11 max-w-[240px] shrink-0 items-center border-b text-[12px] uppercase tracking-[0.16em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-900 ${
+        active ? "border-gray-900 font-semibold text-gray-900" : "border-transparent font-medium text-gray-500 hover:text-gray-900"
+      }`
+    : `flex h-11 min-w-[25%] max-w-[260px] shrink-0 grow items-center justify-center border-r border-gray-900 px-4 text-[11px] font-bold uppercase tracking-[0.08em] outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500 ${
+        active ? "bg-gray-900 text-white" : "bg-white text-gray-900 hover:bg-brand-300"
+      }`;
+}
+
+/** The row around those cells: Jurnal's hairline under the tabs, Afisha's ruled strip edge to edge. */
+export const themedCategoryRow = {
+  jurnal: "no-scrollbar -mx-4 flex gap-6 overflow-x-auto border-b border-gray-200 px-4 lg:mx-0 lg:flex-wrap lg:gap-x-8 lg:px-0",
+  afisha: "no-scrollbar -mx-4 flex overflow-x-auto border-y border-gray-900 lg:mx-0 lg:border-l",
+} as const;
+
 /** Category chips: one horizontal scroller on the phone, wrapped rows on desktop. */
 export function CategoryChips({
   categories,
@@ -26,6 +47,7 @@ export function CategoryChips({
   onSelect: (id: string) => void;
 }) {
   const { t } = useTranslations();
+  const theme = useStoreTheme();
   const rowRef = useRef<HTMLDivElement>(null);
 
   // Bring the active chip into view when the page opens on a category that
@@ -36,6 +58,30 @@ export function CategoryChips({
     if (!row || !active || row.scrollWidth <= row.clientWidth) return;
     row.scrollLeft = active.offsetLeft - row.clientWidth / 2 + active.offsetWidth / 2;
   }, [current]);
+
+  if (theme === "jurnal" || theme === "afisha") {
+    const cells = [{ id: "", name: t("common.all") }, ...categories];
+    return (
+      <div ref={rowRef} role="radiogroup" aria-label={t("catalog.selectCategory")} className={themedCategoryRow[theme]}>
+        {cells.map((cat) => {
+          const active = cat.id === current;
+          return (
+            <button
+              key={cat.id || "all"}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onSelect(cat.id)}
+              title={cat.name}
+              className={themedCategoryCell(theme, active)}
+            >
+              <span className="truncate">{cat.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div

@@ -96,7 +96,7 @@ export function LoginDrawer({ open, onClose, onPolicyClick }: LoginDrawerProps) 
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full rounded-xl bg-brand-500 py-3 text-base font-semibold text-white hover:bg-brand-600"
+                className="w-full rounded-xl bg-primary py-3 text-base font-semibold text-on-primary hover:bg-primary-hover"
               >
                 Davom etish
               </button>

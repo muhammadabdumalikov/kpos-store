@@ -3,8 +3,10 @@ import { formatAmount } from "@/lib/format";
 // Shared looks of the cart and checkout: the same filled, borderless fields
 // and pill buttons as the rest of the storefront (search field, add control).
 
-/** Section heading inside the cart ("Olish usuli", "Buyurtmangiz"). */
-export const checkoutTitle = "text-[18px] font-bold leading-6 tracking-[-0.01em] text-gray-900 dark:text-white";
+/** Section heading inside the cart ("Olish usuli", "Buyurtmangiz"). Jurnal
+ *  sets it in its serif, Afisha in mono caps (lib/store-theme). */
+export const checkoutTitle =
+  "text-[18px] font-bold leading-6 tracking-[-0.01em] text-gray-900 dark:text-white jurnal:font-head jurnal:text-[24px] jurnal:font-medium jurnal:tracking-normal afisha:text-[12px] afisha:uppercase afisha:tracking-[0.1em]";
 
 /** A filled text field. 16px text, so iOS does not zoom the page on focus. */
 const fieldBase =
@@ -14,12 +16,13 @@ export const field = (invalid = false) =>
   `${fieldBase} ${
     invalid
       ? "border-error-500 focus:ring-error-500/10"
-      : "border-transparent focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-700"
+      : "border-transparent focus:border-brand-300 focus:ring-brand-500/10 dark:focus:border-brand-700 afisha:border-gray-900 afisha:bg-white jurnal:border-gray-200 jurnal:bg-white"
   }`;
 
-/** The one loud button of a screen: a brand pill. */
+/** The one loud button of a screen: a pill in the primary colour (the
+ *  shop's accent, or the theme's ink). */
 export const pillPrimary =
-  "inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-500 px-6 text-[15px] font-bold text-white transition-[background-color,transform] duration-100 hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 motion-safe:active:scale-[0.98]";
+  "inline-flex h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 text-[15px] font-bold text-on-primary transition-[background-color,transform] duration-100 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30 motion-safe:active:scale-[0.98] jurnal:text-[13px] jurnal:font-medium jurnal:uppercase jurnal:tracking-[0.16em] afisha:uppercase afisha:tracking-[0.06em]";
 
 /** A tinted panel, flat: no border, no shadow. */
 export const panel = "rounded-3xl bg-gray-900/[0.035] dark:bg-white/[0.04]";

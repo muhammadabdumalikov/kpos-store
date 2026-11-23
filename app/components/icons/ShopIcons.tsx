@@ -207,3 +207,12 @@ export function TrashIcon({ className = "h-5 w-5", strokeWidth }: IconProps) {
     </svg>
   );
 }
+
+/** A long arrow: Jurnal's category list. */
+export function ArrowRightIcon({ className = "h-5 w-5", strokeWidth = 1.3 }: IconProps) {
+  return (
+    <svg className={className} {...base(strokeWidth)}>
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </svg>
+  );
+}

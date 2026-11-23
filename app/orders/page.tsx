@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AuthDrawerProvider } from "../components/AuthDrawerContext";
 import { DesktopFooter } from "../components/DesktopFooter";
 import { DesktopHeader } from "../components/DesktopHeader";
+import { themedTitle } from "../components/themes/classes";
 import { MobileHeader } from "../components/MobileHeader";
 import { MobileNav } from "../components/MobileNav";
 import { OrderCard } from "../components/orders/OrderCard";
@@ -103,7 +104,7 @@ export default function OrdersPage() {
 
       <main className="mx-auto flex max-w-3xl flex-col gap-3 px-4 pb-[calc(var(--nav-total)_+_24px)] pt-3 lg:pb-12 lg:pt-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white/90 lg:text-2xl">
+          <h1 className={`text-xl font-bold text-gray-900 dark:text-white/90 lg:text-2xl ${themedTitle} jurnal:text-[30px] jurnal:lg:text-[40px]`}>
             {t("orders.title")}
           </h1>
           {orders.length > 0 && (
@@ -157,7 +158,7 @@ export default function OrdersPage() {
             </p>
             <Link
               href="/catalog"
-              className="mt-3 inline-flex h-11 items-center justify-center rounded-xl bg-brand-500 px-5 text-sm font-semibold text-white transition hover:bg-brand-600 active:scale-[0.98]"
+              className="mt-3 inline-flex h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
             >
               {t("orders.goCatalog")}
             </Link>

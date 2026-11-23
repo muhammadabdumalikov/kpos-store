@@ -24,7 +24,7 @@ export default function TelegramEntryPage() {
       {redirecting ? (
         <>
           <div
-            className="h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-brand-500 dark:border-gray-700"
+            className="keep-round h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-brand-500 dark:border-gray-700"
             aria-hidden
           />
           <p className="text-md font-medium text-gray-500 dark:text-gray-400">

@@ -130,7 +130,7 @@ export function OrderCard({
           {order.courier.phone && (
             <a
               href={telHref(order.courier.phone)}
-              className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-brand-500 px-3.5 text-sm font-semibold text-white transition hover:bg-brand-600 active:scale-[0.98]"
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3.5 text-sm font-semibold text-on-primary transition hover:bg-primary-hover active:scale-[0.98]"
             >
               <PhoneIcon />
               {t("orders.call")}

@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
+import { useCartQty } from "@/lib/cart-store";
 import { formatAmount } from "@/lib/format";
 import { discountLabel, discountPercent } from "@/lib/product-badges";
 import { onOrderLabel, stockOf } from "@/lib/stock";
+import type { StoreTheme } from "@/lib/store-theme";
 import { AddControl, CartCount } from "./AddControl";
 import { BoxIcon } from "./icons/ShopIcons";
 
@@ -37,6 +40,44 @@ type ProductCardProps = {
 
 const cornerPill = "absolute left-2 top-2 rounded-full px-2 py-[3px] text-[11px] font-bold leading-4";
 
+/** Which label the photo's corner carries; each look colours it its own way. */
+type PillKind = "soldOut" | "sale" | "low" | "popular" | "new";
+const PILL_TONES: Record<StoreTheme, Record<PillKind, string>> = {
+  default: {
+    soldOut: "bg-white text-gray-600",
+    sale: "bg-error-600 text-white tabular-nums",
+    low: "bg-white text-warning-700",
+    popular: "bg-white text-gray-900",
+    new: "bg-white text-brand-600",
+  },
+  jurnal: {
+    soldOut: "bg-white text-gray-600",
+    sale: "bg-error-600 text-white tabular-nums",
+    low: "bg-white text-warning-700",
+    popular: "bg-white text-gray-900",
+    new: "bg-white text-brand-600",
+  },
+  afisha: {
+    soldOut: "border-b border-r border-gray-900 bg-white text-gray-600",
+    sale: "bg-error-600 text-white tabular-nums",
+    low: "border-b border-r border-gray-900 bg-white text-warning-700",
+    popular: "bg-gray-900 text-white",
+    new: "border-b border-r border-gray-900 bg-brand-300 text-gray-900",
+  },
+  tungi: {
+    soldOut: "bg-gray-950/85 text-white",
+    sale: "bg-error-600 text-white tabular-nums",
+    low: "bg-white text-warning-700",
+    popular: "bg-white text-gray-950",
+    new: "bg-brand-300 text-gray-950",
+  },
+};
+const THEMED_PILL: Record<Exclude<StoreTheme, "default">, string> = {
+  jurnal: "absolute left-0 top-0 px-2 py-1 text-[10px] font-medium uppercase leading-4 tracking-[0.14em]",
+  afisha: "absolute left-0 top-0 px-2 py-1 text-[10px] font-bold uppercase leading-4 tracking-[0.1em]",
+  tungi: "absolute left-2 top-2 rounded-full px-2.5 py-[3px] text-[11px] font-extrabold leading-4",
+};
+
 /**
  * The shop's product tile: photo, price and name, all one link to the product.
  * Adding is a round "+" on the photo's corner that never leaves the page; it
@@ -63,6 +104,7 @@ export function ProductCard({
 }: ProductCardProps) {
   const { t } = useTranslations();
   const { parts, format } = usePrice();
+  const theme = useStoreTheme();
   const [broken, setBroken] = useState(false);
 
   const { max, soldOut, lowStock, onOrder } = stockOf(quantity, preorder);
@@ -78,16 +120,17 @@ export function ProductCard({
   const percent = was ? discountPercent(price, was) : null;
   // The sale red is fixed (white on error-600 is 4.83:1) so it reads as a
   // markdown under any shop accent.
+  const pillAs = (kind: PillKind, text: string) => ({ kind, text, tone: PILL_TONES[theme][kind] });
   const pill = soldOut
-    ? { text: t("product.soldOut"), tone: "bg-white text-gray-600" }
+    ? pillAs("soldOut", t("product.soldOut"))
     : percent
-      ? { text: discountLabel(percent), tone: "bg-error-600 text-white tabular-nums" }
+      ? pillAs("sale", discountLabel(percent))
       : lowStock
-        ? { text: t("product.lowStock"), tone: "bg-white text-warning-700" }
+        ? pillAs("low", t("product.lowStock"))
         : popular
-          ? { text: t("product.badgePopular"), tone: "bg-white text-gray-900" }
+          ? pillAs("popular", t("product.badgePopular"))
           : isNew
-            ? { text: t("product.badgeNew"), tone: "bg-white text-brand-600" }
+            ? pillAs("new", t("product.badgeNew"))
             : null;
   // Read out with the link: the corner label, unless it is the markdown,
   // which the old price already says.
@@ -99,6 +142,31 @@ export function ProductCard({
   ]
     .filter(Boolean)
     .join(", ");
+
+  if (theme !== "default") {
+    return (
+      <ThemedCard
+        theme={theme}
+        card={{
+          id,
+          name,
+          price,
+          image: showImage ? image! : null,
+          onImageError: () => setBroken(true),
+          soldOut,
+          max,
+          amount,
+          suffix,
+          was,
+          orderLabel: showOrderLabel ? orderLabel : null,
+          unit,
+          hasOptions: hasOptions === true,
+          spoken,
+          pill: pill && { text: pill.text, className: `${THEMED_PILL[theme]} ${pill.tone}` },
+        }}
+      />
+    );
+  }
 
   return (
     <article className="relative flex h-full min-w-0 flex-col">
@@ -180,5 +248,198 @@ export function ProductCard({
         </div>
       </div>
     </article>
+  );
+}
+
+/** What a themed card shows, worked out once by ProductCard. */
+type CardModel = {
+  id: string;
+  name: string;
+  price: number;
+  /** null when there is no photo or it failed to load. */
+  image: string | null;
+  onImageError: () => void;
+  soldOut: boolean;
+  max: number;
+  amount: string;
+  suffix: string;
+  was: number | null;
+  /** "Buyurtmaga · 15–20 kun", unless the shop header already says it. */
+  orderLabel: string | null;
+  unit: string | null;
+  hasOptions: boolean;
+  /** The link's accessible name. */
+  spoken: string;
+  pill: { text: string; className: string } | null;
+};
+
+/**
+ * The card in a storefront theme. The same facts, label rules and controls as
+ * the default card, in the theme's shape:
+ * - Jurnal: a magazine tile. Photo on warm paper, the name in the serif, the
+ *   price small under it; a hairline "+" on the photo's corner.
+ * - Afisha: a ruled cell. Mono caps name, the price in the poster face, a
+ *   square accent "+" beside it.
+ * - Tungi: a rounded dark card with a white round "+" beside the price.
+ * In Afisha and Tungi the stepper takes a row of its own under the price once
+ * the product is in the cart: the same element, moved by class, so keyboard
+ * focus stays on it.
+ */
+function ThemedCard({ theme, card }: { theme: Exclude<StoreTheme, "default">; card: CardModel }) {
+  const inCart = useCartQty(card.id) > 0;
+  const control = card.hasOptions ? (
+    <CartCount id={card.id} unit={card.unit} />
+  ) : (
+    <AddControl
+      id={card.id}
+      name={card.name}
+      price={card.price}
+      max={card.max}
+      soldOut={card.soldOut}
+      unit={card.unit}
+      shape={theme === "jurnal" ? "corner" : "inline"}
+    />
+  );
+  const stepperRow = inCart && !card.hasOptions;
+
+  if (theme === "jurnal") {
+    return (
+      <article className="relative flex h-full min-w-0 flex-col">
+        <Link
+          href={`/products/${card.id}`}
+          aria-label={card.spoken}
+          className="group flex min-w-0 flex-col outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-4 focus-visible:ring-offset-white"
+        >
+          <CardPhoto card={card} tile="bg-gray-100" />
+          <h3 className="mt-2.5 line-clamp-2 break-words font-head text-[19px] font-medium leading-[1.15] text-gray-900 lg:text-[21px]">
+            {card.name}
+          </h3>
+          <p
+            className={`mt-1 flex flex-wrap items-baseline gap-x-1.5 text-[13px] leading-5 tabular-nums ${
+              card.soldOut ? "text-gray-500" : "text-gray-600"
+            }`}
+          >
+            <span className="whitespace-nowrap">
+              {card.amount} {card.suffix}
+            </span>
+            {card.was && <s className="whitespace-nowrap text-gray-500">{formatAmount(card.was)}</s>}
+          </p>
+          {card.orderLabel && <p className="mt-0.5 truncate text-[12px] leading-5 text-gray-500">{card.orderLabel}</p>}
+        </Link>
+        {/* Over the photo, as on the default card: only the control takes taps. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 aspect-card">
+          <div className="absolute inset-x-2 bottom-2 flex justify-end">{control}</div>
+        </div>
+      </article>
+    );
+  }
+
+  const afisha = theme === "afisha";
+  return (
+    <article
+      className={`relative flex h-full min-w-0 flex-col ${
+        afisha ? "border-b border-r border-gray-900 bg-white" : "rounded-[24px] bg-gray-800 p-1.5 pb-3"
+      }`}
+    >
+      <Link
+        href={`/products/${card.id}`}
+        aria-label={card.spoken}
+        className={`group flex min-w-0 flex-1 flex-col outline-none ${
+          afisha
+            ? "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-900"
+            : "rounded-[20px] focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800"
+        }`}
+      >
+        <CardPhoto
+          card={card}
+          tile={afisha ? "border-b border-gray-900 bg-white" : "rounded-[18px] bg-gray-200"}
+        />
+        {/* Room on the right for the "+" laid over the corner below. */}
+        <div className={afisha ? "flex-1 px-2.5 pb-3 pr-12 pt-2.5" : "px-1.5 pr-11 pt-2.5"}>
+          <h3
+            className={
+              afisha
+                ? "line-clamp-2 break-words text-[11px] font-bold uppercase leading-[1.3] tracking-[0.04em] text-gray-900"
+                : "line-clamp-2 break-words text-[13px] font-semibold leading-[1.3] text-gray-300"
+            }
+          >
+            {card.name}
+          </h3>
+          <p
+            className={`mt-1.5 flex flex-wrap items-baseline gap-x-1 tabular-nums ${
+              card.soldOut ? "text-gray-500" : afisha ? "text-gray-900" : "text-white"
+            }`}
+          >
+            {/* The sum and its "so'm" stay on one line; the old price may wrap. */}
+            <span className="whitespace-nowrap">
+              <span className={afisha ? "font-head text-[13px] font-extrabold" : "text-[15px] font-extrabold"}>
+                {card.amount}
+              </span>{" "}
+              <span className={afisha ? "text-[10px] font-bold uppercase" : "text-[12px] font-semibold text-gray-400"}>
+                {card.suffix}
+              </span>
+            </span>
+            {card.was && (
+              <s className={`whitespace-nowrap font-medium ${afisha ? "text-[11px] text-gray-500" : "text-[12px] text-gray-400"}`}>
+                {formatAmount(card.was)}
+              </s>
+            )}
+          </p>
+          {card.orderLabel && (
+            <p
+              className={
+                afisha
+                  ? "mt-1 truncate text-[10px] font-bold uppercase tracking-[0.04em] text-gray-500"
+                  : "mt-0.5 truncate text-[12px] font-medium text-gray-400"
+              }
+            >
+              {card.orderLabel}
+            </p>
+          )}
+        </div>
+      </Link>
+      <div
+        className={
+          stepperRow
+            ? afisha
+              ? "px-2.5 pb-3"
+              : "px-0.5 pt-2.5"
+            : afisha
+              ? "absolute bottom-2 right-2"
+              : "absolute bottom-2.5 right-2.5"
+        }
+      >
+        {control}
+      </div>
+    </article>
+  );
+}
+
+/** A themed card's photo tile with its corner label; a box when there is no photo. */
+function CardPhoto({ card, tile }: { card: CardModel; tile: string }) {
+  const { t } = useTranslations();
+  return (
+    <div className={`relative aspect-card w-full overflow-hidden ${tile}`}>
+      {card.image ? (
+        // Plain <img>, as on the default card: shop photos come from any host.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={card.image}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onError={card.onImageError}
+          className={`h-full w-full object-cover mix-blend-multiply motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-[1.03] ${
+            card.soldOut ? "opacity-40 grayscale" : ""
+          }`}
+        />
+      ) : (
+        <span className={`flex h-full w-full items-center justify-center text-gray-900/25 ${card.soldOut ? "opacity-50" : ""}`}>
+          <BoxIcon className="h-9 w-9" />
+          <span className="sr-only">{t("product.noPhoto")}</span>
+        </span>
+      )}
+      {card.pill && <span className={card.pill.className}>{card.pill.text}</span>}
+    </div>
   );
 }

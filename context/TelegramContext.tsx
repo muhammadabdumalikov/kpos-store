@@ -17,6 +17,7 @@ import {
 } from "@/lib/telegram";
 import { slugFromHost } from "@/lib/store-slug";
 import { navigateBack } from "@/lib/nav-history";
+import { useStoreTheme } from "./StoreThemeContext";
 import { useTheme } from "./ThemeContext";
 
 type TelegramContextValue = {
@@ -128,6 +129,7 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
   const router = useRouter();
   const pathname = usePathname();
   const { theme } = useTheme();
+  const storeTheme = useStoreTheme();
 
   // ── Boot: tenant handover, ready/expand, viewport vars ────────────────────
   useEffect(() => {
@@ -200,14 +202,15 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
   // native chrome does not sit on a mismatched colour.
   useEffect(() => {
     if (!webApp || !isTelegram) return;
-    const surface = theme === "dark" ? "#101828" : "#ffffff";
+    // Tungi's page is its own near-black, not the default dark grey.
+    const surface = storeTheme === "tungi" ? "#121417" : theme === "dark" ? "#101828" : "#ffffff";
     try {
       webApp.setHeaderColor?.(surface);
       webApp.setBackgroundColor?.(surface);
     } catch {
       // Colour setters are version-gated; ignore on old clients.
     }
-  }, [webApp, isTelegram, theme]);
+  }, [webApp, isTelegram, theme, storeTheme]);
 
   // ── Native back button mirrors in-app navigation ──────────────────────────
   // Same rule as the pages' own back controls (lib/nav-history): history Back

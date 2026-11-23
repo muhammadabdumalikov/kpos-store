@@ -13,6 +13,7 @@ import { FulfillmentSection } from "../components/checkout/FulfillmentSection";
 import { OrderSummary } from "../components/checkout/OrderSummary";
 import { useCheckoutFulfillment } from "../components/checkout/useCheckoutFulfillment";
 import { Money, checkoutTitle, field, panel, pillPrimary } from "../components/checkout/styles";
+import { themedTitle } from "../components/themes/classes";
 import { StatePanel, pillSecondary } from "../components/StatePanel";
 import { BagIcon, BoxIcon, CheckLineIcon, MinusIcon, PlusIcon, TrashIcon } from "../components/icons/ShopIcons";
 import { storeErrorMessage } from "../../lib/api-errors";
@@ -80,7 +81,7 @@ function Check({
       <span
         className={`flex h-6 w-6 items-center justify-center rounded-full transition-colors duration-100 group-focus-visible/check:ring-2 group-focus-visible/check:ring-brand-500/50 group-focus-visible/check:ring-offset-2 ${
           checked
-            ? "bg-brand-500 text-white"
+            ? "bg-primary text-on-primary"
             : "bg-white ring-[1.5px] ring-inset ring-gray-300 dark:bg-transparent dark:ring-gray-600"
         }`}
       >
@@ -413,7 +414,9 @@ export default function CartPage() {
 
       <main className="mx-auto w-full max-w-5xl px-4 pt-4 lg:px-6 lg:pb-16 lg:pt-8">
         <div className="flex items-baseline justify-between gap-3">
-          <h1 className="text-[26px] font-extrabold leading-8 tracking-[-0.02em] text-gray-900 dark:text-white lg:text-[32px] lg:leading-10">
+          <h1
+            className={`text-[26px] font-extrabold leading-8 tracking-[-0.02em] text-gray-900 dark:text-white lg:text-[32px] lg:leading-10 ${themedTitle} jurnal:text-[34px] jurnal:lg:text-[44px] jurnal:lg:leading-[48px]`}
+          >
             {t("cart.title")}
           </h1>
           {hasItems && (
@@ -581,7 +584,9 @@ export default function CartPage() {
                             <TrashIcon className="h-5 w-5" />
                           </button>
                         </div>
-                        <div className="mt-2 flex items-center justify-between gap-3">
+                        {/* Theme fonts run wider than Gilroy: when the sum and the
+                            stepper don't fit side by side, the stepper drops below. */}
+                        <div className="mt-2 flex items-center justify-between gap-3 jurnal:flex-wrap jurnal:gap-y-2 afisha:flex-wrap afisha:gap-y-2 tungi:flex-wrap tungi:gap-y-2">
                           <Money
                             value={item.price * item.qty}
                             currency={currency}
@@ -726,7 +731,7 @@ export default function CartPage() {
                 type="button"
                 onClick={placeOrder}
                 disabled={!canSubmit}
-                className="flex h-14 w-full items-center justify-between gap-3 rounded-full bg-brand-500 pl-6 pr-5 text-white transition-[background-color,transform] duration-100 hover:bg-brand-600 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/30 motion-safe:active:scale-[0.98] disabled:bg-gray-200 disabled:text-gray-500 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
+                className="flex h-14 w-full items-center justify-between gap-3 rounded-full bg-primary pl-6 pr-5 text-on-primary transition-[background-color,transform] duration-100 hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/30 motion-safe:active:scale-[0.98] jurnal:uppercase jurnal:tracking-[0.12em] afisha:uppercase disabled:bg-gray-200 disabled:text-gray-500 dark:disabled:bg-gray-800 dark:disabled:text-gray-500"
               >
                 <span className="min-w-0 truncate text-[16px] font-bold">{submitLabel}</span>
                 <Money

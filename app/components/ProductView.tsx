@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
+import { useStoreTheme } from "@/context/StoreThemeContext";
 import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
@@ -21,6 +22,7 @@ import { pillSecondary } from "./StatePanel";
 import { ClockIcon } from "./icons/DeliveryIcons";
 import { useFulfilmentLines } from "./StoreIntro";
 import { BagIcon, BoxIcon, ChatIcon, ChevronRightIcon } from "./icons/ShopIcons";
+import { themedGrid, themedTitle } from "./themes/classes";
 
 export type ProductViewProduct = {
   id: string;
@@ -56,6 +58,14 @@ export type RelatedProducts = {
 const sectionTitle =
   "text-[20px] font-bold leading-7 tracking-[-0.01em] text-gray-900 dark:text-white lg:text-[22px]";
 
+// The themes' touches on this page (lib/store-theme); the default never
+// matches them. Jurnal: serif title, light price, hairline-outlined chips.
+// Afisha: poster title and price, black-ruled chips and labels.
+const THEMED_SECTION_TITLE =
+  "jurnal:font-head jurnal:text-[28px] jurnal:font-normal jurnal:lg:text-[36px] afisha:text-[11px] afisha:uppercase afisha:leading-4 afisha:tracking-[0.1em]";
+const THEMED_PILL =
+  "jurnal:bg-transparent jurnal:text-[11px] jurnal:font-medium jurnal:uppercase jurnal:tracking-[0.14em] jurnal:ring-1 jurnal:ring-inset jurnal:ring-gray-300 afisha:bg-white afisha:text-[11px] afisha:font-bold afisha:uppercase afisha:tracking-[0.08em] afisha:text-gray-900 afisha:ring-1 afisha:ring-inset afisha:ring-gray-900";
+
 export function categoryHref(categoryId: string | null | undefined) {
   return categoryId ? `/catalog?category=${encodeURIComponent(categoryId)}` : "/catalog";
 }
@@ -83,6 +93,7 @@ export function ProductView({
 }) {
   const { t } = useTranslations();
   const { parts } = usePrice();
+  const theme = useStoreTheme();
   const { isTelegram } = useTelegram();
   const fulfilment = useFulfilmentLines(info);
 
@@ -165,7 +176,7 @@ export function ProductView({
                   href={categoryHref(category.id)}
                   className="group -my-1.5 inline-flex h-11 min-w-0 max-w-full items-center rounded-full outline-none focus-visible:[&>span]:ring-2 focus-visible:[&>span]:ring-brand-500/60 focus-visible:[&>span]:ring-offset-2 focus-visible:[&>span]:ring-offset-white dark:focus-visible:[&>span]:ring-offset-gray-900"
                 >
-                  <span className="flex h-8 min-w-0 items-center rounded-full bg-gray-900/[0.05] px-3.5 text-[13px] font-semibold text-gray-600 transition-colors duration-100 group-hover:bg-gray-900/[0.08] group-hover:text-gray-900 dark:bg-white/[0.07] dark:text-gray-300 dark:group-hover:bg-white/[0.11] dark:group-hover:text-white">
+                  <span className={`flex h-8 min-w-0 items-center rounded-full bg-gray-900/[0.05] px-3.5 text-[13px] font-semibold text-gray-600 transition-colors duration-100 group-hover:bg-gray-900/[0.08] group-hover:text-gray-900 dark:bg-white/[0.07] dark:text-gray-300 dark:group-hover:bg-white/[0.11] dark:group-hover:text-white ${THEMED_PILL}`}>
                     <span className="truncate">{category.name}</span>
                   </span>
                 </Link>
@@ -174,10 +185,10 @@ export function ProductView({
                   coloured: it is a label, not a link. */}
               {flag && (
                 <span
-                  className={`flex h-8 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold ${
+                  className={`flex h-8 shrink-0 items-center rounded-full px-3.5 text-[13px] font-semibold jurnal:text-[11px] jurnal:font-medium jurnal:uppercase jurnal:tracking-[0.14em] afisha:text-[11px] afisha:font-bold afisha:uppercase afisha:tracking-[0.08em] ${
                     flag === "popular"
                       ? "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
-                      : "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300"
+                      : "bg-brand-50 text-brand-700 dark:bg-brand-500/15 dark:text-brand-300 afisha:bg-brand-300 afisha:text-gray-900 afisha:ring-1 afisha:ring-inset afisha:ring-gray-900 tungi:bg-brand-300 tungi:text-gray-950"
                   }`}
                 >
                   {t(flag === "popular" ? "product.badgePopular" : "product.badgeNew")}
@@ -189,7 +200,7 @@ export function ProductView({
           <h1
             className={`${
               category || flag ? "mt-2" : ""
-            } break-words text-[24px] font-bold leading-[30px] tracking-[-0.02em] text-gray-900 dark:text-white lg:text-[32px] lg:leading-[40px]`}
+            } break-words text-[24px] font-bold leading-[30px] tracking-[-0.02em] text-gray-900 dark:text-white lg:text-[32px] lg:leading-[40px] ${themedTitle} jurnal:text-[32px] jurnal:leading-[36px] jurnal:lg:text-[46px] jurnal:lg:leading-[50px]`}
           >
             {product.name}
           </h1>
@@ -199,7 +210,7 @@ export function ProductView({
               soldOut ? "text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-white"
             }`}
           >
-            <span className="whitespace-nowrap text-[30px] font-bold leading-9 tracking-[-0.02em] lg:text-[36px] lg:leading-[44px]">
+            <span className="whitespace-nowrap text-[30px] font-bold leading-9 tracking-[-0.02em] lg:text-[36px] lg:leading-[44px] jurnal:text-[24px] jurnal:font-normal jurnal:tracking-normal jurnal:lg:text-[28px] afisha:font-head afisha:text-[26px] afisha:font-extrabold afisha:lg:text-[32px]">
               {amount}
             </span>
             <span
@@ -337,7 +348,7 @@ export function ProductView({
       {related && related.products.length > 0 && (
         <section aria-labelledby="related-title" className="mt-10 lg:mt-16">
           <div className="flex items-center justify-between gap-3">
-            <h2 id="related-title" className={sectionTitle}>
+            <h2 id="related-title" className={`${sectionTitle} ${THEMED_SECTION_TITLE}`}>
               {related.kind === "category" ? t("product.sameCategory") : t("product.moreProducts")}
             </h2>
             <Link
@@ -353,7 +364,13 @@ export function ProductView({
               <ChevronRightIcon className="h-[18px] w-[18px]" />
             </Link>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:mt-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8">
+          <div
+            className={
+              theme === "default"
+                ? "mt-3 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:mt-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8"
+                : `mt-3 lg:mt-4 ${themedGrid(theme)} ${theme === "afisha" ? "border-t" : ""}`
+            }
+          >
             {related.products.map((p) => (
               <ProductCard
                 key={p.id}
@@ -468,7 +485,9 @@ function OptionChips({
                 active
                   ? "bg-gray-900 font-bold text-white dark:bg-white dark:text-gray-900"
                   : `bg-gray-900/[0.05] font-semibold text-gray-800 hover:bg-gray-900/[0.08] dark:bg-white/[0.07] dark:text-gray-200 dark:hover:bg-white/[0.11] ${
-                      asked ? "ring-1 ring-inset ring-error-500/50" : ""
+                      asked
+                        ? "ring-1 ring-inset ring-error-500/50"
+                        : "jurnal:bg-transparent jurnal:ring-1 jurnal:ring-inset jurnal:ring-gray-300 afisha:bg-white afisha:ring-1 afisha:ring-inset afisha:ring-gray-900 afisha:hover:bg-brand-300"
                     }`
               }`}
             >
