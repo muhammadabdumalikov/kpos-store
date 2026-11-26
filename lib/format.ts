@@ -20,6 +20,11 @@ export function formatPrice(value: number, currency = "UZS", unit?: string | nul
   return `${formatAmount(value)} ${currency}${unit ? `/${unit}` : ""}`;
 }
 
+/** Fill `{name}` placeholders of a message: "Hozir {amount}" → "Hozir 125 000 soʼm". */
+export function fillTemplate(template: string, params: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (_, key: string) => params[key] ?? "");
+}
+
 /** Backend money fields arrive as numeric strings; round to whole so'm. */
 export const toAmount = (value: string | number | null | undefined) =>
   Math.round(Number(value ?? 0)) || 0;

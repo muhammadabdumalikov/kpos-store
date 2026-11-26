@@ -159,12 +159,29 @@ export interface StoreFulfillment {
   pickupAddress: string | null;
 }
 
+export type PaymentMode = "on_receipt" | "card_transfer";
+
+/**
+ * How the shop takes money for a storefront order (KARTA-TOLOV.md §4.2). The
+ * shop's card numbers are not here: they come with a placed order only.
+ */
+export interface StorePaymentMethods {
+  /** "Olganda toʼlash": pay when the order is handed over. */
+  onReceipt: boolean;
+  /** "Kartaga oʼtkazma": the buyer transfers to the shop's card up front. */
+  cardTransfer: boolean;
+  /** The share asked up front by card transfer, 10..100. */
+  prepayPercent: number;
+}
+
 export interface StoreInfo {
   name: string | null;
   slug: string | null;
   /** Absent on a backend that predates delivery; callers treat that as pickup only. */
   // Wire name as the backend sends it (YETKAZISH.md §4.3): one "l".
   fulfilment?: StoreFulfillment | null;
+  /** Absent on a backend that predates card transfer: pay on receipt only. */
+  payment?: StorePaymentMethods | null;
   // The shop's face (Settings → Online store). All optional: a backend that
   // predates them omits them, and a shop may leave any of them empty.
   /** Round picture next to the shop's name. */
@@ -251,6 +268,8 @@ export interface CreateStoreOrderInput {
   address?: string;
   lat?: number;
   lng?: number;
+  /** Optional only when the shop has a single payment method enabled. */
+  paymentMode?: PaymentMode;
   /** Storefront locale; the shop's Telegram notifications follow it. */
   locale?: "uz" | "uzc" | "ru" | "en";
   /** Telegram mini-app launch payload; binds the order to that Telegram user. */
@@ -268,6 +287,35 @@ export interface StoreOrderResult {
   deliveryType: DeliveryType;
   itemCount: number;
   createdAt: string;
+  /** Absent on a backend that predates card transfer. */
+  paymentMode?: PaymentMode;
+  /** What a card-transfer order asks for now; the cards come with the order
+   *  itself (`fetchStoreOrderStatus`), not with this result. */
+  prepayAmount?: string | null;
+}
+
+/**
+ * Where a card-transfer order's money stands (KARTA-TOLOV.md §2):
+ * awaiting → claimed (the buyer said "Toʼladim") → confirmed | rejected (the
+ * shop looked); after a rejection the buyer may claim again.
+ */
+export type PrepayState = "awaiting" | "claimed" | "confirmed" | "rejected";
+
+export interface StoreTransferCard {
+  /** 16 digits, no spaces. */
+  number: string;
+  holder: string;
+}
+
+export interface StoreOrderPayment {
+  mode: PaymentMode;
+  /** Fixed at checkout, rounded up to 1 000. */
+  prepayAmount: string | null;
+  state: PrepayState | null;
+  /** Only while a transfer is still due (awaiting / rejected) on an open order. */
+  cards: StoreTransferCard[] | null;
+  /** "Toʼladim" presses left; 0 once the order is closed. */
+  claimsLeft: number;
 }
 
 export type StoreOrderStatusCode =
@@ -308,8 +356,10 @@ export interface StoreOrderStatus {
   cancelReason: StoreCancelReason | string | null;
   /** The shop's own words, only for an 'other' cancel. */
   cancelNote?: string | null;
-  /** The customer may cancel only while Pending. */
+  /** The customer may cancel only while Pending, and not after "Toʼladim". */
   canCancel: boolean;
+  /** How the order is paid; null or absent on orders older than card transfer. */
+  payment?: StoreOrderPayment | null;
   /** Status transitions, oldest first (from order_status_events). */
   timeline: { status: string; at: string }[];
   items: {
@@ -418,4 +468,28 @@ export async function cancelStoreOrder(
     { method: "POST", headers }
   );
   if (!res.ok) throw await toStoreApiError(res, "Cancel failed");
+}
+
+/**
+ * Client-side: "Toʼladim". The buyer says the card transfer is sent; the shop
+ * then checks its card and confirms or rejects. Returns the updated order.
+ * Fails with STORE_PAYMENT_NOT_AWAITING (nothing is due any more) or
+ * STORE_PAYMENT_CLAIM_LIMIT (said three times already).
+ */
+export async function claimStorePayment(
+  id: string,
+  note?: string | null,
+  slug?: string | null,
+  initData?: string | null
+): Promise<StoreOrderStatus> {
+  const params = withStore(new URLSearchParams(), slug);
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (initData) headers["X-Telegram-Init-Data"] = initData;
+  const text = note?.trim().slice(0, 60);
+  const res = await fetch(
+    `${apiBase()}/store/orders/${id}/payment-claim?${params.toString()}`,
+    { method: "POST", headers, body: JSON.stringify(text ? { note: text } : {}) }
+  );
+  if (!res.ok) throw await toStoreApiError(res, "Payment claim failed");
+  return res.json();
 }

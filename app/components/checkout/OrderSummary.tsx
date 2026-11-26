@@ -8,16 +8,20 @@ import type { CheckoutFulfillment } from "./useCheckoutFulfillment";
 /**
  * Goods total, the delivery line (when delivering) and what the customer pays.
  * The free-delivery nudge lives here because it is about the total, not the
- * method: "add this much and the fee goes away".
+ * method: "add this much and the fee goes away". Paying by card transfer adds
+ * what is due now and, for a part payment, what is left for the handover.
  */
 export function OrderSummary({
   subtotal,
   count,
   model,
+  prepay = null,
 }: {
   subtotal: number;
   count: number;
   model: CheckoutFulfillment;
+  /** Card transfer: the amount to send now. Null when paying on receipt. */
+  prepay?: number | null;
 }) {
   const { t } = useTranslations();
   const currency = t("common.currency");
@@ -25,6 +29,7 @@ export function OrderSummary({
   const threshold = model.fulfillment.freeDeliveryFrom;
   const showNudge = isDelivery && model.freeShortfall > 0 && threshold !== null;
   const progress = showNudge ? Math.min(100, Math.round((subtotal / threshold) * 100)) : 0;
+  const later = prepay === null ? 0 : Math.max(0, model.payable - prepay);
 
   return (
     <section className={`flex flex-col gap-3 p-4 lg:p-5 ${panel}`}>
@@ -94,6 +99,33 @@ export function OrderSummary({
           className="text-[22px] font-bold tracking-[-0.01em] text-gray-900 dark:text-white"
         />
       </div>
+
+      {prepay !== null && (
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-[15px] font-bold text-gray-900 dark:text-white/90">
+              {t("payment.payNow")}
+            </span>
+            <Money
+              value={prepay}
+              currency={currency}
+              className="text-[15px] font-bold text-gray-900 dark:text-white/90"
+            />
+          </div>
+          {later > 0 && (
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-[15px] font-medium text-gray-600 dark:text-gray-300">
+                {t("payment.payLater")}
+              </span>
+              <Money
+                value={later}
+                currency={currency}
+                className="text-[15px] font-bold text-gray-900 dark:text-white/90"
+              />
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

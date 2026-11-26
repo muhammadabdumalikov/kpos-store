@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthDrawerProvider } from "../components/AuthDrawerContext";
 import { useLoading } from "../components/TopLoadingBar";
 import { DesktopFooter } from "../components/DesktopFooter";
@@ -11,26 +11,43 @@ import { MobileHeader } from "../components/MobileHeader";
 import { MobileNav } from "../components/MobileNav";
 import { FulfillmentSection } from "../components/checkout/FulfillmentSection";
 import { OrderSummary } from "../components/checkout/OrderSummary";
+import { PaymentSection } from "../components/checkout/PaymentSection";
 import { useCheckoutFulfillment } from "../components/checkout/useCheckoutFulfillment";
 import { Money, checkoutTitle, field, panel, pillPrimary } from "../components/checkout/styles";
+import { CardTransferPanel, paymentStatusText } from "../components/payment/CardTransferPanel";
 import { themedTitle } from "../components/themes/classes";
 import { StatePanel, pillSecondary } from "../components/StatePanel";
+import { ClockIcon } from "../components/icons/DeliveryIcons";
 import { BagIcon, BoxIcon, CheckLineIcon, MinusIcon, PlusIcon, TrashIcon } from "../components/icons/ShopIcons";
 import { storeErrorMessage } from "../../lib/api-errors";
 import { cartLineKey, getCart, setCart, type CartLine } from "../../lib/cart-store";
 import { formatPrice, toAmount } from "../../lib/format";
 import { LEGACY_PICKUP_ONLY, normalizeFulfillment } from "../../lib/fulfillment";
+import {
+  ON_RECEIPT_ONLY,
+  normalizePayment,
+  paymentStage,
+  pickPaymentMode,
+  prepayAmountFor,
+} from "../../lib/payment";
 import { choicesText, cleanChoices, optionGroups, type OptionChoice } from "../../lib/product-options";
 import {
+  claimStorePayment,
   fetchStoreInfo,
+  fetchStoreOrderStatus,
   fetchStoreProduct,
   createStoreOrder,
+  StoreApiError,
+  type PaymentMode,
   type StoreFulfillment,
   type StoreOrderResult,
+  type StoreOrderStatus,
+  type StorePaymentMethods,
   type StoreProduct,
 } from "../../lib/store-api";
+import { storeContacts, type StoreContact } from "../../lib/store-contacts";
 import { onOrderLabel } from "../../lib/stock";
-import { saveOrderId } from "../../lib/order-store";
+import { getPayingOrderId, saveOrderId, setPayingOrderId } from "../../lib/order-store";
 import { getStoreSlugClient } from "../../lib/store-slug";
 import { requestTelegramContact } from "../../lib/telegram";
 import { useTelegram } from "@/context/TelegramContext";
@@ -163,6 +180,24 @@ export default function CartPage() {
   const [fulfillment, setFulfillment] = useState<StoreFulfillment | null>(null);
   const [fulfillmentFailed, setFulfillmentFailed] = useState(false);
   const [fulfillmentAttempt, setFulfillmentAttempt] = useState(0);
+  // How the shop takes money, from the same fresh fetch; and the buyer's
+  // choice between the two methods (null = not chosen yet).
+  const [payMethods, setPayMethods] = useState<StorePaymentMethods>(ON_RECEIPT_ONLY);
+  const [chosenPayMode, setChosenPayMode] = useState<PaymentMode | null>(null);
+  const [contacts, setContacts] = useState<StoreContact[]>([]);
+  // A card-transfer order whose payment this page is showing: just placed, or
+  // still unpaid from before the page was reloaded (the buyer leaves for
+  // their bank app in between). Its details, cards included, come from the
+  // order itself, never from the checkout response.
+  const [payOrderId, setPayOrderId] = useState<string | null>(null);
+  const [payOrder, setPayOrder] = useState<StoreOrderStatus | null>(null);
+  const [payLoadFailed, setPayLoadFailed] = useState(false);
+  const [payAttempt, setPayAttempt] = useState(0);
+  // The payment was on screen in this visit: keep its outcome here too.
+  const payShown = useRef(false);
+  // Bumped by every refresh and by "Toʼladim", so an answer that was already
+  // on its way cannot put an older state back on screen.
+  const paySeq = useRef(0);
 
   // Valid when the +998 prefix is followed by a full 9-digit subscriber number.
   const phoneValid = phone.replace(/\D/g, "").length >= 12;
@@ -171,7 +206,10 @@ export default function CartPage() {
     let stale = false;
     fetchStoreInfo(getStoreSlugClient())
       .then((info) => {
-        if (!stale) setFulfillment(normalizeFulfillment(info));
+        if (stale) return;
+        setFulfillment(normalizeFulfillment(info));
+        setPayMethods(normalizePayment(info));
+        setContacts(storeContacts(info));
       })
       .catch(() => {
         if (!stale) setFulfillmentFailed(true);
@@ -185,6 +223,85 @@ export default function CartPage() {
     setFulfillmentFailed(false);
     setFulfillmentAttempt((n) => n + 1);
   }, []);
+
+  // The order being paid, kept current: the shop confirms or rejects on its
+  // side, and the buyer comes back from their bank app to a page that may
+  // have slept meanwhile.
+  useEffect(() => {
+    if (!payOrderId) return;
+    let stale = false;
+    const drop = () => {
+      payShown.current = false;
+      setPayingOrderId(null);
+      setPayOrderId(null);
+      setPayOrder(null);
+    };
+    const refresh = () => {
+      const seq = ++paySeq.current;
+      fetchStoreOrderStatus(payOrderId, getStoreSlugClient())
+        .then((order) => {
+          if (stale || seq !== paySeq.current) return;
+          const stage = order ? paymentStage(order) : null;
+          // Nothing left to say: the shop closed the order, or it was never a
+          // card transfer.
+          if (!order || !stage) return drop();
+          if (stage === "transfer") {
+            // Due (again, after a "Pul kelmadi"): survive a reload.
+            setPayingOrderId(payOrderId);
+          } else {
+            setPayingOrderId(null);
+            // An order found after a reload is shown only while money is due;
+            // its later news lives on the orders page.
+            if (!payShown.current) return drop();
+          }
+          payShown.current = true;
+          setPayLoadFailed(false);
+          setPayOrder(order);
+        })
+        .catch(() => {
+          if (!stale && seq === paySeq.current) setPayLoadFailed(true);
+        });
+    };
+    refresh();
+    const timer = setInterval(refresh, 30_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      stale = true;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [payOrderId, payAttempt]);
+
+  const claimPayment = useCallback(
+    async (claimNote?: string) => {
+      if (!payOrderId) return;
+      try {
+        const order = await claimStorePayment(
+          payOrderId,
+          claimNote,
+          getStoreSlugClient(),
+          initData
+        );
+        paySeq.current += 1;
+        setPayingOrderId(null);
+        setPayOrder(order);
+      } catch (err) {
+        // The shop may have settled it meanwhile: pull the real state, then
+        // let the panel show the message.
+        if (
+          err instanceof StoreApiError &&
+          (err.code === "STORE_PAYMENT_NOT_AWAITING" || err.code === "STORE_PAYMENT_CLAIM_LIMIT")
+        ) {
+          setPayAttempt((n) => n + 1);
+        }
+        throw err;
+      }
+    },
+    [payOrderId, initData]
+  );
 
   // In the mini app the shopper is already identified — don't make them retype
   // their name. Only prefills an untouched field.
@@ -220,6 +337,9 @@ export default function CartPage() {
     if (lines.length === 0) {
       setItems([]);
       setLoading(false);
+      // An empty basket with a transfer still due opens on that payment.
+      const paying = getPayingOrderId();
+      if (paying) setPayOrderId(paying);
       return;
     }
     setTopLoading(true);
@@ -294,6 +414,11 @@ export default function CartPage() {
   );
   const canSubmit =
     selectedCount > 0 && !placing && fulfillment !== null && !checkout.blocked;
+  const payMode = pickPaymentMode(payMethods, chosenPayMode);
+  const prepay =
+    payMode === "card_transfer"
+      ? prepayAmountFor(checkout.payable, payMethods.prepayPercent)
+      : null;
 
   const toggleAll = useCallback(() => {
     const next = !allSelected;
@@ -360,6 +485,9 @@ export default function CartPage() {
           customerName: customerName.trim() || undefined,
           note: note.trim() || undefined,
           ...checkout.payload(),
+          // Only to a shop that takes card transfers: an older backend, and a
+          // shop without them, get the request they always got.
+          ...(payMethods.cardTransfer ? { paymentMode: payMode } : {}),
           // The shop's Telegram messages to this customer follow this language.
           locale,
           // Verified server-side; when it checks out the order is bound to this
@@ -378,8 +506,23 @@ export default function CartPage() {
         return remaining;
       });
       setPlacedOrder(result);
+      if (result.paymentMode === "card_transfer") {
+        // Straight to the shop's cards; they come with the order itself.
+        payShown.current = true;
+        setPayingOrderId(result.id);
+        setPayOrder(null);
+        setPayLoadFailed(false);
+        setPayOrderId(result.id);
+        window.scrollTo({ top: 0 });
+      }
     } catch (err) {
       setOrderError(storeErrorMessage(err, t, t("cart.orderError")));
+      // The shop changed how it takes money since this page loaded: show
+      // the methods it offers now.
+      if (err instanceof StoreApiError && err.code === "STORE_PAYMENT_MODE_UNAVAILABLE") {
+        setChosenPayMode(null);
+        setFulfillmentAttempt((n) => n + 1);
+      }
     } finally {
       setPlacing(false);
       setTopLoading(false);
@@ -392,6 +535,8 @@ export default function CartPage() {
     customerName,
     note,
     checkout,
+    payMethods,
+    payMode,
     locale,
     initData,
     setTopLoading,
@@ -406,6 +551,25 @@ export default function CartPage() {
   };
   const hasItems = !loading && items.length > 0;
   const submitLabel = placing ? t("common.sending") : t("cart.checkout");
+
+  const payStage = payOrder ? paymentStage(payOrder) : null;
+  const payStatus =
+    payOrder?.payment && payStage && payStage !== "transfer"
+      ? paymentStatusText(payOrder.payment, toAmount(payOrder.payable), t)
+      : null;
+  // With nothing else on the page "Toʼladim" rides above the tab bar; next
+  // to a basket that still has lines, the order bar keeps that place.
+  const pinPay = payStage === "transfer" && !hasItems;
+  const afterOrderLinks = (
+    <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
+      <Link href="/orders" className={pillPrimary}>
+        {t("cart.viewOrders")}
+      </Link>
+      <Link href="/" className={`${pillSecondary} h-12`}>
+        {t("cart.continueShopping")}
+      </Link>
+    </div>
+  );
 
   return (
     <AuthDrawerProvider>
@@ -428,7 +592,80 @@ export default function CartPage() {
           )}
         </div>
 
-        {placedOrder && (
+        {payOrderId ? (
+          payOrder?.payment && payStage === "transfer" ? (
+            <section className="mt-4 lg:mt-6 lg:max-w-[520px]">
+              <CardTransferPanel
+                tone="page"
+                payment={payOrder.payment}
+                payable={toAmount(payOrder.payable)}
+                onClaim={claimPayment}
+                contacts={contacts}
+                orderRef={payOrder.id.slice(0, 8).toUpperCase()}
+                pinAction={pinPay}
+              />
+              <div className="mt-5 flex flex-col items-start gap-2.5">
+                <p className="text-[13px] font-medium leading-[18px] text-gray-500 dark:text-gray-400">
+                  {t("payment.laterHint")}
+                </p>
+                <Link href="/orders" className={`${pillSecondary} h-10 px-4`}>
+                  {t("cart.viewOrders")}
+                </Link>
+              </div>
+            </section>
+          ) : payOrder && payStatus ? (
+            <StatePanel
+              className="mt-4"
+              titleAs="h2"
+              icon={
+                payStage === "confirmed" ? (
+                  <CheckLineIcon
+                    className="h-7 w-7 text-success-600 dark:text-success-400"
+                    strokeWidth={2.4}
+                  />
+                ) : (
+                  <ClockIcon className="h-7 w-7" />
+                )
+              }
+              title={payStatus.title}
+              body={
+                <>
+                  {payStatus.body}
+                  <span className="mt-3 block text-gray-600 dark:text-gray-300">
+                    {t("cart.orderNumber")}:{" "}
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      #{payOrder.id.slice(0, 8).toUpperCase()}
+                    </span>
+                  </span>
+                </>
+              }
+              action={afterOrderLinks}
+            />
+          ) : payLoadFailed ? (
+            <section className={`mt-4 flex items-center justify-between gap-3 px-4 py-3 ${panel}`}>
+              <p className="text-[14px] font-medium text-gray-600 dark:text-gray-300">
+                {t("payment.loadFailed")}
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setPayLoadFailed(false);
+                  setPayAttempt((n) => n + 1);
+                }}
+                className={`${pillSecondary} h-10 shrink-0 px-4`}
+              >
+                {t("cart.retry")}
+              </button>
+            </section>
+          ) : (
+            <section className="mt-4 flex animate-pulse flex-col gap-3 lg:mt-6 lg:max-w-[520px]" aria-hidden>
+              <div className="h-6 w-44 rounded bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+              <div className="h-4 w-full rounded bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+              <div className="h-[92px] w-full rounded-2xl bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+              <div className="h-[92px] w-full rounded-2xl bg-gray-900/[0.05] dark:bg-white/[0.06]" />
+            </section>
+          )
+        ) : placedOrder && (
           <StatePanel
             className="mt-4"
             titleAs="h2"
@@ -459,16 +696,7 @@ export default function CartPage() {
                 )}
               </>
             }
-            action={
-              <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-center">
-                <Link href="/orders" className={pillPrimary}>
-                  {t("cart.viewOrders")}
-                </Link>
-                <Link href="/" className={`${pillSecondary} h-12`}>
-                  {t("cart.continueShopping")}
-                </Link>
-              </div>
-            }
+            action={afterOrderLinks}
           />
         )}
 
@@ -496,7 +724,7 @@ export default function CartPage() {
           </ul>
         ) : items.length === 0 ? (
           // Right after an order the confirmation above is the whole page.
-          !placedOrder && (
+          !placedOrder && !payOrderId && (
             <StatePanel
               className="mt-5"
               icon={<BagIcon className="h-7 w-7" />}
@@ -631,6 +859,17 @@ export default function CartPage() {
                 </section>
               )}
 
+              {/* On receipt or by a transfer to the shop's card */}
+              {fulfillment && (
+                <PaymentSection
+                  methods={payMethods}
+                  mode={payMode}
+                  onSelect={setChosenPayMode}
+                  prepay={prepayAmountFor(checkout.payable, payMethods.prepayPercent)}
+                  payable={checkout.payable}
+                />
+              )}
+
               {/* Customer info (required for the store to call back) */}
               <section className="flex flex-col gap-3">
                 <h2 className={checkoutTitle}>{t("cart.customerInfo")}</h2>
@@ -702,7 +941,12 @@ export default function CartPage() {
 
             {/* What it comes to; on a wide screen it stays in view. */}
             <aside className="mt-8 flex flex-col gap-4 lg:sticky lg:top-24 lg:mt-0">
-              <OrderSummary subtotal={selectedTotals.total} count={selectedTotals.qty} model={checkout} />
+              <OrderSummary
+                subtotal={selectedTotals.total}
+                count={selectedTotals.qty}
+                model={checkout}
+                prepay={prepay}
+              />
               {/* The phone has its own bar for this, above the tab bar. */}
               <div className="hidden lg:block">
                 <button
@@ -744,7 +988,14 @@ export default function CartPage() {
             </div>
           </>
         )}
-        {!hasItems && <div className="lg:hidden" style={{ height: "calc(var(--nav-total) + 24px)" }} aria-hidden />}
+        {/* The pinned "Toʼladim" bar needs its own 88px on top of the tab bar. */}
+        {!hasItems && (
+          <div
+            className="lg:hidden"
+            style={{ height: `calc(var(--nav-total) + ${pinPay ? 112 : 24}px)` }}
+            aria-hidden
+          />
+        )}
       </main>
 
       <MobileNav />

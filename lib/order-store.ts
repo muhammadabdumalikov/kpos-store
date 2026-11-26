@@ -40,3 +40,29 @@ export function removeOrderId(id: string): void {
     // ignore
   }
 }
+
+const PAYING_KEY = "KPOS_paying_order";
+
+/**
+ * The card-transfer order whose money is still due. The buyer leaves for
+ * their bank app to pay; if the page was reloaded meanwhile, the cart opens
+ * on that order's cards again instead of an empty basket.
+ */
+export function getPayingOrderId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(PAYING_KEY) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function setPayingOrderId(id: string | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (id) localStorage.setItem(PAYING_KEY, id);
+    else localStorage.removeItem(PAYING_KEY);
+  } catch {
+    // ignore
+  }
+}

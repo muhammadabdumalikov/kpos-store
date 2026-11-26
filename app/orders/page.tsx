@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AuthDrawerProvider } from "../components/AuthDrawerContext";
 import { DesktopFooter } from "../components/DesktopFooter";
 import { DesktopHeader } from "../components/DesktopHeader";
@@ -10,9 +10,12 @@ import { MobileHeader } from "../components/MobileHeader";
 import { MobileNav } from "../components/MobileNav";
 import { OrderCard } from "../components/orders/OrderCard";
 import { getSavedOrderIds } from "../../lib/order-store";
+import { storeContacts } from "../../lib/store-contacts";
 import { getStoreSlugClient } from "../../lib/store-slug";
+import { useStoreInfo } from "../../lib/use-store-info";
 import {
   cancelStoreOrder,
+  claimStorePayment,
   fetchMyTelegramOrders,
   fetchStoreOrderStatus,
   StoreApiError,
@@ -27,6 +30,9 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<StoreOrderStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  // Where to reach the shop when a card transfer has to be settled by a call.
+  const storeInfo = useStoreInfo();
+  const contacts = useMemo(() => storeContacts(storeInfo), [storeInfo]);
 
   const load = useCallback(
     async (silent: boolean) => {
@@ -90,6 +96,30 @@ export default function OrdersPage() {
         throw err;
       }
       await load(true);
+    },
+    [initData, load]
+  );
+
+  // "Toʼladim" on a card-transfer order. The answer is the updated order, so
+  // the card moves to "the shop is checking" at once; the reload after it
+  // only outruns a refresh that was already on its way with the old state.
+  const claimPayment = useCallback(
+    async (id: string, note?: string) => {
+      try {
+        const updated = await claimStorePayment(id, note, getStoreSlugClient(), initData);
+        setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
+        void load(true);
+      } catch (err) {
+        // The shop may have settled it in the meantime: pull the real state,
+        // then let the card show the message.
+        if (
+          err instanceof StoreApiError &&
+          (err.code === "STORE_PAYMENT_NOT_AWAITING" || err.code === "STORE_PAYMENT_CLAIM_LIMIT")
+        ) {
+          void load(true);
+        }
+        throw err;
+      }
     },
     [initData, load]
   );
@@ -165,7 +195,13 @@ export default function OrdersPage() {
           </section>
         ) : (
           orders.map((order) => (
-            <OrderCard key={order.id} order={order} onCancel={cancelOrder} />
+            <OrderCard
+              key={order.id}
+              order={order}
+              onCancel={cancelOrder}
+              onClaimPayment={claimPayment}
+              contacts={contacts}
+            />
           ))
         )}
       </main>

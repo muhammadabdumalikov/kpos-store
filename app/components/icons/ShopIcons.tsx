@@ -216,3 +216,23 @@ export function ArrowRightIcon({ className = "h-5 w-5", strokeWidth = 1.3 }: Ico
     </svg>
   );
 }
+
+/** A bank card: paying by transfer. */
+export function CardIcon({ className = "h-5 w-5", strokeWidth }: IconProps) {
+  return (
+    <svg className={className} {...base(strokeWidth)}>
+      <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+      <path d="M3 10h18M7 14.5h3" />
+    </svg>
+  );
+}
+
+/** Two sheets: copy to the clipboard. */
+export function CopyIcon({ className = "h-4 w-4", strokeWidth = 2 }: IconProps) {
+  return (
+    <svg className={className} {...base(strokeWidth)}>
+      <rect x="8.5" y="8.5" width="11" height="11" rx="2.5" />
+      <path d="M15.5 8.5V6.5a2 2 0 00-2-2h-7a2 2 0 00-2 2v7a2 2 0 002 2h2" />
+    </svg>
+  );
+}

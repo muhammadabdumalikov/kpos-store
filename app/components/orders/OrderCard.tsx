@@ -3,9 +3,12 @@
 import { useState } from "react";
 import { storeErrorMessage } from "@/lib/api-errors";
 import { formatDateTime, formatPrice, formatStepTime, toAmount } from "@/lib/format";
+import { paymentStage } from "@/lib/payment";
 import type { StoreOrderStatus } from "@/lib/store-api";
+import type { StoreContact } from "@/lib/store-contacts";
 import { useTranslations } from "@/hooks/useTranslations";
 import { PhoneIcon, PinIcon, StoreIcon } from "../icons/DeliveryIcons";
+import { CardTransferPanel } from "../payment/CardTransferPanel";
 import { StatusStepper } from "./StatusStepper";
 import {
   cancelReasonKey,
@@ -20,17 +23,24 @@ import {
 
 /**
  * One order on the tracking page: header, stepper, the note for the current
- * stage, courier or pickup details when they matter, items, totals and, while
- * the shop has not picked it up yet, the customer's own cancel.
+ * stage, the card transfer when the order is paid that way, courier or pickup
+ * details when they matter, items, totals and, while the shop has not picked
+ * it up yet, the customer's own cancel.
  */
 export function OrderCard({
   order,
   onCancel,
+  onClaimPayment,
+  contacts,
   defaultConfirming = false,
 }: {
   order: StoreOrderStatus;
   /** Cancels on the server; throws a StoreApiError on failure. */
   onCancel?: (id: string) => Promise<void>;
+  /** "Toʼladim" for a card-transfer order; throws a StoreApiError on failure. */
+  onClaimPayment?: (id: string, note?: string) => Promise<void>;
+  /** The shop's contacts, for when only the shop can settle the payment. */
+  contacts?: StoreContact[];
   /** Preview only: open the inline confirmation straight away. */
   defaultConfirming?: boolean;
 }) {
@@ -54,6 +64,7 @@ export function OrderCard({
   const goods = toAmount(order.totalAmount);
   const fee = toAmount(order.deliveryFee);
   const payable = order.payable !== undefined ? toAmount(order.payable) : goods + fee;
+  const showPayment = paymentStage(order) !== null;
 
   const showCourier = status === "Delivering" && order.courier?.name;
   const showPickupCard =
@@ -112,6 +123,18 @@ export function OrderCard({
             {t(noteKey)}
           </p>
         )
+      )}
+
+      {/* Paying by card transfer: the shop's cards and "Toʼladim" while the
+          money is due, then where the payment stands. */}
+      {showPayment && order.payment && (
+        <CardTransferPanel
+          tone="card"
+          payment={order.payment}
+          payable={payable}
+          onClaim={onClaimPayment ? (note) => onClaimPayment(order.id, note) : undefined}
+          contacts={contacts}
+        />
       )}
 
       {showCourier && order.courier && (
