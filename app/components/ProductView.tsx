@@ -14,6 +14,7 @@ import type { OptionChoice, OptionGroup } from "@/lib/product-options";
 import { onOrderLabel, stockOf } from "@/lib/stock";
 import type { StoreInfo } from "@/lib/store-api";
 import { sellerChatHref } from "@/lib/store-contacts";
+import { trackViewItem } from "@/lib/tracking";
 import { AddControl } from "./AddControl";
 import { BackButton, useBackFallback } from "./BackButton";
 import { PlatformCredit } from "./PlatformCredit";
@@ -129,6 +130,9 @@ export function ProductView({
 
   const backHref = categoryHref(categoryId);
   useBackFallback(backHref);
+
+  // Ad trackers (REKLAMA-KUZATUV.md §2): this product was viewed.
+  useEffect(() => { trackViewItem({ id: product.id, name: product.name, price: product.price }); }, [product.id, product.name, product.price]);
 
   const { max, soldOut, lowStock, onOrder } = stockOf(product.quantity, product.preorder);
   const weighed = isWeighed(product.quantityType);

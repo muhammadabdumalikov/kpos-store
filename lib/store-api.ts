@@ -200,6 +200,16 @@ export interface StoreInfo {
   /** The storefront theme, a key of lib/store-theme. Older backends omit it;
    *  missing or unknown is "default" (normalizeStoreTheme). */
   theme?: string | null;
+  /** Ad tracker ids (REKLAMA-KUZATUV.md §3). Older backends omit it: all off.
+   *  Never used as sent: lib/tracking checks each against its strict format. */
+  tracking?: StoreTracking | null;
+}
+
+export interface StoreTracking {
+  ga: string | null;
+  gtm: string | null;
+  metaPixel: string | null;
+  yandexMetrika: string | null;
 }
 
 export async function getStoreInfo(slug?: string | null): Promise<StoreInfo> {

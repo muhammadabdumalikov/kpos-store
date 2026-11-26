@@ -50,6 +50,7 @@ import { onOrderLabel } from "../../lib/stock";
 import { getPayingOrderId, saveOrderId, setPayingOrderId } from "../../lib/order-store";
 import { getStoreSlugClient } from "../../lib/store-slug";
 import { requestTelegramContact } from "../../lib/telegram";
+import { trackBeginCheckout, trackPurchase } from "../../lib/tracking";
 import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 
@@ -390,6 +391,15 @@ export default function CartPage() {
     return { total, qty };
   }, [items]);
 
+  // Ad trackers (REKLAMA-KUZATUV.md §2): this page is the checkout, so opening
+  // it with goods ticked is "checkout started", once per visit; goods only.
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (loading || checkoutTracked.current || selectedTotals.qty === 0) return;
+    checkoutTracked.current = true;
+    trackBeginCheckout(items.filter((i) => i.selected), selectedTotals.total);
+  }, [loading, items, selectedTotals]);
+
   // Lines that come on order: a preorder product asked for in a larger
   // quantity than the shelf holds (stock is per product, so its lines count
   // together). Nothing is blocked; the shopper is only told once, and given
@@ -499,6 +509,8 @@ export default function CartPage() {
       checkout.remember();
       // Remember the order id so the customer can track its status later.
       saveOrderId(result.id);
+      // Ad trackers: the goods total without the delivery fee (R7), once per order.
+      trackPurchase(result.id, selected, toAmount(result.totalAmount));
       // Remove the ordered items from the cart, keep the rest.
       setItems((prev) => {
         const remaining = prev.filter((i) => !i.selected);

@@ -5,10 +5,12 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import type { Metadata } from "next";
 import Script from "next/script";
 import TopLoadingBar from "./components/TopLoadingBar";
+import { Tracking } from "./components/Tracking";
 import { getStoreInfo } from "../lib/store-api";
 import { storeAccentCss } from "../lib/store-accent";
 import { getStoreSlugServer } from "../lib/store-slug-server";
 import { normalizeStoreTheme, themeScheme, type StoreTheme } from "../lib/store-theme";
+import { cleanTrackingIds, NO_TRACKING, type TrackingIds } from "../lib/tracking";
 import { cormorant, gilroy, jetbrainsMono, mulish, onest, unbounded } from "./fonts";
 import "./globals.css";
 
@@ -43,6 +45,21 @@ async function loadShopLook(): Promise<{ css: string | null; theme: StoreTheme }
   }
 }
 
+/**
+ * The shop's ad tracker ids (REKLAMA-KUZATUV.md), each kept only when it
+ * matches its strict format (lib/tracking), so nothing else from the API can
+ * reach a script. The same deduplicated request as loadShopLook.
+ */
+async function loadTracking(): Promise<TrackingIds> {
+  const slug = await getStoreSlugServer();
+  try {
+    return cleanTrackingIds((await getStoreInfo(slug)).tracking);
+  } catch {
+    // Trackers are extras: the shop opens without them.
+    return NO_TRACKING;
+  }
+}
+
 /** Font variables for the active theme only; default keeps Gilroy alone. */
 const THEME_FONTS: Record<StoreTheme, string> = {
   default: "",
@@ -56,7 +73,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { css: shopCss, theme } = await loadShopLook();
+  const [{ css: shopCss, theme }, tracking] = await Promise.all([loadShopLook(), loadTracking()]);
   const scheme = themeScheme(theme);
   // A themed shop's scheme is fixed (lib/store-theme): Tungi is dark from the
   // first paint; the provider below keeps the class as it is.
@@ -77,6 +94,8 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-white dark:bg-gray-900" suppressHydrationWarning>
+        {/* Ad trackers: nothing visible, nothing loaded without an id. */}
+        <Tracking ids={tracking} />
         <StoreThemeProvider theme={theme}>
           <ThemeProvider forced={scheme}>
             <LocaleProvider>

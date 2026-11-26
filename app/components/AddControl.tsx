@@ -5,6 +5,7 @@ import { useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { refreshPriceSnapshot, setLineQty, useCartQty, useProductCartQty } from "@/lib/cart-store";
 import type { OptionChoice } from "@/lib/product-options";
+import { trackAddToCart } from "@/lib/tracking";
 import { MinusIcon, PlusIcon } from "./icons/ShopIcons";
 
 export type AddControlSize = "md" | "lg";
@@ -142,6 +143,8 @@ export function AddControl({
       if (beforeAdd && !beforeAdd()) return;
       if (e.detail === 0) focusAfter.current = "plus";
       setLineQty(id, 1, price, options);
+      // Ad trackers: a new line in the cart; the stepper after it is not re-counted.
+      trackAddToCart({ id, name, price }, 1);
     };
     if (shape === "corner") {
       return (
