@@ -10,6 +10,7 @@ import { Tracking } from "./components/Tracking";
 import { getStoreInfo } from "../lib/store-api";
 import { storeAccentCss } from "../lib/store-accent";
 import { getStoreSlugServer } from "../lib/store-slug-server";
+import { getSiteOrigin } from "../lib/site-url";
 import { SOHA_LOOKS, type SohaKey } from "../lib/soha-looks";
 import { normalizeSohaKey, normalizeStoreTheme, themeScheme, type StoreTheme } from "../lib/store-theme";
 import { getThemePreview } from "../lib/theme-preview-server";
@@ -39,10 +40,44 @@ import {
 } from "./fonts";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "KPOS — Do‘kon",
-  description: "Mahsulotlar va xizmatlar",
-};
+const FALLBACK_TITLE = "KPOS — Do‘kon";
+const FALLBACK_DESCRIPTION = "Mahsulotlar va xizmatlar";
+
+/**
+ * The shop's name and tagline for the tab, search results and link previews
+ * (Telegram, Instagram). Pages add their own title in front of the shop's
+ * name through the template ("Krossovka · Salom Market"). `metadataBase` makes
+ * every relative canonical and image address absolute on this shop's host.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const slug = await getStoreSlugServer();
+  const origin = await getSiteOrigin();
+  const base: Metadata = origin ? { metadataBase: new URL(origin) } : {};
+  let info: Awaited<ReturnType<typeof getStoreInfo>>;
+  try {
+    info = await getStoreInfo(slug);
+  } catch {
+    return { ...base, title: FALLBACK_TITLE, description: FALLBACK_DESCRIPTION };
+  }
+  const name = info.name?.trim() || FALLBACK_TITLE;
+  const description = info.tagline?.trim() || `${name} — onlayn do‘kon: mahsulotlar, narxlar va buyurtma.`;
+  const image = info.cover || info.logo || null;
+  return {
+    ...base,
+    title: { default: name, template: `%s · ${name}` },
+    description,
+    applicationName: name,
+    openGraph: {
+      type: "website",
+      siteName: name,
+      title: name,
+      description,
+      locale: "uz_UZ",
+      ...(image ? { images: [{ url: image, alt: name }] } : {}),
+    },
+    twitter: { card: info.cover ? "summary_large_image" : "summary", title: name, description },
+  };
+}
 
 /**
  * The shop's look for the `<head>` and `<html>`: its accent colour and photo

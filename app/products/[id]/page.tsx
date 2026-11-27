@@ -17,6 +17,7 @@ import {
   type StoreProduct,
 } from "../../../lib/store-api";
 import { getStoreSlugServer } from "../../../lib/store-slug-server";
+import { getSiteOrigin, jsonLd } from "../../../lib/site-url";
 import uz from "../../../i18n/messages/uz.json";
 
 /** Cards under the product: two rows on desktop, five on a phone. */
@@ -35,23 +36,72 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const [productRes, infoRes] = await Promise.allSettled([getStoreProduct(id, slug), getStoreInfo(slug)]);
   const product = productRes.status === "fulfilled" ? productRes.value : null;
   const shop = infoRes.status === "fulfilled" ? infoRes.value.name : null;
-  if (!product) return shop ? { title: shop } : {};
+  if (!product) return {};
 
-  const title = shop ? `${product.name} · ${shop}` : product.name;
+  // The layout's template puts the shop's name after it in the tab; a share
+  // card shows no template, so it spells the shop out itself.
+  const shareTitle = shop ? `${product.name} · ${shop}` : product.name;
   // Server-side there is no shopper locale yet; the shop's default language.
-  const description = formatPrice(
+  const price = formatPrice(
     toAmount(product.priceOut),
     uz.common.currency,
     product.quantityType === "kg" ? uz.common.unitKg : null
   );
+  // Search results show about 155 characters: the price first, then the
+  // shop's own words about the product when it has any.
+  const about = product.description?.replace(/\s+/g, " ").trim();
+  const description = about ? clip(`${price}. ${about}`, 155) : price;
   return {
-    title,
+    title: product.name,
     description,
+    alternates: { canonical: `/products/${encodeURIComponent(product.id)}` },
     openGraph: {
-      title,
+      type: "website",
+      title: shareTitle,
       description,
       ...(shop ? { siteName: shop } : {}),
       ...(product.image ? { images: [{ url: product.image, alt: product.name }] } : {}),
+    },
+  };
+}
+
+/** Cut to `max` characters on a word boundary, with an ellipsis. */
+function clip(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max - 1);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s.,;:–-]+$/, "")}…`;
+}
+
+/**
+ * schema.org Product for search engines: name, photos, price in so'm and
+ * whether it can be bought now, sold out or taken to order. Only what the
+ * shop really has — no ratings or reviews.
+ */
+function productJsonLd(product: StoreProduct, origin: string | null, shop: string | null, category: string | null) {
+  const url = origin ? `${origin}/products/${encodeURIComponent(product.id)}` : undefined;
+  const images = (product.images?.length ? product.images : product.image ? [product.image] : []).slice(0, 8);
+  const availability = product.quantity >= 1
+    ? "https://schema.org/InStock"
+    : product.preorder
+      ? "https://schema.org/PreOrder"
+      : "https://schema.org/OutOfStock";
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    sku: product.id,
+    ...(images.length ? { image: images } : {}),
+    ...(product.description?.trim() ? { description: product.description.trim().slice(0, 1000) } : {}),
+    ...(category ? { category } : {}),
+    offers: {
+      "@type": "Offer",
+      price: String(toAmount(product.priceOut)),
+      priceCurrency: "UZS",
+      availability,
+      itemCondition: "https://schema.org/NewCondition",
+      ...(url ? { url } : {}),
+      ...(shop ? { seller: { "@type": "Organization", name: shop } } : {}),
     },
   };
 }
@@ -102,9 +152,14 @@ export default async function ProductPage({ params }: Params) {
       ? categoriesRes.v.find((c) => c.id === product.categoryId)?.name ?? null
       : null;
   const related = await loadRelated(product, slug);
+  const origin = await getSiteOrigin();
 
   return (
     <AuthDrawerProvider>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLd(productJsonLd(product, origin, info?.name ?? null, categoryName)) }}
+      />
       <DesktopHeader store={info} />
 
       <main className="mx-auto max-w-7xl px-4 pb-[calc(var(--nav-total)_+_24px)] lg:pb-16">

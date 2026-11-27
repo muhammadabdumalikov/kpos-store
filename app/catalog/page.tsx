@@ -15,6 +15,27 @@ import {
   type StoreInfo,
 } from "../../lib/store-api";
 import { getStoreSlugServer } from "../../lib/store-slug-server";
+import type { Metadata } from "next";
+import uz from "../../i18n/messages/uz.json";
+
+type CatalogParams = { searchParams: Promise<{ category?: string; sort?: string; q?: string }> };
+
+/**
+ * The category's name (or "Katalog") in front of the shop's name. One
+ * address per category for search engines: the sort order is dropped from
+ * the canonical, and search results are not indexed at all.
+ */
+export async function generateMetadata({ searchParams }: CatalogParams): Promise<Metadata> {
+  const { category, q } = await searchParams;
+  if ((q ?? "").trim()) return { title: uz.nav.catalog, robots: { index: false, follow: true } };
+  if (!category) return { title: uz.nav.catalog, alternates: { canonical: "/catalog" } };
+  const slug = await getStoreSlugServer();
+  const name = (await getStoreCategories(slug).catch(() => [])).find((c) => c.id === category)?.name;
+  return {
+    title: name ?? uz.nav.catalog,
+    alternates: { canonical: name ? `/catalog?category=${encodeURIComponent(category)}` : "/catalog" },
+  };
+}
 
 export default async function CatalogPage({
   searchParams,
