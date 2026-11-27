@@ -10,6 +10,7 @@ import {
 } from "react";
 import {
   getStartParam,
+  getStartProductId,
   getWebApp,
   isTelegramWebApp,
   type TelegramUser,
@@ -111,6 +112,9 @@ function getServerSnapshot(): TelegramContextValue {
 
 const TelegramContext = createContext<TelegramContextValue>(NEUTRAL);
 
+/** The launch deep link is followed once per mini app session, not on every return home. */
+let productLinkFollowed = false;
+
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN || "kpos.uz";
 
 /**
@@ -198,6 +202,21 @@ export const TelegramProvider: React.FC<{ children: React.ReactNode }> = ({
       webApp.offEvent("contentSafeAreaChanged", applySafeArea);
     };
   }, [webApp, isTelegram, startParam]);
+
+  // ── Deep link to a product (KANAL-POST.md §5) ─────────────────────────────
+  // A channel post's button opens the shop's mini app with start_param
+  // p_<productId>: show that product instead of the home page. Only from the
+  // page the bot opens (home, or /tg when BotFather points there), so a reload
+  // deeper in the app keeps its page.
+  useEffect(() => {
+    if (!webApp || !isTelegram || productLinkFollowed) return;
+    productLinkFollowed = true;
+    const productId = getStartProductId();
+    const path = window.location.pathname;
+    if (productId && (path === "/" || path === "/tg")) {
+      router.replace(`/products/${productId}`);
+    }
+  }, [webApp, isTelegram, router]);
 
   // Paint the Telegram header/background to match the app surface, so the
   // native chrome does not sit on a mismatched colour.

@@ -142,6 +142,22 @@ export function getStartParam(): string | null {
   return /^[a-z0-9][a-z0-9-]{1,62}$/.test(raw) ? raw : null;
 }
 
+// A product id as the backend issues them (UUID). Strict, so a start_param can
+// only ever name a product page of this same storefront, never another path.
+const PRODUCT_START = /^p_([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i;
+
+/**
+ * The product a channel post's button opened the mini app on:
+ * `t.me/<shop_bot>?startapp=p_<productId>` (KANAL-POST.md §5). The underscore
+ * keeps it apart from a store slug, which getStartParam() never accepts.
+ */
+export function getStartProductId(): string | null {
+  const raw = getWebApp()?.initDataUnsafe?.start_param;
+  if (!raw) return null;
+  const match = PRODUCT_START.exec(raw);
+  return match ? match[1].toLowerCase() : null;
+}
+
 /** Raw signed launch payload, forwarded to the backend for HMAC verification. */
 export function getInitData(): string | null {
   const wa = getWebApp();
