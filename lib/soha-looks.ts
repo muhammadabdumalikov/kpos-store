@@ -1,15 +1,24 @@
 // Trade themes ("soha mavzulari"): one ready-made look per kind of shop the
-// landing page lists (food, building goods, pharmacy, flowers …).
+// landing page lists (food, building goods, flowers, books …).
 //
-// Each is put together from shared parts instead of being drawn by hand:
-// - tokens in app/globals.css under `:root[data-theme="<key>"]`: fonts, the
-//   page and card colours, the tinted grey scale, corner sizes, the "spot"
-//   colour and any small decoration of its own;
-// - the choices below: which intro, category row, product card and section
-//   title the home page is built from (app/components/soha).
+// Each is drawn after the real shops of its trade and has a structure of its
+// own, not a recolouring of one skeleton:
+// - tokens and its own rules in app/soha/<key>.css under
+//   `:root[data-theme="<key>"]`: fonts, the page and card colours, the tinted
+//   grey scale, corner sizes;
+// - its parts in app/components/soha/looks/<key>.tsx: the top of the home
+//   page, the block under the phone's search bar, the home page body
+//   (categories and product sections) and the product card;
+// - the few facts below that code outside those parts needs.
 //
-// The other pages (product, cart, checkout, orders) keep the default layout
-// and are repainted by the tokens alone.
+// The other pages (product, cart, checkout, orders) keep the default layout,
+// repainted by the tokens, and show the theme's card wherever products are
+// listed.
+//
+// Rules every theme keeps (the owner's, 2026-11): only what the shop really
+// has (no ratings, brands, instalments); no button that repeats the tab bar's
+// "Katalog"; no invented copy, only the shop's own words and plain labels; the
+// cover carries text in Marafon and Uy alone.
 //
 // Never rename a key: shops point at it. The backend keeps the same list
 // (pimpo-backend src/common/store-theme.ts), the dashboard too
@@ -20,7 +29,6 @@ import type { StoreAccent } from "./store-accent";
 export const SOHA_KEYS = [
   "bozor",
   "usta",
-  "shifo",
   "guldasta",
   "mayin",
   "oynoqi",
@@ -52,219 +60,45 @@ export type SohaLook = {
    */
   corner: "round" | "soft" | "square";
   /**
-   * The top of the home page.
-   * - band: a full-width block in the theme's band colour with the shop's
-   *   name; the phone's search bar continues it.
-   * - center: logo, name and tagline centred, the cover as a card under them.
-   * - cover: the cover first, the logo hanging over its lower edge.
-   * - split: the tagline as a large headline beside the cover.
+   * The phone's sticky bar: "field" is the search field with the language
+   * switch; "wordmark" carries the shop's name between a search button and
+   * the language switch (the field opens in the bar itself).
    */
-  intro: "band" | "center" | "cover" | "split";
-  /** Categories: photo circles, chips, tiles with a small photo, or text tabs. */
-  nav: "circles" | "chips" | "tiles" | "tabs";
-  /**
-   * The product card.
-   * - soft: a tinted block with the add button under the text.
-   * - market: a white bordered card, price first, the add button under it.
-   * - plain: no surface; a "+" on the photo's corner.
-   * - spec: a dense bordered cell, the "+" beside the price.
-   */
-  card: "soft" | "market" | "plain" | "spec";
-  /** Section titles: bold, the heading face large, small caps on a rule, or a marked tag. */
-  head: "bold" | "serif" | "rule" | "marker";
-  /** Card text and section titles are centred (Guldasta). */
-  centered?: boolean;
-  /** The name stands above the price on a plain card. */
-  nameFirst?: boolean;
-  /** Each home section sits in a card-coloured panel (Bozor). */
-  panels?: boolean;
-  /** Cards in one desktop row. */
-  cols: 4 | 5 | 6;
+  bar: "field" | "wordmark";
+  /** Cards in one row of a product grid on a phone and on a wide screen. */
+  phoneCols: 1 | 2 | 3;
+  cols: 3 | 4 | 5 | 6;
+  /** The home page lists each category's size (Garaj's catalogue). */
+  counts?: boolean;
+  /** The search field's own prompt (a message key); the plain "Qidirish..." otherwise. */
+  searchHint?: string;
 };
 
 export const SOHA_LOOKS: Record<SohaKey, SohaLook> = {
-  // Oziq-ovqat do'koni: a dense market. Grey-green page, white shelf panels,
-  // a dark green band with the search in it, price first.
-  bozor: {
-    scheme: "light",
-    page: "#f2f4ef",
-    accent: "green",
-    corner: "soft",
-    intro: "band",
-    nav: "chips",
-    card: "market",
-    head: "bold",
-    panels: true,
-    cols: 6,
-  },
-  // Qurilish mollari: a site board. Black band over a hazard stripe, yellow
-  // buttons with ink text, square corners, ruled cells.
-  usta: {
-    scheme: "light",
-    page: "#ffffff",
-    accent: "orange",
-    corner: "square",
-    intro: "band",
-    nav: "tiles",
-    card: "spec",
-    head: "rule",
-    cols: 5,
-  },
-  // Dorixona: clinical and calm. Cool mint page, white cards, teal.
-  shifo: {
-    scheme: "light",
-    page: "#f3f8f7",
-    accent: "teal",
-    corner: "soft",
-    intro: "center",
-    nav: "chips",
-    card: "market",
-    head: "bold",
-    cols: 5,
-  },
-  // Gul do'koni: a florist's card. Cream page, an arched cover, serif italics,
-  // everything centred.
-  guldasta: {
-    scheme: "light",
-    page: "#fbf7f1",
-    accent: "green",
-    corner: "round",
-    intro: "cover",
-    nav: "circles",
-    card: "plain",
-    head: "serif",
-    centered: true,
-    nameFirst: true,
-    cols: 4,
-  },
-  // Kosmetika: soft. Blush page, pastel blocks in turn, round everything.
-  mayin: {
-    scheme: "light",
-    page: "#fff5f0",
-    accent: "rose",
-    corner: "round",
-    intro: "center",
-    nav: "circles",
-    card: "soft",
-    head: "bold",
-    cols: 5,
-  },
-  // Bolalar mahsulotlari: a toy box. Pale yellow dotted page, thick coloured
-  // frames in turn, titles on tilted tags.
-  oynoqi: {
-    scheme: "light",
-    page: "#fffbea",
-    accent: "violet",
-    corner: "round",
-    intro: "center",
-    nav: "tiles",
-    card: "market",
-    head: "marker",
-    cols: 5,
-  },
-  // Telefon va elektronika: a showroom. White, pale grey tiles, a large tight
-  // headline beside the cover.
-  texno: {
-    scheme: "light",
-    page: "#ffffff",
-    accent: "blue",
-    corner: "round",
-    intro: "split",
-    nav: "chips",
-    card: "plain",
-    head: "bold",
-    nameFirst: true,
-    cols: 5,
-  },
-  // Xo'jalik mollari: a warm household shop. Cream page, a sand band, tiles.
-  rozgor: {
-    scheme: "light",
-    page: "#fffaf2",
-    accent: "orange",
-    corner: "soft",
-    intro: "band",
-    nav: "tiles",
-    card: "market",
-    head: "marker",
-    cols: 5,
-  },
-  // Kitob do'koni: a book page. Paper ground, a serif throughout, text tabs.
-  kitob: {
-    scheme: "light",
-    page: "#f8f2e6",
-    accent: "red",
-    corner: "soft",
-    intro: "split",
-    nav: "tabs",
-    card: "plain",
-    head: "serif",
-    nameFirst: true,
-    cols: 5,
-  },
-  // Sport mahsulotlari: speed. Slanted italic caps, black band, a lime spot.
-  marafon: {
-    scheme: "light",
-    page: "#ffffff",
-    accent: "red",
-    corner: "square",
-    intro: "band",
-    nav: "chips",
-    card: "plain",
-    head: "rule",
-    cols: 5,
-  },
-  // Sovg'alar: wrapped by hand. Cream page, handwritten titles, stitched
-  // (dashed) frames, price tags.
-  tuhfa: {
-    scheme: "light",
-    page: "#fdf6ec",
-    accent: "red",
-    corner: "round",
-    intro: "center",
-    nav: "circles",
-    card: "soft",
-    head: "marker",
-    centered: true,
-    cols: 4,
-  },
-  // Mebel: a quiet showroom. Greige page, light large type, square photos with
-  // room around them, ink buttons.
-  uy: {
-    scheme: "light",
-    page: "#f6f3ee",
-    accent: "graphite",
-    corner: "square",
-    intro: "split",
-    nav: "tabs",
-    card: "plain",
-    head: "serif",
-    nameFirst: true,
-    cols: 4,
-  },
-  // Avto ehtiyot qismlar: a workshop at night. Carbon page, condensed caps,
-  // dense cells, orange.
-  garaj: {
-    scheme: "dark",
-    page: "#111315",
-    accent: "orange",
-    corner: "soft",
-    intro: "band",
-    nav: "tiles",
-    card: "spec",
-    head: "rule",
-    cols: 6,
-  },
-  // Kanselyariya: a school notebook. Squared paper, ink frames, titles under a
-  // yellow highlighter.
-  daftar: {
-    scheme: "light",
-    page: "#fbfbf6",
-    accent: "blue",
-    corner: "soft",
-    intro: "center",
-    nav: "chips",
-    card: "market",
-    head: "marker",
-    cols: 5,
-  },
+  // Oziq-ovqat: a delivery app. No hero; category tiles, three goods a row, price first.
+  bozor: { scheme: "light", page: "#ffffff", accent: "green", corner: "soft", bar: "field", phoneCols: 3, cols: 6 },
+  // Qurilish mollari: a builders' merchant. Black band, yellow fields, square, ruled cells.
+  usta: { scheme: "light", page: "#ffffff", accent: "orange", corner: "square", bar: "field", phoneCols: 2, cols: 5 },
+  // Gul do'koni: the photo, a berry block under it, large pictures to swipe.
+  guldasta: { scheme: "light", page: "#fbf7f1", accent: "rose", corner: "square", bar: "wordmark", phoneCols: 2, cols: 4 },
+  // Kosmetika: white and nude, a flared sans, small shelves with an outlined button.
+  mayin: { scheme: "light", page: "#ffffff", accent: "rose", corner: "round", bar: "field", phoneCols: 2, cols: 5 },
+  // Bolalar mahsulotlari: a violet band, pastel category squares, white cards in grey panels.
+  oynoqi: { scheme: "light", page: "#ffffff", accent: "violet", corner: "round", bar: "field", phoneCols: 2, cols: 5 },
+  // Telefon va elektronika: a local electronics shop. Banner, framed deals, dense bordered cards.
+  texno: { scheme: "light", page: "#ffffff", accent: "blue", corner: "soft", bar: "field", phoneCols: 2, cols: 5 },
+  // Xo'jalik mollari: a price-led household shop. Quick links, a deals panel, price tags.
+  rozgor: { scheme: "light", page: "#fffaf3", accent: "orange", corner: "soft", bar: "field", phoneCols: 2, cols: 5 },
+  // Kitob do'koni: a book page. The tagline as an epigraph, covers on shelf lines, a serif throughout.
+  kitob: { scheme: "light", page: "#f7f1e5", accent: "red", corner: "soft", bar: "field", phoneCols: 3, cols: 6, searchHint: "home.bookSearch" },
+  // Sport: a full photo with slanted condensed caps, edge-to-edge tiles.
+  marafon: { scheme: "light", page: "#ffffff", accent: "graphite", corner: "square", bar: "wordmark", phoneCols: 2, cols: 4 },
+  // Sovg'alar: a ribbon-red lid, tall occasion cards hanging over its edge.
+  tuhfa: { scheme: "light", page: "#fbf4ea", accent: "red", corner: "round", bar: "field", phoneCols: 2, cols: 4 },
+  // Mebel: a quiet showroom. A room photo with light caps, photo tiles under label bars.
+  uy: { scheme: "light", page: "#f6f3ee", accent: "graphite", corner: "square", bar: "field", phoneCols: 2, cols: 4 },
+  // Avto ehtiyot qismlar: a parts counter. The search as the tool, a grouped catalogue, list rows.
+  garaj: { scheme: "light", page: "#ffffff", accent: "orange", corner: "soft", bar: "field", phoneCols: 1, cols: 3, counts: true, searchHint: "home.partSearchHint" },
+  // Kanselyariya: bright category tiles first, marker titles, ink-outlined cards.
+  daftar: { scheme: "light", page: "#ffffff", accent: "blue", corner: "soft", bar: "field", phoneCols: 2, cols: 5 },
 };

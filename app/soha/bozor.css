@@ -1,0 +1,128 @@
+/* Bozor: groceries, after the delivery apps (Yandex Lavka, Weee). White, a
+   green-tinted ink, grey tiles; the shop's accent (green unless the owner
+   chose another) for the delivery row, the deals tile and the "+". Geologica.
+   Parts: app/components/soha/looks/bozor.tsx. */
+:root[data-theme="bozor"] {
+  --font-outfit: 'kpos-apos', var(--font-geologica), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-geologica), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #17241b;
+  --color-gray-25: #fbfcfa;
+  --color-gray-50: #f7f8f6;
+  --color-gray-100: #f3f4f1;
+  --color-gray-200: #e2e5df;
+  --color-gray-300: #cfd4cd;
+  --color-gray-400: #99a19b;
+  --color-gray-500: #5f6b62;
+  --color-gray-600: #4d5a51;
+  --color-gray-700: #39453d;
+  --color-gray-800: #263029;
+  --color-gray-900: #17241b;
+  --color-gray-950: #0b130e;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-panel: #f3f4f1;
+  --color-line: #e2e5df;
+  --color-ink: #17241b;
+  --color-muted: #5f6b62;
+  --color-band: #f3f4f1;
+  --color-on-band: #17241b;
+  --color-spot: #ffd43a;
+  --color-on-spot: #17241b;
+  --r-card: 14px;
+  --r-tile: 12px;
+  --r-ctl: 10px;
+  --r-soft: 10px;
+}
+
+/* The phone's search: a grey pill, as in a delivery app, beside the squarer language switch. */
+:root[data-theme="bozor"] .soha-bar input[type="search"] {
+  border-radius: 22px;
+  background: var(--color-panel);
+}
+
+/* The delivery row and the picture on the deals tile. */
+:root[data-theme="bozor"] .bozor-ship {
+  border-radius: 12px;
+}
+:root[data-theme="bozor"] .bozor-pick {
+  border-radius: 10px;
+}
+
+/* Packshots stand whole on white, never cropped. */
+:root[data-theme="bozor"] .bozor-card img {
+  object-fit: contain;
+}
+:root[data-theme="bozor"] .bozor-tag {
+  border-radius: 6px;
+}
+/* The "+" on the photo's corner: small, white, the plus in the accent; its
+   tap area reaches past the circle to 44px. */
+:root[data-theme="bozor"] .bozor-card .add-corner {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--color-brand-600);
+}
+:root[data-theme="bozor"] .bozor-card .add-corner:not(:focus-visible) {
+  box-shadow: 0 0 0 1px var(--color-line);
+}
+:root[data-theme="bozor"] .bozor-card .add-corner::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+:root[data-theme="bozor"] .bozor-card .add-corner svg {
+  width: 18px;
+  height: 18px;
+}
+/* The stepper on a narrow card: lower than the default, and round. */
+:root[data-theme="bozor"] .bozor-card .add-stepper {
+  height: 36px;
+  border-radius: 999px;
+}
+:root[data-theme="bozor"] .bozor-card .add-stepper button {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+}
+
+/* The catalogue and related goods on a phone: the same narrow gutters as the home page's grids. */
+@media (max-width: 1023px) {
+  :root[data-theme="bozor"] .soha-grid {
+    margin-inline: -6px;
+    column-gap: 4px;
+    row-gap: 14px;
+  }
+}
+
+/* "Do'kon haqida": the facts in one grey tile, the links as grey tiles under it. */
+:root[data-theme="bozor"] .soha-about {
+  margin-top: 30px;
+  border-top: 0;
+  padding-top: 0;
+}
+:root[data-theme="bozor"] .soha-about-title {
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.01em;
+}
+:root[data-theme="bozor"] .soha-about > ul:first-of-type {
+  margin-top: 10px;
+  border-radius: 14px;
+  background: var(--color-panel);
+  padding: 2px 14px;
+}
+:root[data-theme="bozor"] .soha-about-row:last-child {
+  border-bottom: 0;
+}
+:root[data-theme="bozor"] .soha-about-row > span:first-child {
+  color: var(--color-brand-600);
+}
+:root[data-theme="bozor"] .soha-about-link {
+  height: 46px;
+  border-color: transparent;
+  border-radius: 14px;
+  background: var(--color-panel);
+}

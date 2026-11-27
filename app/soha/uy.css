@@ -1,0 +1,131 @@
+/* Uy: furniture. Greige paper, beige tiles, one ink for text, label bars and
+   buttons, a brick red for a markdown. Raleway, light for titles; square
+   corners throughout, only the "+" is round.
+   Parts: app/components/soha/looks/uy.tsx. */
+:root[data-theme="uy"] {
+  --font-outfit: 'kpos-apos', var(--font-raleway), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-raleway), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #2a2723;
+  --color-gray-25: #fefbf9;
+  --color-gray-50: #fbf9f6;
+  --color-gray-100: #f4f2ef;
+  --color-gray-200: #e7e5e2;
+  --color-gray-300: #d6d2cd;
+  --color-gray-400: #a19e99;
+  --color-gray-500: #676460;
+  --color-gray-600: #524f4b;
+  --color-gray-700: #403d39;
+  --color-gray-800: #2a2724;
+  --color-gray-900: #2a2723;
+  --color-gray-950: #0e0c09;
+  --color-white: #f6f3ee;
+  --color-page: #f6f3ee;
+  --color-card: #fbf9f6;
+  --color-panel: #ebe6de;
+  --color-line: #d9d2c7;
+  --color-ink: #2a2723;
+  --color-muted: #676460;
+  --color-band: #2a2723;
+  --color-on-band: #ffffff;
+  --color-spot: #b23a26;
+  --color-on-spot: #ffffff;
+  --r-card: 0px;
+  --r-tile: 0px;
+  --r-ctl: 0px;
+  --r-soft: 0px;
+  --color-primary: #2a2723;
+  --color-primary-hover: #000000;
+  --color-on-primary: #ffffff;
+}
+
+/* Raleway's own figures are old-style (they dip under the line); prices and
+   sizes need the lining set. */
+:root[data-theme="uy"] body {
+  font-feature-settings: "lnum" 1;
+}
+
+/* The phone bar: a search field that is only a line, its icon on the right,
+   and the language switch as plain letters. */
+:root[data-theme="uy"] .soha-bar input[type="search"] {
+  height: 42px;
+  padding: 0 76px 0 0;
+  border: 0;
+  border-bottom: 1px solid var(--color-ink);
+  background: transparent;
+  font-weight: 400;
+}
+:root[data-theme="uy"] .soha-bar input[type="search"]:focus {
+  border-bottom-width: 2px;
+  box-shadow: none;
+}
+:root[data-theme="uy"] .soha-bar form button[type="submit"] {
+  right: -8px;
+  left: auto;
+  color: var(--color-ink);
+}
+:root[data-theme="uy"] .soha-bar form button[type="button"] {
+  right: 32px;
+}
+:root[data-theme="uy"] .soha-bar .dropdown-toggle {
+  background: transparent;
+  color: var(--color-ink);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+/* The scrim under the tagline on the cover: plain and dark, fading out above the text. */
+:root[data-theme="uy"] .uy-scrim {
+  background: linear-gradient(to top, rgb(20 17 14 / 0.72) 0%, rgb(20 17 14 / 0.4) 42%, rgb(20 17 14 / 0) 70%);
+}
+:root[data-theme="uy"] .uy-scrim--tall {
+  background: linear-gradient(to top, rgb(20 17 14 / 0.74) 0%, rgb(20 17 14 / 0.55) 60%, rgb(20 17 14 / 0.2) 100%);
+}
+
+/* The wide card's photo is a landscape; on a wide screen it is as tall as the
+   square photos it stands beside (two columns and the gap between them). */
+:root[data-theme="uy"] .uy-wide {
+  --card-aspect: 358 / 240;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="uy"] .uy-wide {
+    --card-aspect: 2.07;
+  }
+}
+
+/* The "+" on a photo: a 32px ink disc inside the 44px button, set 8px from the
+   photo's corner; round in a square-cornered theme. */
+:root[data-theme="uy"] .add-corner {
+  margin: 0 -6px -6px 0;
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--color-primary) content-box;
+  color: var(--color-on-primary);
+}
+:root[data-theme="uy"] .add-corner:hover {
+  background-color: var(--color-primary-hover);
+}
+:root[data-theme="uy"] .add-corner:not(:focus-visible) {
+  box-shadow: none;
+}
+
+/* The catalogue's grid on a phone: the same gaps as the home page's columns. */
+@media (max-width: 1023px) {
+  :root[data-theme="uy"] .soha-grid {
+    gap: 22px 10px;
+  }
+}
+
+/* "Do'kon haqida": an ink rule above, the title light like the others. */
+:root[data-theme="uy"] .soha-about {
+  border-top-color: var(--color-ink);
+}
+:root[data-theme="uy"] .soha-about-title {
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 300;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="uy"] .soha-about-title {
+    font-size: 36px;
+  }
+}

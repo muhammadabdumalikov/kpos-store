@@ -1,0 +1,125 @@
+/* Mayin: cosmetics. White, a nude field, one ink for text and buttons, a rose
+   for the markdown only. Ysabeau for the name and titles, Ysabeau Office for
+   the rest. Parts: app/components/soha/looks/mayin.tsx. */
+:root[data-theme="mayin"] {
+  --font-outfit: 'kpos-apos', var(--font-ysabeau-office), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-ysabeau), var(--font-ysabeau-office), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #2a2326;
+  --color-gray-25: #fdfcfc;
+  --color-gray-50: #faf8f8;
+  --color-gray-100: #f5f2f1;
+  --color-gray-200: #ece6e2;
+  --color-gray-300: #d9cfca;
+  --color-gray-400: #a59a9b;
+  --color-gray-500: #6f6467;
+  --color-gray-600: #584e51;
+  --color-gray-700: #443a3d;
+  --color-gray-800: #332a2d;
+  --color-gray-900: #2a2326;
+  --color-gray-950: #140f11;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-panel: #f7f5f4;
+  --color-line: #ece6e2;
+  --color-ink: #2a2326;
+  --color-muted: #6f6467;
+  --color-band: #f3e3da;
+  --color-on-band: #2a2326;
+  --color-spot: #c2456b;
+  --color-on-spot: #ffffff;
+  --r-card: 12px;
+  --r-tile: 12px;
+  --r-ctl: 999px;
+  --r-soft: 999px;
+  --color-primary: #2a2326;
+  --color-primary-hover: #453a3e;
+  --color-on-primary: #ffffff;
+}
+
+/* The phone bar: a white field with a hairline, the language switch drawn the same way. */
+:root[data-theme="mayin"] .soha-bar input[type="search"] {
+  height: 42px;
+  border-color: var(--color-gray-300);
+  background: var(--color-card);
+}
+:root[data-theme="mayin"] .soha-bar input[type="search"]:focus {
+  border-color: var(--color-ink);
+}
+:root[data-theme="mayin"] .soha-bar .dropdown-toggle {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--color-gray-300);
+  background: var(--color-card);
+  font-weight: 600;
+}
+
+/* The card's photo: the whole product on the pale ground, rounded with the card's top. */
+:root[data-theme="mayin"] .mayin-photo {
+  border-radius: 11px 11px 0 0;
+}
+:root[data-theme="mayin"] .mayin-photo img {
+  object-fit: contain;
+}
+/* "Qo'shish" on a card (and "Ko'rish" for a product with choices): a small
+   outlined pill, no plus. The stepper that replaces it keeps its height. */
+:root[data-theme="mayin"] .mayin-card .add-pill,
+:root[data-theme="mayin"] .mayin-view {
+  display: flex;
+  align-items: center;
+  width: auto;
+  max-width: 100%;
+  height: 36px;
+  padding: 0 20px;
+  border: 1px solid var(--color-ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+:root[data-theme="mayin"] .mayin-card .add-pill:hover {
+  background: var(--color-ink);
+  color: var(--color-card);
+}
+:root[data-theme="mayin"] .mayin-card .add-pill svg {
+  display: none;
+}
+:root[data-theme="mayin"] .mayin-card .add-stepper,
+:root[data-theme="mayin"] .mayin-card .add-stepper button {
+  height: 36px;
+}
+:root[data-theme="mayin"] .mayin-card .add-stepper button {
+  width: 36px;
+}
+
+/* "Do'kon haqida" on the nude field, from edge to edge on a phone. */
+:root[data-theme="mayin"] .soha-about {
+  margin-inline: -16px;
+  padding: 26px 20px 30px;
+  border-top: 0;
+  background: var(--color-band);
+}
+:root[data-theme="mayin"] .soha-about-title {
+  font-size: 22px;
+  line-height: 28px;
+  font-weight: 500;
+}
+:root[data-theme="mayin"] .soha-about-row {
+  border-color: #e3cfc4;
+}
+:root[data-theme="mayin"] .soha-about-link {
+  border-color: var(--color-ink);
+  background: transparent;
+  font-weight: 500;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="mayin"] .soha-about {
+    margin-inline: 0;
+    padding: 40px 56px 44px;
+  }
+  :root[data-theme="mayin"] .soha-about-title {
+    font-size: 30px;
+    line-height: 36px;
+  }
+}

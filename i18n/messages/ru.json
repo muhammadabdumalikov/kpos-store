@@ -56,7 +56,19 @@
     "newArrivals": "Новинки",
     "viewProduct": "Смотреть",
     "call": "Позвонить",
-    "contactsAria": "Связь с магазином"
+    "contactsAria": "Связь с магазином",
+    "about": "О магазине",
+    "deals": "Скидки",
+    "sections": "Разделы",
+    "catalog": "Каталог",
+    "shipFree": "Доставка бесплатно",
+    "shipFreeFrom": "Бесплатная доставка от {amount}",
+    "shipFee": "Доставка {amount}",
+    "pickupAt": "Самовывоз: {where}",
+    "partSearch": "Название или код запчасти",
+    "partSearchHint": "Например: 5W-30 или 225/45 R18",
+    "askTelegram": "Не нашли? Спросите в Telegram",
+    "bookSearch": "Название книги или автор"
   },
   "product": {
     "oldPrice": "Старая цена",
@@ -80,7 +92,9 @@
     "toCatalog": "Перейти в каталог",
     "askSeller": "Написать продавцу",
     "gallery": "Фото товара",
-    "photoN": "Фото {n}"
+    "photoN": "Фото {n}",
+    "inStock": "В наличии",
+    "toCart": "В корзину"
   },
   "cart": {
     "title": "Корзина",

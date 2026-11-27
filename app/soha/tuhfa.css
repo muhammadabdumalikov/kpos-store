@@ -1,0 +1,128 @@
+/* Tuhfa: a gift shop. Cream paper, a warm brown ink, the shop's accent (ribbon
+   red by default) for the lid at the top and the buttons, a fixed red for a
+   markdown, gold for thin rules only. Yeseva One for the name and titles,
+   Nunito Sans for the rest. Parts: app/components/soha/looks/tuhfa.tsx. */
+:root[data-theme="tuhfa"] {
+  --font-outfit: 'kpos-apos', var(--font-nunito-sans), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-yeseva), Georgia, serif;
+  --color-black: #3b2416;
+  --color-gray-25: #fdf9f3;
+  --color-gray-50: #faf5ee;
+  --color-gray-100: #f5eee4;
+  --color-gray-200: #ead9c2;
+  --color-gray-300: #dbc8b1;
+  --color-gray-400: #a8937f;
+  --color-gray-500: #705c4d;
+  --color-gray-600: #5c4a3c;
+  --color-gray-700: #4a392c;
+  --color-gray-800: #3f2a1c;
+  --color-gray-900: #3b2416;
+  --color-gray-950: #1c0f07;
+  --color-white: #fbf4ea;
+  --color-page: #fbf4ea;
+  --color-card: #fffdf9;
+  --color-panel: #efe2d0;
+  --color-line: #ead9c2;
+  --color-ink: #3b2416;
+  --color-muted: #705c4d;
+  --color-band: var(--color-brand-600);
+  --color-on-band: #ffffff;
+  --color-spot: #b8322a;
+  --color-on-spot: #ffffff;
+  --r-card: 18px;
+  --r-tile: 18px;
+  --r-ctl: 999px;
+  --r-soft: 999px;
+  --color-primary: var(--color-brand-600);
+  --color-primary-hover: var(--color-brand-700);
+  --color-on-primary: #ffffff;
+  --tuhfa-gold: #d9a441;
+}
+
+/* Yeseva One has one weight: a bold title would be a smeared fake. */
+:root[data-theme="tuhfa"] h1,
+:root[data-theme="tuhfa"] .soha-about-title {
+  font-weight: 400;
+}
+
+/* The lid's middle: the phone's sticky bar in the accent, a white field and an
+   outlined language switch on it. It stays that colour on every page. */
+:root[data-theme="tuhfa"] .soha-bar {
+  border-color: transparent;
+  background: var(--color-band);
+}
+:root[data-theme="tuhfa"] .soha-bar input[type="search"] {
+  background: #ffffff;
+}
+:root[data-theme="tuhfa"] .soha-bar .dropdown-toggle {
+  border: 1px solid rgb(255 255 255 / 0.65);
+  background: transparent;
+  color: var(--color-on-band);
+}
+:root[data-theme="tuhfa"] .soha-bar .dropdown-toggle:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+
+/* The lid's lower part tucks under the bar (no hairline between them) and, on
+   a wide screen, runs from one edge of the window to the other. */
+:root[data-theme="tuhfa"] .tuhfa-lid {
+  margin-top: -1px;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="tuhfa"] .tuhfa-lid {
+    box-shadow: 0 0 0 100vmax var(--color-band);
+    clip-path: inset(0 -100vmax);
+  }
+}
+/* The occasion cards hang over the lid's lower edge by half their height: the
+   lid grows by that half and the row is pulled up over it (4px more for the
+   row's own top padding). Only when the row follows the lid directly; with the
+   owner's banners between them both keep to themselves. */
+@supports selector(:has(*)) {
+  :root[data-theme="tuhfa"] .tuhfa-lid:has(+ .tuhfa-occ) {
+    padding-bottom: 88px;
+  }
+  :root[data-theme="tuhfa"] .tuhfa-lid + .tuhfa-occ {
+    margin-top: -92px;
+  }
+  @media (min-width: 1024px) {
+    :root[data-theme="tuhfa"] .tuhfa-lid:has(+ .tuhfa-occ) {
+      padding-bottom: 122px;
+    }
+    :root[data-theme="tuhfa"] .tuhfa-lid + .tuhfa-occ {
+      margin-top: -126px;
+    }
+  }
+}
+
+/* The "+" on a photo: a 36px disc in the accent inside the 44px button, set
+   8px from the photo's corner. */
+:root[data-theme="tuhfa"] .add-corner {
+  margin: 0 -4px -4px 0;
+  padding: 4px;
+  background: var(--color-primary) content-box;
+  color: var(--color-on-primary);
+}
+:root[data-theme="tuhfa"] .add-corner:hover {
+  background-color: var(--color-primary-hover);
+}
+:root[data-theme="tuhfa"] .add-corner:not(:focus-visible) {
+  box-shadow: none;
+}
+
+/* "Do'kon haqida": gold rules, the icons in red. */
+:root[data-theme="tuhfa"] .soha-about,
+:root[data-theme="tuhfa"] .soha-about-row {
+  border-color: var(--tuhfa-gold);
+}
+:root[data-theme="tuhfa"] .soha-about-title {
+  font-size: 23px;
+}
+:root[data-theme="tuhfa"] .soha-about-row > span:first-child {
+  color: var(--color-spot);
+}
+@media (min-width: 1024px) {
+  :root[data-theme="tuhfa"] .soha-about-title {
+    font-size: 30px;
+  }
+}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import LocaleSwitcher from "@/components/common/LocaleSwitcher";
-import { useStoreTheme } from "@/context/StoreThemeContext";
+import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import type { StoreInfo } from "@/lib/store-api";
 import type { StoreTheme } from "@/lib/store-theme";
@@ -20,9 +20,10 @@ export const STORE_HERO_ID = "store-hero";
  * named by the home page's h1, so there is no wordmark here. A hairline appears
  * only once content scrolls underneath.
  *
- * A storefront theme draws its own bar (ThemedMobileHeader); the props are
- * only read there. A trade theme with a band intro repaints this bar through
- * `.soha-bar` (app/globals.css).
+ * A storefront theme draws its own bar (ThemedMobileHeader). A trade theme
+ * (lib/soha-looks) keeps this one and paints it through `.soha-bar` in its
+ * CSS file, or, with `bar: "wordmark"`, shows the shop's name in it
+ * (SohaWordmarkBar).
  */
 export function MobileHeader({
   store,
@@ -37,6 +38,7 @@ export function MobileHeader({
   home?: boolean;
 } = {}) {
   const theme = useStoreTheme();
+  const soha = useSohaLook();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -53,9 +55,13 @@ export function MobileHeader({
   if (theme !== "default") {
     return <ThemedMobileHeader theme={theme} store={store} overlay={overlay} home={home} scrolled={scrolled} />;
   }
+  if (soha?.bar === "wordmark") {
+    return <SohaWordmarkBar store={store} home={home} scrolled={scrolled} />;
+  }
 
   return (
     <header
+      data-scrolled={scrolled || undefined}
       className={`soha-bar sticky top-0 z-20 flex items-center gap-2 border-b bg-white py-2 pl-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))] transition-colors duration-150 dark:bg-gray-900 lg:hidden ${
         scrolled
           ? "border-gray-900/[0.06] dark:border-white/[0.06]"
@@ -227,6 +233,69 @@ function ThemedMobileHeader({
             <SearchIcon className="h-[19px] w-[19px]" strokeWidth={2} />
           </button>
           <LocaleSwitcher buttonClassName="h-11 w-11 rounded-full bg-gray-800 text-[13px] font-bold text-white hover:bg-gray-700 focus-visible:ring-2 focus-visible:ring-brand-400" />
+        </>
+      )}
+    </header>
+  );
+}
+
+/**
+ * A trade theme's phone bar with the shop's name in it (Guldasta, Marafon):
+ * a search button, the wordmark, the language switch. The search field opens
+ * in the bar itself. On the home page the name is the page's h1. The theme's
+ * CSS file sets the wordmark's face and where it stands (`.soha-wordmark`).
+ */
+function SohaWordmarkBar({ store, home, scrolled }: { store?: StoreInfo | null; home: boolean; scrolled: boolean }) {
+  const { t } = useTranslations();
+  const info = useStoreInfo(store);
+  const [searching, setSearching] = useState(false);
+  const name = info?.name ?? null;
+  const mark = "soha-wordmark flex h-11 min-w-0 items-center px-1 font-head text-[22px] leading-none text-ink";
+
+  return (
+    <header
+      data-scrolled={scrolled || undefined}
+      className={`soha-bar soha-bar--wordmark sticky top-0 z-20 flex h-14 items-center gap-1 border-b bg-page pl-[max(8px,env(safe-area-inset-left))] pr-[max(8px,env(safe-area-inset-right))] transition-colors duration-150 lg:hidden ${
+        scrolled ? "border-line" : "border-transparent"
+      }`}
+    >
+      {searching ? (
+        <>
+          <div className="min-w-0 flex-1 pl-2">
+            <SearchInput autoFocus />
+          </div>
+          <button
+            type="button"
+            onClick={() => setSearching(false)}
+            aria-label={t("common.close")}
+            className="flex h-11 w-11 shrink-0 items-center justify-center text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
+          >
+            <CloseIcon className="h-5 w-5" />
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => setSearching(true)}
+            aria-label={t("header.searchAria")}
+            className="soha-bar-search flex h-11 w-11 shrink-0 items-center justify-center text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
+          >
+            <SearchIcon className="h-[21px] w-[21px]" strokeWidth={1.7} />
+          </button>
+          <div className="soha-bar-name flex min-w-0 flex-1 justify-center">
+            {name &&
+              (home ? (
+                <h1 id="store-title" className={mark}>
+                  <span className="truncate">{name}</span>
+                </h1>
+              ) : (
+                <Link href="/" className={`${mark} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current`}>
+                  <span className="truncate">{name}</span>
+                </Link>
+              ))}
+          </div>
+          <LocaleSwitcher buttonClassName="h-11 w-11 text-[12px] font-semibold text-ink focus-visible:ring-2 focus-visible:ring-current" />
         </>
       )}
     </header>

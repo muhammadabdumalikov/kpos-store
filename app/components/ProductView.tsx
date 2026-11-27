@@ -21,7 +21,7 @@ import { PlatformCredit } from "./PlatformCredit";
 import { ProductCard } from "./ProductCard";
 import { pillSecondary } from "./StatePanel";
 import { ClockIcon } from "./icons/DeliveryIcons";
-import { useFulfilmentLines } from "./StoreIntro";
+import { useFulfilmentLines } from "./shop-facts";
 import { BagIcon, BoxIcon, ChatIcon, ChevronRightIcon } from "./icons/ShopIcons";
 import { sohaGrid } from "./soha/classes";
 import { themedGrid, themedTitle } from "./themes/classes";

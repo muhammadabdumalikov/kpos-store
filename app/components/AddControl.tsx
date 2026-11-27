@@ -6,7 +6,7 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { refreshPriceSnapshot, setLineQty, useCartQty, useProductCartQty } from "@/lib/cart-store";
 import type { OptionChoice } from "@/lib/product-options";
 import { trackAddToCart } from "@/lib/tracking";
-import { MinusIcon, PlusIcon } from "./icons/ShopIcons";
+import { BagIcon, MinusIcon, PlusIcon } from "./icons/ShopIcons";
 
 export type AddControlSize = "md" | "lg";
 /** "quiet": a tinted add pill (the card, where the cart bar is the loud thing).
@@ -79,6 +79,7 @@ export function AddControl({
   size = "md",
   tone = "quiet",
   shape = "pill",
+  glyph = "plus",
   options,
   beforeAdd,
 }: {
@@ -94,6 +95,9 @@ export function AddControl({
   size?: AddControlSize;
   tone?: AddControlTone;
   shape?: AddControlShape;
+  /** What the "corner" and "inline" add buttons draw: a plus, or the cart's bag
+   *  where a theme's trade says "to cart" (electronics). */
+  glyph?: "plus" | "bag";
   /** The choices this line is for; omit for a product without options. */
   options?: OptionChoice[];
   /** Asked before a new line is added; returning false cancels the add (the
@@ -156,12 +160,12 @@ export function AddControl({
           aria-disabled={noRoom || undefined}
           onClick={add}
           aria-label={`${noRoom ? t("product.maxReached") : label}: ${name}`}
-          className={`pointer-events-auto flex ${s.step} shrink-0 items-center justify-center rounded-full bg-white text-gray-900 ring-1 ring-gray-900/[0.08] transition-[background-color,transform] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
+          className={`add-corner pointer-events-auto flex ${s.step} shrink-0 items-center justify-center rounded-full bg-white text-gray-900 ring-1 ring-gray-900/[0.08] transition-[background-color,transform] duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 ${
             noRoom ? "cursor-not-allowed opacity-40" : "hover:bg-gray-50 motion-safe:active:scale-90"
           }`}
         >
           {/* Jurnal draws in hairlines. */}
-          <PlusIcon className="h-5 w-5" strokeWidth={theme === "jurnal" ? 1.5 : 2.2} />
+          {glyph === "bag" ? <BagIcon className="h-5 w-5" strokeWidth={1.8} /> : <PlusIcon className="h-5 w-5" strokeWidth={theme === "jurnal" ? 1.5 : 2.2} />}
         </button>
       );
     }
@@ -178,7 +182,11 @@ export function AddControl({
           }`}
         >
           <span className={`add-mark flex items-center justify-center transition-colors duration-100 ${INLINE_MARK[theme] ?? INLINE_MARK.tungi}`}>
-            <PlusIcon className={theme === "afisha" ? "h-4 w-4" : "h-[18px] w-[18px]"} strokeWidth={theme === "afisha" ? 3 : 2.6} />
+            {glyph === "bag" ? (
+              <BagIcon className="h-5 w-5" strokeWidth={1.8} />
+            ) : (
+              <PlusIcon className={theme === "afisha" ? "h-4 w-4" : "h-[18px] w-[18px]"} strokeWidth={theme === "afisha" ? 3 : 2.6} />
+            )}
           </span>
         </button>
       );
@@ -208,7 +216,7 @@ export function AddControl({
     <div
       role="group"
       aria-label={name}
-      className={`${shape === "corner" ? "pointer-events-auto " : ""}flex ${s.height} w-full items-center justify-between rounded-full bg-primary text-on-primary motion-safe:animate-[popover-in_0.16s_cubic-bezier(0.23,1,0.32,1)]`}
+      className={`add-stepper ${shape === "corner" ? "pointer-events-auto " : ""}flex ${s.height} w-full items-center justify-between rounded-full bg-primary text-on-primary motion-safe:animate-[popover-in_0.16s_cubic-bezier(0.23,1,0.32,1)]`}
     >
       <button
         type="button"

@@ -1,0 +1,137 @@
+/* Rozg'or: household goods, after the price-led shops (Fix Price, Target,
+   Galamart). Warm white, a brown ink, white cards on warm lines; the shop's
+   accent (a burnt orange unless the owner chose another) for the strip, the
+   deals panel and the "+"; yellow for price tags. Rubik. Parts:
+   app/components/soha/looks/rozgor.tsx. */
+:root[data-theme="rozgor"] {
+  --font-outfit: 'kpos-apos', var(--font-rubik), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-rubik), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #33270f;
+  --color-gray-25: #fffcf7;
+  --color-gray-50: #fdf8f0;
+  --color-gray-100: #f8f0e2;
+  --color-gray-200: #eddcc0;
+  --color-gray-300: #dccbae;
+  --color-gray-400: #a89a80;
+  --color-gray-500: #6f624b;
+  --color-gray-600: #5a4e39;
+  --color-gray-700: #463b28;
+  --color-gray-800: #3a2e17;
+  --color-gray-900: #33270f;
+  --color-gray-950: #1c1503;
+  --color-white: #fffaf3;
+  --color-page: #fffaf3;
+  --color-card: #ffffff;
+  --color-panel: #f8ecd9;
+  --color-line: #eddcc0;
+  --color-ink: #33270f;
+  --color-muted: #6f624b;
+  --color-band: #f8ecd9;
+  --color-on-band: #33270f;
+  --color-spot: #ffd84a;
+  --color-on-spot: #1c1503;
+  --r-card: 14px;
+  --r-tile: 8px;
+  --r-ctl: 12px;
+  --r-soft: 12px;
+}
+
+/* The phone's search and language switch: white, on a warm line a little heavier than a hairline. */
+:root[data-theme="rozgor"] .soha-bar input[type="search"] {
+  border: 1.5px solid var(--color-line);
+  border-radius: 14px;
+  background: var(--color-card);
+}
+:root[data-theme="rozgor"] .soha-bar input[type="search"]:focus {
+  border-color: var(--color-brand-500);
+}
+:root[data-theme="rozgor"] .soha-bar .dropdown-toggle {
+  border: 1.5px solid var(--color-line);
+  background: var(--color-card);
+}
+
+/* The markdown red of this theme: dark enough to read on the yellow tag (5:1) as well as on white. */
+:root[data-theme="rozgor"] .rozgor-sale {
+  color: #b3140f;
+}
+:root[data-theme="rozgor"] .rozgor-sale-tag {
+  background: #b3140f;
+}
+
+/* The price tag, the labels on a photo, and the large markdown on a deals card. */
+:root[data-theme="rozgor"] .rozgor-price,
+:root[data-theme="rozgor"] .rozgor-cut {
+  border-radius: 8px;
+}
+:root[data-theme="rozgor"] .rozgor-tag {
+  border-radius: 6px;
+}
+:root[data-theme="rozgor"] .rozgor-deal {
+  border-radius: 12px;
+}
+
+/* On a wide screen the deals panel and the cover sit inside the page's width, so they take the card's corners. */
+@media (min-width: 1024px) {
+  :root[data-theme="rozgor"] .rozgor-deals,
+  :root[data-theme="rozgor"] .rozgor-cover {
+    border-radius: var(--r-card);
+  }
+}
+
+/* The round "+" on the photo, in the accent; its tap area reaches past the circle to 44px. */
+:root[data-theme="rozgor"] .rozgor-card .add-corner {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+:root[data-theme="rozgor"] .rozgor-card .add-corner:hover {
+  background: var(--color-primary-hover);
+}
+:root[data-theme="rozgor"] .rozgor-card .add-corner:not(:focus-visible) {
+  box-shadow: none;
+}
+:root[data-theme="rozgor"] .rozgor-card .add-corner::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+/* The stepper on the photo: lower than the default, and round. */
+:root[data-theme="rozgor"] .rozgor-card .add-stepper {
+  height: 36px;
+  border-radius: 999px;
+}
+:root[data-theme="rozgor"] .rozgor-card .add-stepper button {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+}
+
+/* The catalogue and related goods on a phone: the home page's gaps. */
+@media (max-width: 1023px) {
+  :root[data-theme="rozgor"] .soha-grid {
+    gap: 10px;
+  }
+}
+
+/* "Do'kon haqida": one white card on the warm page, the icons in the accent. */
+:root[data-theme="rozgor"] .soha-about {
+  margin-top: 28px;
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  background: var(--color-card);
+  padding: 16px 14px 14px;
+}
+:root[data-theme="rozgor"] .soha-about-title {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 26px;
+}
+:root[data-theme="rozgor"] .soha-about-row > span:first-child {
+  color: var(--color-brand-600);
+}
+:root[data-theme="rozgor"] .soha-about-link {
+  border-width: 1.5px;
+}

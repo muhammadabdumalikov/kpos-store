@@ -56,7 +56,19 @@
     "newArrivals": "New arrivals",
     "viewProduct": "View",
     "call": "Call",
-    "contactsAria": "Contact the shop"
+    "contactsAria": "Contact the shop",
+    "about": "About the shop",
+    "deals": "Deals",
+    "sections": "Departments",
+    "catalog": "Catalogue",
+    "shipFree": "Free delivery",
+    "shipFreeFrom": "Free delivery from {amount}",
+    "shipFee": "Delivery {amount}",
+    "pickupAt": "Pickup: {where}",
+    "partSearch": "Part name or code",
+    "partSearchHint": "For example: 5W-30 or 225/45 R18",
+    "askTelegram": "Can't find it? Ask on Telegram",
+    "bookSearch": "Book title or author"
   },
   "product": {
     "oldPrice": "Old price",
@@ -80,7 +92,9 @@
     "toCatalog": "Go to catalog",
     "askSeller": "Message the seller",
     "gallery": "Product photos",
-    "photoN": "Photo {n}"
+    "photoN": "Photo {n}",
+    "inStock": "In stock",
+    "toCart": "Add to cart"
   },
   "cart": {
     "title": "Cart",

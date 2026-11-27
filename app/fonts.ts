@@ -1,24 +1,28 @@
 import {
-  Balsamiq_Sans,
-  Caveat,
   Comfortaa,
   Cormorant_Garamond,
   Exo_2,
+  Geologica,
   Golos_Text,
+  IBM_Plex_Mono,
   IBM_Plex_Sans,
-  Inter,
   JetBrains_Mono,
   Literata,
-  Lora,
-  Manrope,
   Mulish,
   Nunito,
+  Nunito_Sans,
   Onest,
   Oswald,
+  Prata,
   Raleway,
   Rubik,
-  Sofia_Sans_Condensed,
+  Shantell_Sans,
+  Sofia_Sans,
+  Sofia_Sans_Extra_Condensed,
   Unbounded,
+  Yeseva_One,
+  Ysabeau,
+  Ysabeau_Office,
 } from 'next/font/google';
 import localFont from 'next/font/local';
 
@@ -95,18 +99,20 @@ export const onest = Onest({
   variable: '--font-onest',
 });
 
-// Trade themes (lib/soha-looks). The same rules as above: variable fonts with
-// cyrillic-ext, not preloaded, only the active theme's variables reach <html>.
+// Trade themes (lib/soha-looks). The same rules as above: every family has
+// cyrillic-ext, none is preloaded, and only the active theme's variables reach
+// <html>. Each theme has a display face of its own, chosen after the real
+// shops of its trade; a static family names the weights it needs.
 
-/** Bozor, Usta and Daftar: body (Bozor: headings too). */
-export const golos = Golos_Text({
+/** Bozor: headings and body. */
+export const geologica = Geologica({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
   preload: false,
-  variable: '--font-golos',
+  variable: '--font-geologica',
 });
 
-/** Usta: condensed headings. */
+/** Usta: condensed caps, as on a builders' merchant's signs. */
 export const oswald = Oswald({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
@@ -114,29 +120,38 @@ export const oswald = Oswald({
   variable: '--font-oswald',
 });
 
-/** Shifo. */
-export const manrope = Manrope({
+/** Usta and Daftar: body. */
+export const golos = Golos_Text({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
   preload: false,
-  variable: '--font-manrope',
+  variable: '--font-golos',
 });
 
-/** Guldasta: serif headings, set in italics. */
-export const lora = Lora({
-  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
-  style: ['normal', 'italic'],
+/** Guldasta: an upright display serif (one weight). Its body is Mulish. */
+export const prata = Prata({
+  // No latin-ext subset; the Uzbek apostrophes (U+02BB, U+02BC) are in latin.
+  subsets: ['latin', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
   preload: false,
-  variable: '--font-lora',
+  weight: '400',
+  variable: '--font-prata',
 });
 
-/** Mayin; body of O'ynoqi and Tuhfa. */
-export const nunito = Nunito({
+/** Mayin: a flared sans in the manner of Optima, the cosmetics classic. */
+export const ysabeau = Ysabeau({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
   preload: false,
-  variable: '--font-nunito',
+  variable: '--font-ysabeau',
+});
+
+/** Mayin: body. */
+export const ysabeauOffice = Ysabeau_Office({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-ysabeau-office',
 });
 
 /** O'ynoqi: round headings. */
@@ -147,15 +162,32 @@ export const comfortaa = Comfortaa({
   variable: '--font-comfortaa',
 });
 
-/** Texno. */
-export const inter = Inter({
+/** O'ynoqi: body. */
+export const nunito = Nunito({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
   preload: false,
-  variable: '--font-inter',
+  variable: '--font-nunito',
 });
 
-/** Ro'zg'or. */
+/** Texno: headings and body. */
+export const plexSans = IBM_Plex_Sans({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-plex',
+});
+
+/** Texno: a product's options (128 GB, 45 mm). */
+export const plexMono = IBM_Plex_Mono({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  weight: ['500'],
+  variable: '--font-plex-mono',
+});
+
+/** Ro'zg'or: headings and body. */
 export const rubik = Rubik({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
@@ -166,27 +198,44 @@ export const rubik = Rubik({
 /** Kitob: a book face for headings and body. */
 export const literata = Literata({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
-  style: ['normal', 'italic'],
   display: 'swap',
   preload: false,
+  style: ['normal', 'italic'],
   variable: '--font-literata',
 });
 
-/** Marafon: italic caps. */
-export const exo2 = Exo_2({
+/** Marafon: slanted condensed caps. */
+export const sofiaXCondensed = Sofia_Sans_Extra_Condensed({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
-  style: ['normal', 'italic'],
   display: 'swap',
   preload: false,
-  variable: '--font-exo2',
+  style: ['normal', 'italic'],
+  variable: '--font-sofia-xcond',
 });
 
-/** Tuhfa: handwritten headings. */
-export const caveat = Caveat({
+/** Marafon: body. */
+export const sofia = Sofia_Sans({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
   preload: false,
-  variable: '--font-caveat',
+  variable: '--font-sofia',
+});
+
+/** Tuhfa: a greeting-card display serif (one weight). */
+export const yeseva = Yeseva_One({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  weight: '400',
+  variable: '--font-yeseva',
+});
+
+/** Tuhfa: body. */
+export const nunitoSans = Nunito_Sans({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-nunito-sans',
 });
 
 /** Uy: light headings and body. */
@@ -197,27 +246,19 @@ export const raleway = Raleway({
   variable: '--font-raleway',
 });
 
-/** Garaj: condensed caps. */
-export const sofiaCondensed = Sofia_Sans_Condensed({
+/** Garaj: slanted caps for titles, upright for the body. */
+export const exo2 = Exo_2({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
   preload: false,
-  variable: '--font-sofia-condensed',
+  style: ['normal', 'italic'],
+  variable: '--font-exo2',
 });
 
-/** Garaj: body. */
-export const plexSans = IBM_Plex_Sans({
+/** Daftar: marker headings. */
+export const shantell = Shantell_Sans({
   subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
   display: 'swap',
   preload: false,
-  variable: '--font-plex',
-});
-
-/** Daftar: marker headings (two static weights). */
-export const balsamiq = Balsamiq_Sans({
-  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
-  weight: ['400', '700'],
-  display: 'swap',
-  preload: false,
-  variable: '--font-balsamiq',
+  variable: '--font-shantell',
 });

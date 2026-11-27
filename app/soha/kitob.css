@@ -1,0 +1,158 @@
+/* Kitob: a bookshop set as a book page. Paper, one brown ink, a deep shade of
+   the shop's accent (oxblood unless the owner chose another) for the active
+   tab, a marked-down price and the buttons; thin ink rules, covers standing on
+   shelf lines. Literata throughout. Parts: app/components/soha/looks/kitob.tsx. */
+:root[data-theme="kitob"] {
+  --font-outfit: 'kpos-apos', var(--font-literata), Georgia, 'Times New Roman', serif;
+  --font-head: 'kpos-apos', var(--font-literata), Georgia, 'Times New Roman', serif;
+  --color-black: #231a12;
+  --color-gray-25: #fdf9f1;
+  --color-gray-50: #faf5eb;
+  --color-gray-100: #f3ecdd;
+  --color-gray-200: #e6dcc6;
+  --color-gray-300: #d9c9a8;
+  --color-gray-400: #a3957f;
+  --color-gray-500: #6b5e50;
+  --color-gray-600: #564a3d;
+  --color-gray-700: #43382d;
+  --color-gray-800: #30271e;
+  --color-gray-900: #231a12;
+  --color-gray-950: #140e08;
+  --color-white: #f7f1e5;
+  --color-page: #f7f1e5;
+  --color-card: #fffdf8;
+  --color-panel: #efe6d3;
+  --color-line: #d9c9a8;
+  --color-ink: #231a12;
+  --color-muted: #6b5e50;
+  --color-band: #efe6d3;
+  --color-on-band: #231a12;
+  --color-spot: #231a12;
+  --color-on-spot: #f7f1e5;
+  --r-card: 2px;
+  --r-tile: 2px;
+  --r-ctl: 2px;
+  --r-soft: 2px;
+  --color-primary: var(--color-brand-700);
+  --color-primary-hover: var(--color-brand-800);
+  --color-on-primary: #ffffff;
+}
+
+/* The phone's search bar: a field ruled in ink with its prompt in italics;
+   the language switch as underlined letters. */
+:root[data-theme="kitob"] .soha-bar input {
+  border-color: var(--color-ink);
+  background: transparent;
+  font-weight: 400;
+}
+:root[data-theme="kitob"] .soha-bar input::placeholder {
+  color: var(--color-muted);
+  font-style: italic;
+}
+:root[data-theme="kitob"] .soha-bar input:focus {
+  background: var(--color-card);
+  box-shadow: 0 0 0 1px var(--color-ink);
+}
+:root[data-theme="kitob"] .soha-bar button[type="submit"] {
+  color: var(--color-ink);
+}
+:root[data-theme="kitob"] .soha-bar .dropdown-toggle {
+  background: transparent;
+  color: var(--color-ink);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+}
+
+/* A cover: a book's 2:3 whatever shape the shop's photos have, shown as it is
+   (no blending into the tile) with the small shadow of a book's fore-edge. */
+:root[data-theme="kitob"] .kitob-cover {
+  aspect-ratio: 2 / 3;
+  box-shadow: 0 -1px 0 rgb(35 26 18 / 0.06), 3px 0 6px -2px rgb(35 26 18 / 0.35);
+}
+:root[data-theme="kitob"] .kitob-cover img {
+  mix-blend-mode: normal;
+}
+
+/* The shelf under a cover reaches across the gaps to its neighbours'. Where
+   the row can be clipped at the page's edge it runs on to that edge, so a
+   row of one or two books still stands on a whole shelf. */
+:root[data-theme="kitob"] .kitob-shelf {
+  margin-inline: -16px;
+}
+:root[data-theme="kitob"] .soha-grid {
+  column-gap: 20px;
+  row-gap: 22px;
+}
+@supports (overflow: clip) {
+  :root[data-theme="kitob"] :is(.kitob-rows, .soha-grid) {
+    margin-inline: -16px;
+    padding-inline: 16px;
+    overflow-x: clip;
+  }
+  :root[data-theme="kitob"] .kitob-shelf {
+    margin-right: -100vw;
+  }
+}
+@media (min-width: 1024px) {
+  :root[data-theme="kitob"] .soha-grid {
+    column-gap: 32px;
+    row-gap: 32px;
+  }
+}
+
+/* "Add" under a book in the catalogue: a small ruled button; the stepper that
+   replaces it keeps its height and fits three books across a phone. */
+:root[data-theme="kitob"] .kitob-add .add-pill {
+  height: 36px;
+  border: 1px solid var(--color-ink);
+  background: transparent;
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+  gap: 4px;
+}
+:root[data-theme="kitob"] .kitob-add .add-pill:hover {
+  background: var(--color-panel);
+}
+:root[data-theme="kitob"] .kitob-add .add-pill svg {
+  width: 14px;
+  height: 14px;
+}
+:root[data-theme="kitob"] .kitob-add .add-stepper,
+:root[data-theme="kitob"] .kitob-add .add-stepper button {
+  height: 36px;
+}
+:root[data-theme="kitob"] .kitob-add .add-stepper button {
+  width: 36px;
+}
+
+/* "Do'kon haqida": a colophon. An ink rule above, shelf-coloured rules
+   between the rows, the details in italics, ruled contact buttons. */
+:root[data-theme="kitob"] .soha-about {
+  border-top-color: var(--color-ink);
+}
+:root[data-theme="kitob"] .soha-about-title {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+}
+:root[data-theme="kitob"] .soha-about-row > span:first-child {
+  color: var(--color-ink);
+}
+:root[data-theme="kitob"] .soha-about-row > span:last-child > span + span {
+  font-style: italic;
+}
+:root[data-theme="kitob"] .soha-about-link {
+  border-color: var(--color-ink);
+  background: transparent;
+  font-weight: 500;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="kitob"] .soha-about-title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+}

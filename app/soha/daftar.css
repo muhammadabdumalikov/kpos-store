@@ -1,0 +1,132 @@
+/* Daftar: stationery. White, one ink for the text and the 1.5px outlines,
+   marker yellow behind the titles, five bright flats for the category tiles,
+   a light shade of the shop's accent (blue unless the owner chose another)
+   for the add button. Shantell Sans for the name and titles, Golos Text for
+   the rest. Parts: app/components/soha/looks/daftar.tsx. */
+:root[data-theme="daftar"] {
+  --font-outfit: 'kpos-apos', var(--font-golos), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-shantell), var(--font-golos), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #1d2433;
+  --color-gray-25: #fafbfd;
+  --color-gray-50: #f6f7fa;
+  --color-gray-100: #f0f2f6;
+  --color-gray-200: #e2e5eb;
+  --color-gray-300: #cdd2db;
+  --color-gray-400: #979eac;
+  --color-gray-500: #5d6679;
+  --color-gray-600: #465064;
+  --color-gray-700: #353d50;
+  --color-gray-800: #262d3e;
+  --color-gray-900: #1d2433;
+  --color-gray-950: #10141e;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-panel: #f0f2f6;
+  --color-line: #1d2433;
+  --color-ink: #1d2433;
+  --color-muted: #5d6679;
+  --color-band: #f0f2f6;
+  --color-on-band: #1d2433;
+  --color-spot: #ffe14d;
+  --color-on-spot: #1d2433;
+  --r-card: 14px;
+  --r-tile: 12px;
+  --r-ctl: 12px;
+  --r-soft: 12px;
+}
+
+/* The marker stroke behind the shop's name and every title: a flat yellow
+   band over the lower part of each line. */
+:root[data-theme="daftar"] .daftar-mark,
+:root[data-theme="daftar"] .soha-about-title {
+  margin-left: -5px;
+  padding: 0 5px;
+  background: linear-gradient(transparent 40%, var(--color-spot) 40%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+/* The phone's search bar: a white field outlined in ink, the language switch
+   outlined the same way. */
+:root[data-theme="daftar"] .soha-bar input {
+  height: 46px;
+  border: 1.5px solid var(--color-ink);
+  background: var(--color-card);
+  font-weight: 400;
+}
+:root[data-theme="daftar"] .soha-bar input:focus {
+  box-shadow: 0 0 0 1.5px var(--color-ink);
+}
+:root[data-theme="daftar"] .soha-bar button[type="submit"] {
+  color: var(--color-ink);
+}
+:root[data-theme="daftar"] .soha-bar .dropdown-toggle {
+  width: 46px;
+  height: 46px;
+  background: transparent;
+  color: var(--color-ink);
+  box-shadow: inset 0 0 0 1.5px var(--color-ink);
+}
+:root[data-theme="daftar"] .soha-bar .dropdown-toggle:focus-visible {
+  box-shadow: inset 0 0 0 3px var(--color-ink);
+}
+
+/* A card's photo is shown whole, on white: a pen or a ruler is not cropped. */
+:root[data-theme="daftar"] .daftar-photo img {
+  object-fit: contain;
+}
+/* The label on the photo: a small flat rectangle, not the theme's 12px corner. */
+:root[data-theme="daftar"] .daftar-tag {
+  border-radius: 4px;
+}
+/* The add button: a square in a light shade of the accent with an ink plus. */
+:root[data-theme="daftar"] .add-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--color-brand-400);
+  color: var(--color-ink);
+}
+
+/* The catalogue's grid keeps the home page's gaps. */
+:root[data-theme="daftar"] .soha-grid {
+  gap: 12px;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="daftar"] .soha-grid {
+    gap: 16px;
+  }
+}
+
+/* "Do'kon haqida": one more outlined box, ink rules between its rows,
+   outlined contact buttons. */
+:root[data-theme="daftar"] .soha-about {
+  margin-top: 28px;
+  border: 1.5px solid var(--color-ink);
+  border-radius: var(--r-card);
+  padding: 16px 14px 14px;
+}
+:root[data-theme="daftar"] .soha-about-title {
+  width: fit-content;
+  font-size: 22px;
+  line-height: 28px;
+}
+:root[data-theme="daftar"] .soha-about-row {
+  border-bottom-width: 1.5px;
+}
+:root[data-theme="daftar"] .soha-about-row > span:first-child {
+  color: var(--color-ink);
+}
+:root[data-theme="daftar"] .soha-about-link {
+  border-width: 1.5px;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="daftar"] .soha-about {
+    margin-top: 56px;
+    padding: 24px;
+  }
+  :root[data-theme="daftar"] .soha-about-title {
+    font-size: 28px;
+    line-height: 36px;
+  }
+}

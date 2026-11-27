@@ -1,0 +1,99 @@
+/* Guldasta: a florist. Cream paper, one ink, and the deep shade of the shop's
+   accent (berry under the default rose) for the strip, the block under the
+   cover, the markdown and the buttons. Prata for the name and titles, Mulish
+   for the rest. Pictures are square-cornered; only the "+" and the category
+   photos are round. Parts: app/components/soha/looks/guldasta.tsx. */
+:root[data-theme="guldasta"] {
+  --font-outfit: 'kpos-apos', var(--font-mulish), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-prata), Georgia, 'Times New Roman', serif;
+  --color-black: #2b2a26;
+  --color-gray-25: #fefbf7;
+  --color-gray-50: #fcf9f4;
+  --color-gray-100: #f5f2ee;
+  --color-gray-200: #e8e5e0;
+  --color-gray-300: #d8d2ca;
+  --color-gray-400: #a39d96;
+  --color-gray-500: #69645d;
+  --color-gray-600: #544f49;
+  --color-gray-700: #413c36;
+  --color-gray-800: #2a2723;
+  --color-gray-900: #2b2a26;
+  --color-gray-950: #0f0c08;
+  --color-white: #fbf7f1;
+  --color-page: #fbf7f1;
+  --color-card: #ffffff;
+  --color-panel: #efe8dc;
+  --color-line: #e6ddd0;
+  --color-ink: #2b2a26;
+  --color-muted: #69645d;
+  --color-band: var(--color-brand-800);
+  --color-on-band: #ffffff;
+  --color-spot: var(--color-brand-800);
+  --color-on-spot: #ffffff;
+  --r-card: 0px;
+  --r-tile: 0px;
+  --r-ctl: 0px;
+  --r-soft: 0px;
+  --color-primary: var(--color-brand-800);
+  --color-primary-hover: var(--color-brand-900);
+  --color-on-primary: #ffffff;
+}
+
+/* Prata has one weight: a bold title would be a smeared fake. */
+:root[data-theme="guldasta"] h1,
+:root[data-theme="guldasta"] .soha-about-title {
+  font-weight: 400;
+}
+
+/* The phone bar: taller, the shop's name in Prata with room for its descenders. */
+:root[data-theme="guldasta"] .soha-bar--wordmark {
+  height: 62px;
+}
+:root[data-theme="guldasta"] .soha-wordmark {
+  font-size: 26px;
+  line-height: 32px;
+}
+
+/* Every card of the theme is a portrait picture, whatever shape the shop chose. */
+:root[data-theme="guldasta"] .guldasta-card {
+  --card-aspect: 4 / 5;
+}
+/* The controls on the picture stay round in a square-cornered theme, and white
+   rather than the page's cream. */
+:root[data-theme="guldasta"] .guldasta-ctl > *,
+:root[data-theme="guldasta"] .guldasta-ctl .add-stepper button {
+  border-radius: 999px;
+}
+:root[data-theme="guldasta"] .add-corner {
+  background: #ffffff;
+}
+
+/* The catalogue's grid: more air between the rows of centred cards. */
+:root[data-theme="guldasta"] .soha-grid {
+  row-gap: 28px;
+}
+
+/* "Do'kon haqida": centred like the titles, no icons, the fact names in Prata. */
+:root[data-theme="guldasta"] .soha-about {
+  text-align: center;
+}
+:root[data-theme="guldasta"] .soha-about-title {
+  font-size: 26px;
+  line-height: 32px;
+}
+:root[data-theme="guldasta"] .soha-about-row {
+  justify-content: center;
+}
+:root[data-theme="guldasta"] .soha-about-row > span:first-child {
+  display: none;
+}
+:root[data-theme="guldasta"] .soha-about-row > a,
+:root[data-theme="guldasta"] .soha-about-row > span > span:first-child {
+  font-family: var(--font-head);
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 400;
+}
+:root[data-theme="guldasta"] .soha-about-row > a > span {
+  font-family: var(--font-outfit);
+}

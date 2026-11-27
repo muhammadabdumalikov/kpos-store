@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
+import type { StoreInfo } from "@/lib/store-api";
 import { CategoryCard } from "./CategoryCard";
 import { ChipLink } from "./Chip";
 import { ProductCard } from "./ProductCard";
+import { ShopAbout } from "./ShopAbout";
 import { StatePanel, pillSecondary } from "./StatePanel";
 import { BoxIcon, ChevronRightIcon, CloudOffIcon } from "./icons/ShopIcons";
 import { SohaHome } from "./soha/SohaHome";
@@ -29,11 +31,14 @@ export type HomeProduct = {
   oldPrice?: number | null;
   isNew?: boolean;
   popular?: boolean;
+  /** Its category, and the values of its first choice group (trade themes). */
+  categoryId?: string | null;
+  optionValues?: string[];
 };
 /** One category's shelf on the home page: its first few products. */
 export type HomeSection = { id: string; name: string; products: HomeProduct[] };
 
-export function HomeCard({ product: p, sharedLead }: { product: HomeProduct; sharedLead: string | null }) {
+export function HomeCard({ product: p, sharedLead, variant }: { product: HomeProduct; sharedLead: string | null; variant?: string }) {
   return (
     <ProductCard
       id={p.id}
@@ -48,6 +53,8 @@ export function HomeCard({ product: p, sharedLead }: { product: HomeProduct; sha
       oldPrice={p.oldPrice}
       isNew={p.isNew}
       popular={p.popular}
+      optionValues={p.optionValues}
+      variant={variant}
       sharedLead={sharedLead}
     />
   );
@@ -55,6 +62,9 @@ export function HomeCard({ product: p, sharedLead }: { product: HomeProduct; sha
 
 const sectionTitle =
   "text-[20px] font-bold leading-7 tracking-[-0.01em] text-gray-900 dark:text-white lg:text-[22px]";
+/** "Hammasi" beside a section title. */
+const seeAll =
+  "-mr-2 inline-flex h-11 shrink-0 items-center gap-0.5 rounded-full pl-3 pr-2 text-[14px] font-semibold text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 dark:text-gray-400 dark:hover:text-white";
 
 export function HomeContent({
   categories,
@@ -65,6 +75,7 @@ export function HomeContent({
   sharedLead = null,
   counts = {},
   hero = null,
+  info = null,
 }: {
   categories: HomeCategory[];
   products: HomeProduct[];
@@ -80,6 +91,8 @@ export function HomeContent({
    *  them), and the product the theme lifts above the grid. */
   counts?: Record<string, number>;
   hero?: HomeProduct | null;
+  /** The shop, for a trade theme's "Do'kon haqida" and delivery lines. */
+  info?: StoreInfo | null;
 }) {
   const { t } = useTranslations();
   const theme = useStoreTheme();
@@ -111,12 +124,14 @@ export function HomeContent({
   if (soha) {
     return (
       <SohaHome
-        look={soha}
+        theme={soha.key}
+        info={info}
         categories={categories}
         products={products}
         sections={sections}
         total={total}
         sharedLead={sharedLead}
+        counts={counts}
       />
     );
   }
@@ -132,6 +147,7 @@ export function HomeContent({
         sharedLead={sharedLead}
         counts={counts}
         hero={hero}
+        info={info}
       />
     );
   }
@@ -176,9 +192,17 @@ export function HomeContent({
       )}
 
       <section aria-labelledby="home-products" className="mt-7 lg:mt-10">
-        <h2 id="home-products" className={sectionTitle}>
-          {shelved ? t("home.newArrivals") : t("home.popular")}
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 id="home-products" className={`${sectionTitle} min-w-0 truncate`}>
+            {shelved ? t("home.newArrivals") : t("home.popular")}
+          </h2>
+          {total > products.length && (
+            <Link href="/catalog" aria-label={t("home.allProducts")} className={seeAll}>
+              {t("home.seeAll")}
+              <ChevronRightIcon className="h-[18px] w-[18px]" />
+            </Link>
+          )}
+        </div>
         {products.length > 0 ? (
           <>
             <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:mt-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8">
@@ -198,7 +222,7 @@ export function HomeContent({
                   <Link
                     href={`/catalog?category=${encodeURIComponent(section.id)}`}
                     aria-label={`${t("home.seeAll")}: ${section.name}`}
-                    className="-mr-2 inline-flex h-11 shrink-0 items-center gap-0.5 rounded-full pl-3 pr-2 text-[14px] font-semibold text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/50 dark:text-gray-400 dark:hover:text-white"
+                    className={seeAll}
                   >
                     {t("home.seeAll")}
                     <ChevronRightIcon className="h-[18px] w-[18px]" />
@@ -239,6 +263,8 @@ export function HomeContent({
           />
         )}
       </section>
+
+      <ShopAbout info={info} orderLead={sharedLead} />
     </>
   );
 }

@@ -29,7 +29,7 @@ export function previewThemeKey(value: unknown): string | null {
 // pure white, as their AI pictures do.
 const DEMO_GROUNDS = new Set([
   "bozor", "daftar", "garaj", "guldasta", "jurnal", "kitob", "marafon", "mayin",
-  "oynoqi", "rozgor", "shifo", "texno", "tuhfa", "tungi", "usta", "uy",
+  "oynoqi", "rozgor", "texno", "tuhfa", "tungi", "usta", "uy",
 ]);
 
 /** The stand-in photo for a card that has none, in the previewed theme. */

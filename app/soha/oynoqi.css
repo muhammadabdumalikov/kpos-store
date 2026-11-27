@@ -1,0 +1,171 @@
+/* O'ynoqi: children's goods. White, a band in the shop's accent (violet unless
+   the owner chose another), pastel category squares, grey panels holding white
+   cards, sun yellow for the markdown tag. Comfortaa for the name and titles,
+   Nunito for the rest. Parts: app/components/soha/looks/oynoqi.tsx. */
+:root[data-theme="oynoqi"] {
+  --font-outfit: 'kpos-apos', var(--font-nunito), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-comfortaa), var(--font-nunito), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #2a2140;
+  --color-gray-25: #fdfcff;
+  --color-gray-50: #f8f7fb;
+  --color-gray-100: #f3f1f8;
+  --color-gray-200: #e4dff0;
+  --color-gray-300: #d2cce0;
+  --color-gray-400: #a09ab3;
+  --color-gray-500: #6d6682;
+  --color-gray-600: #554e69;
+  --color-gray-700: #403a52;
+  --color-gray-800: #2f2942;
+  --color-gray-900: #2a2140;
+  --color-gray-950: #150f24;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-panel: #f3f1f8;
+  --color-line: #e4dff0;
+  --color-ink: #2a2140;
+  --color-muted: #6d6682;
+  --color-band: var(--color-primary);
+  --color-on-band: var(--color-on-primary);
+  --color-spot: #ffd84d;
+  --color-on-spot: #2a2140;
+  --r-card: 20px;
+  --r-tile: 18px;
+  --r-ctl: 999px;
+  --r-soft: 999px;
+}
+
+/* The phone's search bar is the middle of the band: the shop's name stands
+   above it, the delivery line under it, all on one colour. The field is a
+   white pill; the language switch is outlined in white. */
+:root[data-theme="oynoqi"] .soha-bar {
+  background: var(--color-band);
+  border-color: transparent;
+}
+:root[data-theme="oynoqi"] .soha-bar input {
+  background: var(--color-card);
+  border-color: transparent;
+}
+:root[data-theme="oynoqi"] .soha-bar input:focus {
+  box-shadow: 0 0 0 3px rgb(255 255 255 / 0.45);
+}
+:root[data-theme="oynoqi"] .soha-bar .dropdown-toggle {
+  background: transparent;
+  color: var(--color-on-band);
+  box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / 0.7);
+}
+:root[data-theme="oynoqi"] .soha-bar .dropdown-toggle:focus-visible {
+  box-shadow: inset 0 0 0 2.5px var(--color-on-band);
+}
+
+/* On a wide screen the delivery line is a strip across the whole window: the
+   colour is spread sideways with a shadow, so the page gets no scrollbar. */
+@media (min-width: 1024px) {
+  :root[data-theme="oynoqi"] .oynoqi-band {
+    box-shadow: 0 0 0 100vmax var(--color-band);
+    clip-path: inset(0 -100vmax);
+  }
+}
+
+/* "Hammasi" closes the category grid: it fills what is left of the last row
+   (--sp columns on a phone, --sw on a wide screen) and is as tall as the
+   squares beside it, which the ::before, one column wide and square, sets. */
+:root[data-theme="oynoqi"] .oynoqi-all {
+  --span: var(--sp);
+  --gap: 10px;
+  grid-column: span var(--span);
+}
+:root[data-theme="oynoqi"] .oynoqi-all-box::before {
+  content: "";
+  flex: none;
+  width: calc((100% - (var(--span) - 1) * var(--gap)) / var(--span));
+  aspect-ratio: 1;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="oynoqi"] .oynoqi-all {
+    --span: var(--sw);
+    --gap: 16px;
+  }
+}
+
+/* The card's button: an outlined pill in the accent, 36px so two rows of
+   cards fit a phone screen. The stepper and "sold out" keep that height, so a
+   card does not grow when its product goes into the cart. */
+:root[data-theme="oynoqi"] .oynoqi-add .add-pill {
+  height: 36px;
+  border: 1.5px solid var(--color-primary);
+  background: transparent;
+  color: var(--color-primary);
+  font-size: 13.5px;
+  font-weight: 800;
+}
+:root[data-theme="oynoqi"] .oynoqi-add .add-pill svg {
+  width: 15px;
+  height: 15px;
+}
+:root[data-theme="oynoqi"] .oynoqi-add .add-pill:hover {
+  background: var(--color-brand-50);
+}
+:root[data-theme="oynoqi"] .oynoqi-add .add-stepper,
+:root[data-theme="oynoqi"] .oynoqi-add .add-stepper button,
+:root[data-theme="oynoqi"] .oynoqi-add > span {
+  height: 36px;
+}
+
+/* On the catalogue the cards stand on the page, not in a panel: an outline
+   takes the panel's place. */
+:root[data-theme="oynoqi"] .soha-grid {
+  gap: 10px;
+}
+:root[data-theme="oynoqi"] .soha-grid .oynoqi-card {
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+@media (min-width: 1024px) {
+  :root[data-theme="oynoqi"] .soha-grid {
+    gap: 16px;
+  }
+}
+
+/* "Do'kon haqida": one more grey panel, the shop's facts on a white card in
+   it, the contact buttons as outlined pills. */
+:root[data-theme="oynoqi"] .soha-about {
+  margin: 22px -6px 0;
+  border: 0;
+  border-radius: 22px;
+  background: var(--color-panel);
+  padding: 16px;
+}
+:root[data-theme="oynoqi"] .soha-about-title {
+  margin: 0 4px;
+  font-size: 19px;
+  line-height: 24px;
+}
+:root[data-theme="oynoqi"] .soha-about > ul:first-of-type {
+  margin-top: 12px;
+  border-radius: 16px;
+  background: var(--color-card);
+  padding: 2px 14px;
+}
+:root[data-theme="oynoqi"] .soha-about-row:last-child {
+  border-bottom: 0;
+}
+:root[data-theme="oynoqi"] .soha-about-row > span:first-child {
+  color: var(--color-primary);
+}
+:root[data-theme="oynoqi"] .soha-about-link {
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 800;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="oynoqi"] .soha-about {
+    margin: 48px 0 0;
+    padding: 24px;
+  }
+  :root[data-theme="oynoqi"] .soha-about-title {
+    font-size: 24px;
+    line-height: 30px;
+  }
+  :root[data-theme="oynoqi"] .soha-about > ul:first-of-type {
+    padding: 6px 20px;
+  }
+}

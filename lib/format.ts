@@ -67,3 +67,13 @@ export function formatStepTime(
   const day = d.toLocaleDateString(tag, { day: "2-digit", month: "2-digit" });
   return `${day} ${time}`;
 }
+
+/**
+ * A shop's phone number as it is read aloud: an Uzbek number becomes
+ * "+998 90 123 45 67"; anything else is left as the owner typed it.
+ */
+export function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  const m = /^998(\d{2})(\d{3})(\d{2})(\d{2})$/.exec(digits);
+  return m ? `+998 ${m[1]} ${m[2]} ${m[3]} ${m[4]}` : raw.trim();
+}

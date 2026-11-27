@@ -1,0 +1,205 @@
+/* Garaj: auto parts, after the parts counters (Autodoc, Exist). White, a
+   charcoal block for the search and for "Do'kon haqida", hairlines; the
+   shop's accent (a burnt orange unless the owner chose another) for the
+   search button, the department names and the "+". Exo 2, its heavy italic
+   caps for titles. Parts: app/components/soha/looks/garaj.tsx. */
+:root[data-theme="garaj"] {
+  --font-outfit: 'kpos-apos', var(--font-exo2), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-exo2), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #1f2329;
+  --color-gray-25: #fbfcfc;
+  --color-gray-50: #f7f8f9;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e3e5e8;
+  --color-gray-300: #c9ced6;
+  --color-gray-400: #9aa1ab;
+  --color-gray-500: #5f6670;
+  --color-gray-600: #4b525c;
+  --color-gray-700: #3d444d;
+  --color-gray-800: #2b3037;
+  --color-gray-900: #1f2329;
+  --color-gray-950: #14171b;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-panel: #f3f4f6;
+  --color-line: #e3e5e8;
+  --color-ink: #1f2329;
+  --color-muted: #5f6670;
+  --color-band: #1f2329;
+  --color-on-band: #ffffff;
+  --color-spot: #f3f4f6;
+  --color-on-spot: #1f2329;
+  --r-card: 6px;
+  --r-tile: 6px;
+  --r-ctl: 6px;
+  --r-soft: 6px;
+}
+
+/* The phone's search bar on every page: charcoal, a white field with the
+   search button in the accent joined to its right end, the language switch
+   as a ruled box. */
+:root[data-theme="garaj"] .soha-bar {
+  border-color: transparent;
+  background: var(--color-band);
+}
+:root[data-theme="garaj"] .soha-bar input[type="search"] {
+  border: 0;
+  border-radius: 6px;
+  background: #ffffff;
+  padding-left: 13px;
+  padding-right: 86px;
+  color: var(--color-ink);
+}
+/* Empty, the field has no "clear" to keep room for: the prompt gets the width. */
+:root[data-theme="garaj"] .soha-bar input[type="search"]:placeholder-shown {
+  padding-right: 52px;
+}
+:root[data-theme="garaj"] .soha-bar input[type="search"]:focus {
+  outline: 2px solid var(--color-brand-400);
+  outline-offset: -2px;
+}
+:root[data-theme="garaj"] .soha-bar form button[type="submit"] {
+  left: auto;
+  right: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  /* The field centres it with a half-height shift; here it fills the field's height. */
+  --tw-translate-y: 0px;
+  border-radius: 0 6px 6px 0;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+:root[data-theme="garaj"] .soha-bar form button[type="submit"]:hover {
+  background: var(--color-primary-hover);
+}
+/* "Clear" stands left of the search button. */
+:root[data-theme="garaj"] .soha-bar form button[type="button"] {
+  right: 50px;
+}
+:root[data-theme="garaj"] .soha-bar .dropdown-toggle {
+  border: 1px solid #59606b;
+  background: transparent;
+  color: #ffffff;
+}
+:root[data-theme="garaj"] .soha-bar .dropdown-toggle:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+
+/* On the home page the bar is the middle of the charcoal block (Intro above
+   it, the Telegram line under it) and scrolls away with it: the field with
+   the language switch beside it, then the search button as wide as the
+   block, saying "Qidirish" (its own label). The form's children are laid out
+   as the bar's, so the button can take a row of its own. */
+:root[data-theme="garaj"] .garaj-tool + .soha-bar {
+  position: relative;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 7px;
+  padding-bottom: 16px;
+}
+/* The Telegram line follows: it brings the block's lower padding. */
+:root[data-theme="garaj"] .garaj-tool + .soha-bar:has(+ main .garaj-ask) {
+  padding-bottom: 4px;
+}
+:root[data-theme="garaj"] .garaj-tool + .soha-bar form {
+  display: contents;
+}
+:root[data-theme="garaj"] .garaj-tool + .soha-bar input[type="search"],
+:root[data-theme="garaj"] .garaj-tool + .soha-bar input[type="search"]:placeholder-shown {
+  order: 1;
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  height: 46px;
+  padding-right: 42px;
+}
+:root[data-theme="garaj"] .garaj-tool + .soha-bar > div {
+  order: 2;
+}
+:root[data-theme="garaj"] .garaj-tool + .soha-bar .dropdown-toggle {
+  width: 46px;
+  height: 46px;
+}
+:root[data-theme="garaj"] .garaj-tool + .soha-bar form button[type="submit"] {
+  order: 3;
+  position: static;
+  flex: 0 0 100%;
+  height: 46px;
+  border-radius: 6px;
+  font-size: 15.5px;
+  font-weight: 700;
+}
+:root[data-theme="garaj"] .garaj-tool + .soha-bar form button[type="submit"]::after {
+  content: attr(aria-label);
+}
+:root[data-theme="garaj"] .garaj-tool + .soha-bar form button[type="submit"] svg {
+  display: none;
+}
+/* "Clear" keeps its place at the field's right end: the bar is its frame now. */
+:root[data-theme="garaj"] .garaj-tool + .soha-bar form button[type="button"] {
+  top: 14px;
+  right: 76px;
+  --tw-translate-y: 0px;
+}
+
+/* A department's picture in the catalogue table. */
+:root[data-theme="garaj"] .garaj-thumb {
+  border-radius: 4px;
+}
+
+/* The markdown in the photo's corner takes the frame's rounding on its free corner. */
+:root[data-theme="garaj"] .garaj-tag {
+  border-radius: 0 0 6px 0;
+}
+/* The square "+" at a row's end, and the stepper that replaces it. */
+:root[data-theme="garaj"] .garaj-row .add-mark {
+  width: 38px;
+  height: 38px;
+}
+:root[data-theme="garaj"] .garaj-row .add-stepper {
+  height: 38px;
+}
+:root[data-theme="garaj"] .garaj-row .add-stepper button {
+  width: 34px;
+  height: 38px;
+}
+
+/* The catalogue and related goods: the same list rows, a hairline over the first. */
+:root[data-theme="garaj"] .soha-grid {
+  row-gap: 0;
+  border-top: 1px solid var(--color-line);
+}
+
+/* "Do'kon haqida": the charcoal block again, edge to edge on a phone. Its
+   text, lines and buttons take the block's colours through the tokens. */
+:root[data-theme="garaj"] .soha-about {
+  --color-ink: #ffffff;
+  --color-muted: #c9ced6;
+  --color-line: #3a4049;
+  --color-card: transparent;
+  margin: 28px -16px 0;
+  border-top: 0;
+  background: var(--color-band);
+  padding: 22px 16px 24px;
+}
+:root[data-theme="garaj"] .soha-about-title {
+  font-size: 20px;
+  font-style: italic;
+  font-weight: 800;
+  line-height: 26px;
+  text-transform: uppercase;
+}
+:root[data-theme="garaj"] .soha-about-link {
+  border-color: #59606b;
+}
+:root[data-theme="garaj"] .soha-about-link:hover {
+  border-color: #ffffff;
+}
+@media (min-width: 1024px) {
+  :root[data-theme="garaj"] .soha-about {
+    margin: 64px 0 0;
+    border-radius: var(--r-card);
+    padding: 32px;
+  }
+}

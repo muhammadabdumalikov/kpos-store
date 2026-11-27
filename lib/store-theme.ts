@@ -9,7 +9,7 @@
 // - Jurnal, Afisha and Tungi (clothes shops) are drawn by hand: each has its
 //   own Tailwind variant (`jurnal:` …) and its own branches in the components.
 //   `StoreTheme` names them, and it is what `useStoreTheme()` returns.
-// - The trade themes (lib/soha-looks: Bozor, Shifo, Mayin …) are put together
+// - The trade themes (lib/soha-looks: Bozor, Usta, Mayin …) are put together
 //   from shared parts: a token block in app/globals.css plus a choice of intro,
 //   category row, card and section title. To the hand-drawn branches such a
 //   shop is "default"; the parts that differ read `useSohaLook()`.

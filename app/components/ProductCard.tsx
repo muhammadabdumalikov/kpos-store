@@ -34,6 +34,10 @@ type ProductCardProps = {
   /** The shop's flags; at most one of them reaches the photo's corner. */
   isNew?: boolean;
   popular?: boolean;
+  /** The values of the product's first choice group ("128 GB", "256 GB"). */
+  optionValues?: string[];
+  /** A second shape of a trade theme's card, named by the theme (a deals row, a wide card). */
+  variant?: string;
   /** The lead time the shop header already states for every product
    *  (lib/stock sharedOrderLead); a card with that same lead does not repeat it. */
   sharedLead?: string | null;
@@ -42,7 +46,7 @@ type ProductCardProps = {
 const cornerPill = "absolute left-2 top-2 rounded-full px-2 py-[3px] text-[11px] font-bold leading-4";
 
 /** Which label the photo's corner carries; each look colours it its own way. */
-type PillKind = "soldOut" | "sale" | "low" | "popular" | "new";
+export type PillKind = "soldOut" | "sale" | "low" | "popular" | "new";
 const PILL_TONES: Record<StoreTheme, Record<PillKind, string>> = {
   default: {
     soldOut: "bg-white text-gray-600",
@@ -86,7 +90,7 @@ const THEMED_PILL: Record<Exclude<StoreTheme, "default">, string> = {
  * choices has no "+": its card leads to the page where they are made.
  *
  * The photo's top-left corner holds one label at most: sold out wins, then the
- * markdown, running low, popular, new. The "+" keeps the bottom-right corner.
+ * markdown, then running low. The "+" keeps the bottom-right corner.
  */
 export function ProductCard({
   id,
@@ -101,6 +105,8 @@ export function ProductCard({
   oldPrice,
   isNew,
   popular,
+  optionValues,
+  variant,
   sharedLead = null,
 }: ProductCardProps) {
   const { t } = useTranslations();
@@ -123,17 +129,19 @@ export function ProductCard({
   // The sale red is fixed (white on error-600 is 4.83:1) so it reads as a
   // markdown under any shop accent.
   const pillAs = (kind: PillKind, text: string) => ({ kind, text, tone: PILL_TONES[theme][kind] });
-  const pill = soldOut
+  // What the shopper must know about this card: gone, cheaper, almost gone.
+  const state = soldOut
     ? pillAs("soldOut", t("product.soldOut"))
     : percent
       ? pillAs("sale", discountLabel(percent))
       : lowStock
         ? pillAs("low", t("product.lowStock"))
-        : popular
-          ? pillAs("popular", t("product.badgePopular"))
-          : isNew
-            ? pillAs("new", t("product.badgeNew"))
-            : null;
+        : null;
+  // The shop's flags mark a card only in a trade theme that draws them; the
+  // default look and Jurnal, Afisha and Tungi keep the photo clear of them
+  // (the flags still choose what a theme lifts above the grid).
+  const flag = popular ? pillAs("popular", t("product.badgePopular")) : isNew ? pillAs("new", t("product.badgeNew")) : null;
+  const pill = state ?? (soha ? flag : null);
   // Read out with the link: the corner label, unless it is the markdown,
   // which the old price already says.
   const spoken = [
@@ -148,7 +156,7 @@ export function ProductCard({
   if (soha) {
     return (
       <SohaCard
-        look={soha}
+        theme={soha.key}
         card={{
           id,
           name,
@@ -164,7 +172,12 @@ export function ProductCard({
           unit,
           hasOptions: hasOptions === true,
           spoken,
-          pill: pill && { text: pill.text, className: `soha-pill ${cornerPill} ${pill.tone}` },
+          // A trade theme draws its own label: `kind` says which, the class
+          // gives the default corner pill for a theme that keeps it.
+          pill: pill && { kind: pill.kind, text: pill.text, className: `soha-pill ${cornerPill} ${pill.tone}` },
+          stock: soldOut ? "out" : onOrder ? "order" : lowStock ? "low" : "in",
+          optionValues: optionValues ?? [],
+          variant,
         }}
       />
     );
@@ -189,7 +202,9 @@ export function ProductCard({
           unit,
           hasOptions: hasOptions === true,
           spoken,
-          pill: pill && { text: pill.text, className: `${THEMED_PILL[theme]} ${pill.tone}` },
+          pill: pill && { kind: pill.kind, text: pill.text, className: `${THEMED_PILL[theme]} ${pill.tone}` },
+          stock: soldOut ? "out" : onOrder ? "order" : lowStock ? "low" : "in",
+          optionValues: optionValues ?? [],
         }}
       />
     );
@@ -297,37 +312,39 @@ export type CardModel = {
   hasOptions: boolean;
   /** The link's accessible name. */
   spoken: string;
-  pill: { text: string; className: string } | null;
+  /** The one label a card may carry: which it is, its text and the default pill's classes. */
+  pill: { kind: PillKind; text: string; className: string } | null;
+  /** In stock, running low, taken on order, or sold out: for themes that say so in a line. */
+  stock: "in" | "low" | "order" | "out";
+  /** The product's first choice group's values; empty when it has none. */
+  optionValues: string[];
+  /** A second shape the theme's card may take; the theme names and reads it. */
+  variant?: string;
 };
 
 /**
  * The card in a storefront theme. The same facts, label rules and controls as
  * the default card, in the theme's shape:
  * - Jurnal: a magazine tile. Photo on warm paper, the name in the serif, the
- *   price small under it; a hairline "+" on the photo's corner.
+ *   price small under it.
  * - Afisha: a ruled cell. Mono caps name, the price in the poster face, a
- *   square accent "+" beside it.
- * - Tungi: a rounded dark card with a white round "+" beside the price.
- * In Afisha and Tungi the stepper takes a row of its own under the price once
- * the product is in the cart: the same element, moved by class, so keyboard
- * focus stays on it.
+ *   square accent "+" beside it; the stepper takes a row of its own under the
+ *   price once the product is in the cart (the same element, moved by class,
+ *   so keyboard focus stays on it).
+ * - Tungi: the photo with rounded corners straight on the dark page, the
+ *   name and the price under it.
  */
 function ThemedCard({ theme, card }: { theme: Exclude<StoreTheme, "default">; card: CardModel }) {
   const inCart = useCartQty(card.id) > 0;
-  const control = card.hasOptions ? (
-    <CartCount id={card.id} unit={card.unit} />
+  // Only Afisha adds from the card. Jurnal and Tungi show clothes, chosen on
+  // the product's page: their cards say how many are in the cart, no more.
+  const quickAdd = theme === "afisha" && !card.hasOptions;
+  const control = quickAdd ? (
+    <AddControl id={card.id} name={card.name} price={card.price} max={card.max} soldOut={card.soldOut} unit={card.unit} shape="inline" />
   ) : (
-    <AddControl
-      id={card.id}
-      name={card.name}
-      price={card.price}
-      max={card.max}
-      soldOut={card.soldOut}
-      unit={card.unit}
-      shape={theme === "jurnal" ? "corner" : "inline"}
-    />
+    <CartCount id={card.id} unit={card.unit} />
   );
-  const stepperRow = inCart && !card.hasOptions;
+  const stepperRow = quickAdd && inCart;
 
   if (theme === "jurnal") {
     return (
@@ -365,7 +382,7 @@ function ThemedCard({ theme, card }: { theme: Exclude<StoreTheme, "default">; ca
   return (
     <article
       className={`relative flex h-full min-w-0 flex-col ${
-        afisha ? "border-b border-r border-gray-900 bg-white" : "rounded-[24px] bg-gray-800 p-1.5 pb-3"
+        afisha ? "border-b border-r border-gray-900 bg-white" : ""
       }`}
     >
       <Link
@@ -374,7 +391,7 @@ function ThemedCard({ theme, card }: { theme: Exclude<StoreTheme, "default">; ca
         className={`group flex min-w-0 flex-1 flex-col outline-none ${
           afisha
             ? "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-900"
-            : "rounded-[20px] focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-800"
+            : "rounded-[18px] focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
         }`}
       >
         <CardPhoto
@@ -382,19 +399,19 @@ function ThemedCard({ theme, card }: { theme: Exclude<StoreTheme, "default">; ca
           tile={afisha ? "border-b border-gray-900 bg-white" : "rounded-[18px] bg-gray-200"}
         />
         {/* Room on the right for the "+" laid over the corner below. */}
-        <div className={afisha ? "flex-1 px-2.5 pb-3 pr-12 pt-2.5" : "px-1.5 pr-11 pt-2.5"}>
+        <div className={afisha ? "flex-1 px-2.5 pb-3 pr-12 pt-2.5" : "px-0.5 pt-2.5"}>
           <h3
             className={
               afisha
                 ? "line-clamp-2 break-words text-[11px] font-bold uppercase leading-[1.3] tracking-[0.04em] text-gray-900"
-                : "line-clamp-2 break-words text-[13px] font-semibold leading-[1.3] text-gray-300"
+                : "line-clamp-2 break-words text-[13.5px] font-medium leading-[1.3] text-gray-300"
             }
           >
             {card.name}
           </h3>
           <p
             className={`mt-1.5 flex flex-wrap items-baseline gap-x-1 tabular-nums ${
-              card.soldOut ? "text-gray-500" : afisha ? "text-gray-900" : "text-white"
+              card.soldOut ? "text-gray-500" : card.was ? (afisha ? "text-error-600" : "text-error-400") : afisha ? "text-gray-900" : "text-white"
             }`}
           >
             {/* The sum and its "so'm" stay on one line; the old price may wrap. */}
@@ -433,7 +450,7 @@ function ThemedCard({ theme, card }: { theme: Exclude<StoreTheme, "default">; ca
               : "px-0.5 pt-2.5"
             : afisha
               ? "absolute bottom-2 right-2"
-              : "absolute bottom-2.5 right-2.5"
+              : "absolute bottom-0 right-0"
         }
       >
         {control}

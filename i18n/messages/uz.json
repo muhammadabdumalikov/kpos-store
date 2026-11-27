@@ -56,7 +56,19 @@
     "newArrivals": "Yangi kelganlar",
     "viewProduct": "Koʼrish",
     "call": "Qoʼngʼiroq",
-    "contactsAria": "Doʼkon bilan aloqa"
+    "contactsAria": "Doʼkon bilan aloqa",
+    "about": "Doʼkon haqida",
+    "deals": "Chegirmalar",
+    "sections": "Boʼlimlar",
+    "catalog": "Katalog",
+    "shipFree": "Bepul yetkazib beramiz",
+    "shipFreeFrom": "{amount}dan bepul yetkazamiz",
+    "shipFee": "Yetkazib berish {amount}",
+    "pickupAt": "Olib ketish: {where}",
+    "partSearch": "Ehtiyot qism nomi yoki kodi",
+    "partSearchHint": "Masalan: 5W-30 yoki 225/45 R18",
+    "askTelegram": "Topa olmadingizmi? Telegramda soʼrang",
+    "bookSearch": "Kitob nomi yoki muallif"
   },
   "product": {
     "oldPrice": "Eski narx",
@@ -80,7 +92,9 @@
     "toCatalog": "Katalogga oʼtish",
     "askSeller": "Sotuvchiga yozish",
     "gallery": "Mahsulot rasmlari",
-    "photoN": "{n}-rasm"
+    "photoN": "{n}-rasm",
+    "inStock": "Omborda bor",
+    "toCart": "Savatga"
   },
   "cart": {
     "title": "Savat",

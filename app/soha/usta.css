@@ -1,0 +1,169 @@
+/* Usta: building goods, after the builders' merchants (Toolstation, Screwfix).
+   Black, yellow and white, square everywhere. Oswald caps for the name, the
+   titles and the prices, Golos Text for the rest. Buttons are yellow with ink
+   text whatever accent the shop chose: the yellow is the trade's, not the
+   shop's. Parts: app/components/soha/looks/usta.tsx. */
+:root[data-theme="usta"] {
+  --font-outfit: 'kpos-apos', var(--font-golos), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-oswald), var(--font-golos), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #141414;
+  --color-gray-25: #fcfcfc;
+  --color-gray-50: #f8f8f8;
+  --color-gray-100: #f2f2f2;
+  --color-gray-200: #e3e3e3;
+  --color-gray-300: #cfcfcf;
+  --color-gray-400: #9c9c9c;
+  --color-gray-500: #666666;
+  --color-gray-600: #505050;
+  --color-gray-700: #333333;
+  --color-gray-800: #262626;
+  --color-gray-900: #141414;
+  --color-gray-950: #0c0c0c;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-panel: #f2f2f2;
+  --color-line: #d9d9d9;
+  --color-ink: #141414;
+  --color-muted: #666666;
+  --color-band: #141414;
+  --color-on-band: #ffffff;
+  --color-spot: #ffcc00;
+  --color-on-spot: #141414;
+  --color-primary: #ffcc00;
+  --color-primary-hover: #f0bf00;
+  --color-on-primary: #141414;
+  --r-card: 0px;
+  --r-tile: 0px;
+  --r-ctl: 0px;
+  --r-soft: 0px;
+}
+
+/* The phone's search bar is the lower half of the black band (the shop's
+   name is its upper half on the home page): a white field with no radius,
+   fused to a square yellow search button on its right; the language switch
+   as a white-ruled box. */
+:root[data-theme="usta"] .soha-bar {
+  gap: 8px;
+  border-color: transparent;
+  background: var(--color-band);
+  padding-top: 12px;
+  padding-bottom: 14px;
+}
+:root[data-theme="usta"] .soha-bar input[type="search"] {
+  border: 0;
+  background: #ffffff;
+  padding-left: 14px;
+  padding-right: 84px;
+  color: var(--color-ink);
+}
+/* Empty, the field has no "clear" to keep room for: the prompt gets the width. */
+:root[data-theme="usta"] .soha-bar input[type="search"]:placeholder-shown {
+  padding-right: 52px;
+}
+:root[data-theme="usta"] .soha-bar input[type="search"]:focus {
+  outline: 2px solid var(--color-spot);
+  outline-offset: -2px;
+}
+:root[data-theme="usta"] .soha-bar form button[type="submit"] {
+  left: auto;
+  right: 0;
+  top: 0;
+  width: 44px;
+  height: 44px;
+  /* The field centres it with a half-height shift; here it fills the field's height. */
+  --tw-translate-y: 0px;
+  background: var(--color-spot);
+  color: var(--color-on-spot);
+}
+:root[data-theme="usta"] .soha-bar form button[type="submit"] svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
+}
+/* "Clear" stands left of the yellow button. */
+:root[data-theme="usta"] .soha-bar form button[type="button"] {
+  right: 50px;
+}
+:root[data-theme="usta"] .soha-bar .dropdown-toggle {
+  border: 1px solid #ffffff;
+  background: transparent;
+  color: #ffffff;
+  font-size: 12px;
+}
+:root[data-theme="usta"] .soha-bar .dropdown-toggle:hover {
+  background: rgb(255 255 255 / 0.14);
+}
+
+/* A section title's yellow square. */
+:root[data-theme="usta"] .usta-title::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--color-spot);
+}
+
+/* Photos stand whole in their cell, as a merchant's packshots do. */
+:root[data-theme="usta"] .usta-cell img {
+  object-fit: contain;
+}
+/* The yellow "+" square beside the price, and the stepper that replaces it. */
+:root[data-theme="usta"] .usta-cell .add-mark {
+  width: 38px;
+  height: 38px;
+}
+:root[data-theme="usta"] .usta-cell .add-mark svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* The catalogue and related goods: the same ruled cells, with no gaps. */
+:root[data-theme="usta"] .soha-grid {
+  gap: 0;
+  border-top: 1px solid var(--color-line);
+  border-left: 1px solid var(--color-line);
+}
+
+/* "Do'kon haqida": a section title like the others, ruled rows, the links as
+   two joined boxes with caps. */
+:root[data-theme="usta"] .soha-about {
+  margin-top: 28px;
+  border-top: 0;
+  padding-top: 0;
+}
+:root[data-theme="usta"] .soha-about-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-bottom: 2px solid var(--color-ink);
+  padding-bottom: 8px;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 28px;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+:root[data-theme="usta"] .soha-about-title::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  background: var(--color-spot);
+}
+:root[data-theme="usta"] .soha-about > ul:first-of-type {
+  margin-top: 0;
+}
+:root[data-theme="usta"] .soha-about > ul[aria-label] {
+  gap: 0;
+}
+:root[data-theme="usta"] .soha-about > ul[aria-label] > li + li {
+  margin-left: -1px;
+}
+:root[data-theme="usta"] .soha-about-link {
+  height: 46px;
+  border-color: var(--color-ink);
+  font-family: var(--font-head);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

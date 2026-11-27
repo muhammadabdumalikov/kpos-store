@@ -1,0 +1,60 @@
+/* ── Trade themes (lib/soha-looks) ───────────────────────────────────────────
+   One look per kind of shop, each in a file of its own beside this one. A
+   theme's token block repaints the grey scale (tinted towards its page), sets
+   the fonts and names the colours its blocks use: page, card, panel, line,
+   ink, muted, band (a coloured top) and spot (its second colour). On a light
+   theme `--color-white` is the page colour, so the shared chrome (bars,
+   sheets, fields) sits on the page without a white patch. `muted` (gray-500)
+   keeps at least 4.7:1 on page, card and panel.
+
+   These files sit outside any layer, so they win over the utilities. */
+
+/* The Uzbek apostrophes (U+02BB in "oʻ", U+02BC in "soʼm") are drawn with wide
+   side bearings, or as an accent over the letter before, in several of the
+   themes' faces (IBM Plex Sans, Oswald, Mulish, Nunito, Rubik, Literata). Every
+   trade theme's font stack starts with this face, which takes just those two
+   characters from a system font, where they are plain narrow marks; without
+   such a font the theme's own glyph shows. */
+@font-face {
+  font-family: 'kpos-apos';
+  src: local('Arial'), local('Helvetica Neue'), local('Roboto'), local('Noto Sans'), local('Segoe UI');
+  unicode-range: U+02BB-02BC;
+}
+
+/* Corners of a trade theme's own blocks. Outside any layer, so the square
+   rule above (a :where) does not flatten them; a square theme sets them to 0. */
+.r-card {
+  border-radius: var(--r-card, 20px);
+}
+.r-tile {
+  border-radius: var(--r-tile, 16px);
+}
+.r-ctl {
+  border-radius: var(--r-ctl, 999px);
+}
+
+/* "Soft" corners: the shared chrome's pills and large radii become one small
+   radius. One-sided radii (a sheet's top corners) and spinners are left. */
+:root[data-corner="soft"]
+  :where([class*="rounded-full"], [class*="rounded-["], [class*="rounded-xl"], [class*="rounded-2xl"], [class*="rounded-3xl"]):not(
+    .keep-round,
+    [class*="rounded-t-"],
+    [class*="rounded-b-"],
+    [class*="rounded-l-"],
+    [class*="rounded-r-"]
+  ) {
+  border-radius: var(--r-soft);
+}
+
+/* Page titles on every page take the theme's heading face. */
+:root[data-soha] h1 {
+  font-family: var(--font-title, var(--font-head));
+}
+
+/* The add button beside a price (AddControl's "inline" shape): the theme's
+   primary and its own corner, unless the theme repaints it. */
+:root[data-soha] .add-mark {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border-radius: var(--r-ctl);
+}

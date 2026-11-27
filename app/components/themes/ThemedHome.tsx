@@ -2,15 +2,12 @@
 
 import Link from "next/link";
 import { useTranslations } from "@/hooks/useTranslations";
-import { isWeighed, usePrice } from "@/hooks/usePrice";
-import { formatAmount } from "@/lib/format";
-import { discountLabel, discountPercent } from "@/lib/product-badges";
-import { stockOf } from "@/lib/stock";
+import type { StoreInfo } from "@/lib/store-api";
 import type { StoreTheme } from "@/lib/store-theme";
-import { AddControl } from "../AddControl";
 import { ChipLink } from "../Chip";
 import { themedCategoryCell, themedCategoryRow } from "../CatalogToolbar";
 import { HomeCard, type HomeCategory, type HomeProduct, type HomeSection } from "../HomeContent";
+import { ShopAbout } from "../ShopAbout";
 import { StatePanel } from "../StatePanel";
 import { ArrowRightIcon, BoxIcon, ChevronRightIcon } from "../icons/ShopIcons";
 import { afishaCaps, jurnalCaps, themedGrid, themedRow } from "./classes";
@@ -26,9 +23,10 @@ const JURNAL_CATEGORIES = 6;
  * category, the way to the whole catalogue), in the theme's shapes:
  * - Jurnal: categories as a large serif list with product counts, serif
  *   section titles with a small accent link, an airy four-column grid.
- * - Afisha: a ruled strip of categories, the featured product (the shop's own
- *   flag says why), ruled title strips and a ruled grid.
- * - Tungi: pill chips, bold titles with an accent link, dark cards.
+ * - Afisha: a ruled strip of categories, ruled title strips and a ruled grid.
+ * - Tungi: pill chips, bold titles with an accent link, photos straight on
+ *   the dark page.
+ * Each ends with the shop's facts (ShopAbout).
  */
 export function ThemedHome({
   theme,
@@ -39,6 +37,7 @@ export function ThemedHome({
   sharedLead,
   counts,
   hero,
+  info,
 }: {
   theme: Theme;
   categories: HomeCategory[];
@@ -48,9 +47,11 @@ export function ThemedHome({
   sharedLead: string | null;
   /** Products per category, where known (Jurnal shows them). */
   counts: Record<string, number>;
-  /** The product a theme lifts above the grid (Afisha's featured block,
-   *  Tungi's hero); left out of the grid when the grid has others. */
+  /** The product Tungi lifts above the grid; left out of the grid when the
+   *  grid has others. */
   hero: HomeProduct | null;
+  /** The shop, for the facts that close the page. */
+  info: StoreInfo | null;
 }) {
   const { t } = useTranslations();
   const shelved = sections.length > 0;
@@ -65,8 +66,6 @@ export function ThemedHome({
   return (
     <>
       {categories.length > 0 && <HomeCategoryNav theme={theme} categories={categories} counts={counts} />}
-
-      {theme === "afisha" && hero && <AfishaFeatured product={hero} />}
 
       <section aria-labelledby="home-products" className={theme === "afisha" ? "mt-6 lg:mt-10" : "mt-9 lg:mt-14"}>
         <SectionHead
@@ -116,6 +115,8 @@ export function ThemedHome({
           />
         )}
       </section>
+
+      <ShopAbout info={info} orderLead={sharedLead} />
     </>
   );
 }
@@ -327,70 +328,5 @@ function AllProducts({ theme, total }: { theme: Theme; total: number }) {
         <ChevronRightIcon className="-mr-1 h-[18px] w-[18px] text-gray-400" />
       )}
     </Link>
-  );
-}
-
-/**
- * Afisha's featured product: the photo edge to edge with the reason it is
- * featured (popular, marked down or new: the shop's own flags), its name in
- * the poster face and the add button, or the way to its page when it has
- * choices to make there.
- */
-function AfishaFeatured({ product: p }: { product: HomeProduct }) {
-  const { t } = useTranslations();
-  const { parts } = usePrice();
-  const { amount, suffix } = parts(p.price, p.quantityType);
-  const { max, soldOut } = stockOf(p.quantity, p.preorder);
-  const was = p.oldPrice && p.oldPrice > p.price ? p.oldPrice : null;
-  const percent = was ? discountPercent(p.price, was) : null;
-  const reason = p.popular ? t("product.badgePopular") : percent ? discountLabel(percent) : t("product.badgeNew");
-  const href = `/products/${p.id}`;
-
-  return (
-    <section aria-labelledby="home-featured" className="-mx-4 mt-6 border-y border-gray-900 lg:mx-0 lg:mt-10 lg:grid lg:grid-cols-2 lg:border-x">
-      {/* The photo repeats the title link below; one stop for keyboards. */}
-      <Link href={href} tabIndex={-1} aria-hidden className="relative block border-b border-gray-900 bg-white lg:border-b-0 lg:border-r">
-        {/* eslint-disable-next-line @next/next/no-img-element -- shop photos come from any host */}
-        <img src={p.image} alt="" decoding="async" className="aspect-[13/10] w-full object-cover mix-blend-multiply lg:aspect-[5/4]" />
-        <span className={`absolute left-0 top-0 px-2.5 py-1.5 text-white ${afishaCaps} ${percent && !p.popular ? "bg-error-600 tabular-nums" : "bg-gray-900"}`}>
-          {reason}
-        </span>
-      </Link>
-      <div className="flex flex-col gap-3.5 px-4 py-4 lg:justify-center lg:gap-8 lg:p-12">
-        <div className="min-w-0">
-          <h2 id="home-featured" className="break-words font-head text-[18px] font-extrabold uppercase leading-[1.15] lg:text-[40px] lg:leading-[1.05]">
-            <Link href={href} className="outline-none hover:underline focus-visible:ring-2 focus-visible:ring-gray-900">
-              {p.name}
-            </Link>
-          </h2>
-          <p className="mt-2 flex flex-wrap items-baseline gap-x-2 text-[13px] font-bold uppercase tabular-nums lg:mt-4 lg:text-[18px]">
-            {amount} {suffix}
-            {was && <s className="font-medium text-gray-500">{formatAmount(was)}</s>}
-          </p>
-        </div>
-        <div className="lg:max-w-[340px]">
-          {p.hasOptions ? (
-            <Link
-              href={href}
-              className={`flex h-[52px] w-full items-center justify-center gap-2 bg-gray-900 text-white ${afishaCaps} transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-gray-900/30`}
-            >
-              {t("home.viewProduct")}
-              <ArrowRightIcon className="h-4 w-4" strokeWidth={2.4} />
-            </Link>
-          ) : (
-            <AddControl
-              id={p.id}
-              name={p.name}
-              price={p.price}
-              max={max}
-              soldOut={soldOut}
-              unit={isWeighed(p.quantityType) ? t("common.unitKg") : null}
-              size="lg"
-              tone="primary"
-            />
-          )}
-        </div>
-      </div>
-    </section>
   );
 }

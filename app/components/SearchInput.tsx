@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useStoreTheme } from "@/context/StoreThemeContext";
+import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { CloseIcon, SearchIcon } from "./icons/ShopIcons";
 
@@ -54,6 +54,8 @@ function SearchField({
   const router = useRouter();
   const { t } = useTranslations();
   const theme = useStoreTheme();
+  // A trade theme may ask in its trade's words ("Kitob nomi yoki muallif").
+  const hint = useSohaLook()?.searchHint;
   const [value, setValue] = useState(query);
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -82,7 +84,7 @@ function SearchField({
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder={t("common.search")}
+        placeholder={hint ? t(hint) : t("common.search")}
         aria-label={t("header.searchAria")}
         enterKeyHint="search"
         className={

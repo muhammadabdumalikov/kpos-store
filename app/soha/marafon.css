@@ -1,0 +1,154 @@
+/* Marafon: sport. White and black, grey photo tiles, lime as one dot; every
+   corner square except the category pills. Sofia Sans Extra Condensed in
+   slanted black caps for the name, the tagline on the cover and the section
+   words; Sofia Sans for the rest. Parts: app/components/soha/looks/marafon.tsx. */
+:root[data-theme="marafon"] {
+  --font-outfit: 'kpos-apos', var(--font-sofia), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-sofia-xcond), var(--font-sofia), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  /* Page titles (a product's name, "Savat") are set in the body face: the
+     condensed one is for the slanted caps alone. */
+  --font-title: var(--font-outfit);
+  --color-black: #0b0b0f;
+  --color-gray-25: #fbfcfd;
+  --color-gray-50: #f9f9fa;
+  --color-gray-100: #f2f2f3;
+  --color-gray-200: #e5e5e6;
+  --color-gray-300: #d2d3d5;
+  --color-gray-400: #9d9ea0;
+  --color-gray-500: #646466;
+  --color-gray-600: #4f5051;
+  --color-gray-700: #3c3d3f;
+  --color-gray-800: #272829;
+  --color-gray-900: #0b0b0f;
+  --color-gray-950: #0c0c0d;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-panel: #f2f2f3;
+  --color-line: #e2e2e6;
+  --color-ink: #0b0b0f;
+  --color-muted: #646466;
+  --color-band: #0b0b0f;
+  --color-on-band: #ffffff;
+  --color-spot: #d6ff3f;
+  --color-on-spot: #0b0b0f;
+  --r-card: 0px;
+  --r-tile: 0px;
+  --r-ctl: 0px;
+  --r-soft: 0px;
+  --color-primary: #0b0b0f;
+  --color-primary-hover: #2a2a31;
+  --color-on-primary: #ffffff;
+}
+
+/* The phone's bar: the shop's name as a slanted wordmark at the left, the
+   search button and the language switch after it. */
+:root[data-theme="marafon"] .soha-bar--wordmark {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(4px, env(safe-area-inset-right));
+}
+:root[data-theme="marafon"] .soha-bar-name {
+  order: -1;
+  justify-content: flex-start;
+}
+:root[data-theme="marafon"] .soha-wordmark {
+  padding-left: 0;
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-style: italic;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+/* Room for the slant of the last letter, which the truncation would cut. */
+:root[data-theme="marafon"] .soha-wordmark > span {
+  padding-right: 5px;
+}
+
+/* The tagline on the cover, as large as fits in about three lines: --ems is
+   the whole line's width in ems, --word its longest word's (both estimated
+   in the parts file). A dark scrim under it, nothing else on the photo. */
+:root[data-theme="marafon"] .marafon-hero {
+  --room: calc(100vw - 32px);
+}
+:root[data-theme="marafon"] .marafon-tagline {
+  font-size: clamp(28px, min(calc(var(--room) * 2.5 / var(--ems)), calc(var(--room) / var(--word))), 64px);
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+}
+:root[data-theme="marafon"] .marafon-scrim {
+  background: linear-gradient(to top, rgb(0 0 0 / 0.7) 0%, rgb(0 0 0 / 0.32) 40%, rgb(0 0 0 / 0) 66%);
+}
+
+/* A category's name opening its section: 76px, less only when the name is
+   wider than the page (--ems, as above). */
+:root[data-theme="marafon"] .marafon-word {
+  font-size: clamp(34px, calc((100vw - 32px) / var(--ems)), 76px);
+  line-height: 0.86;
+}
+
+/* A tile's photo is 3:4 whatever shape the shop's photos have. */
+:root[data-theme="marafon"] .marafon-photo {
+  aspect-ratio: 3 / 4;
+}
+
+/* The catalogue's grid as on the home page: tiles from edge to edge of a
+   phone, 2px apart. */
+:root[data-theme="marafon"] .soha-grid {
+  margin-inline: -16px;
+  column-gap: 2px;
+  row-gap: 24px;
+}
+
+/* "Do'kon haqida": a black block from edge to edge, the title in the slanted
+   caps, white text and rules of dark grey. */
+:root[data-theme="marafon"] .soha-about {
+  margin: 52px -16px 0;
+  border: 0;
+  background: var(--color-band);
+  padding: 30px 16px;
+}
+:root[data-theme="marafon"] .soha-about-title {
+  font-size: 40px;
+  font-style: italic;
+  font-weight: 900;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+:root[data-theme="marafon"] .soha-about :is(.soha-about-title, .text-ink) {
+  color: var(--color-on-band);
+}
+:root[data-theme="marafon"] .soha-about .text-muted {
+  color: #a3a3a8;
+}
+:root[data-theme="marafon"] .soha-about-row {
+  border-color: #2c2c33;
+}
+:root[data-theme="marafon"] .soha-about-link {
+  border-color: var(--color-on-band);
+  background: transparent;
+}
+
+@media (min-width: 1024px) {
+  :root[data-theme="marafon"] .marafon-hero {
+    --room: calc((min(100vw, 1280px) - 32px) * 0.6);
+  }
+  :root[data-theme="marafon"] .marafon-tagline {
+    font-size: clamp(44px, min(calc(var(--room) * 2.5 / var(--ems)), calc(var(--room) / var(--word))), 112px);
+  }
+  :root[data-theme="marafon"] .marafon-word {
+    font-size: clamp(48px, calc((min(100vw, 1280px) - 32px) / var(--ems)), 112px);
+  }
+  :root[data-theme="marafon"] .soha-grid {
+    margin-inline: 0;
+  }
+  /* The black is spread to the window's edges with a shadow, so the page gets no scrollbar. */
+  :root[data-theme="marafon"] .soha-about {
+    margin: 80px 0 0;
+    padding: 48px 0;
+    box-shadow: 0 0 0 100vmax var(--color-band);
+    clip-path: inset(0 -100vmax);
+  }
+  :root[data-theme="marafon"] .soha-about-title {
+    font-size: 64px;
+  }
+}
