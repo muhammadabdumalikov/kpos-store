@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useTransition } from "react";
-import { useStoreTheme } from "@/context/StoreThemeContext";
+import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useCatalogPages } from "@/hooks/useCatalogPages";
 import { useTranslations } from "@/hooks/useTranslations";
 import { CATALOG_PAGE_SIZE, type CatalogProduct } from "@/lib/catalog-pages";
@@ -11,6 +11,7 @@ import { CategoryChips, SortMenu } from "./CatalogToolbar";
 import { ProductCard } from "./ProductCard";
 import { StatePanel, pillSecondary } from "./StatePanel";
 import { BoxIcon, CloudOffIcon, SearchIcon } from "./icons/ShopIcons";
+import { sohaGrid } from "./soha/classes";
 import { themedGrid, themedTitle } from "./themes/classes";
 
 export type { CatalogProduct };
@@ -153,6 +154,7 @@ function CatalogResults({
 }) {
   const { t } = useTranslations();
   const theme = useStoreTheme();
+  const soha = useSohaLook();
   const { products, total, done, status, loadMore } = useCatalogPages({
     initialProducts,
     initialTotal,
@@ -221,7 +223,9 @@ function CatalogResults({
           <>
             <div
               className={
-                theme === "default"
+                soha
+                  ? `${sohaGrid(soha)}`
+                  : theme === "default"
                   ? "grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8"
                   : `${themedGrid(theme)} ${theme === "afisha" ? "border-t" : ""}`
               }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
-import { useStoreTheme } from "@/context/StoreThemeContext";
+import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
@@ -23,6 +23,7 @@ import { pillSecondary } from "./StatePanel";
 import { ClockIcon } from "./icons/DeliveryIcons";
 import { useFulfilmentLines } from "./StoreIntro";
 import { BagIcon, BoxIcon, ChatIcon, ChevronRightIcon } from "./icons/ShopIcons";
+import { sohaGrid } from "./soha/classes";
 import { themedGrid, themedTitle } from "./themes/classes";
 
 export type ProductViewProduct = {
@@ -95,6 +96,7 @@ export function ProductView({
   const { t } = useTranslations();
   const { parts } = usePrice();
   const theme = useStoreTheme();
+  const soha = useSohaLook();
   const { isTelegram } = useTelegram();
   const fulfilment = useFulfilmentLines(info);
 
@@ -370,7 +372,9 @@ export function ProductView({
           </div>
           <div
             className={
-              theme === "default"
+              soha
+                ? `mt-3 lg:mt-4 ${sohaGrid(soha)}`
+                : theme === "default"
                 ? "mt-3 grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 md:grid-cols-4 lg:mt-4 lg:grid-cols-5 lg:gap-x-5 lg:gap-y-8"
                 : `mt-3 lg:mt-4 ${themedGrid(theme)} ${theme === "afisha" ? "border-t" : ""}`
             }

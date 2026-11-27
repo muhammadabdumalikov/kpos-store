@@ -53,7 +53,9 @@ const TONES: Record<AddControlTone, string> = {
 /** Labels on the theme's buttons: Jurnal's letter-spaced caps, Afisha's mono caps. */
 const THEMED_LABEL = "jurnal:text-[13px] jurnal:font-medium jurnal:uppercase jurnal:tracking-[0.16em] afisha:uppercase afisha:tracking-[0.06em]";
 
-/** The inline "+" (Afisha, Tungi): a 44px target around a smaller mark. */
+/** The inline "+" (Afisha, Tungi): a 44px target around a smaller mark. A
+ *  trade theme repaints Tungi's through `.add-mark`, and the label button
+ *  through `.add-pill` (app/globals.css). */
 const INLINE_MARK: Record<string, string> = {
   afisha: "h-9 w-9 border border-gray-900 bg-brand-300 text-gray-900 group-hover/add:bg-brand-200",
   tungi: "h-9 w-9 rounded-full bg-white text-gray-950 group-hover/add:bg-gray-200",
@@ -175,7 +177,7 @@ export function AddControl({
             noRoom ? "cursor-not-allowed opacity-40" : "motion-safe:active:scale-90"
           }`}
         >
-          <span className={`flex items-center justify-center transition-colors duration-100 ${INLINE_MARK[theme] ?? INLINE_MARK.tungi}`}>
+          <span className={`add-mark flex items-center justify-center transition-colors duration-100 ${INLINE_MARK[theme] ?? INLINE_MARK.tungi}`}>
             <PlusIcon className={theme === "afisha" ? "h-4 w-4" : "h-[18px] w-[18px]"} strokeWidth={theme === "afisha" ? 3 : 2.6} />
           </span>
         </button>
@@ -188,7 +190,7 @@ export function AddControl({
         aria-disabled={noRoom || undefined}
         onClick={add}
         aria-label={`${noRoom ? t("product.maxReached") : label}: ${name}`}
-        className={`flex ${s.height} w-full items-center justify-center gap-1.5 rounded-full ${s.label} font-bold transition-[background-color,transform] duration-100 focus-visible:outline-none ${
+        className={`add-pill flex ${s.height} w-full items-center justify-center gap-1.5 rounded-full ${s.label} font-bold transition-[background-color,transform] duration-100 focus-visible:outline-none ${
           noRoom ? "cursor-not-allowed opacity-40" : "motion-safe:active:scale-[0.97]"
         } ${TONES[tone]} ${THEMED_LABEL}`}
       >

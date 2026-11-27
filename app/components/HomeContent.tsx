@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { useStoreTheme } from "@/context/StoreThemeContext";
+import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { CategoryCard } from "./CategoryCard";
 import { ChipLink } from "./Chip";
 import { ProductCard } from "./ProductCard";
 import { StatePanel, pillSecondary } from "./StatePanel";
 import { BoxIcon, ChevronRightIcon, CloudOffIcon } from "./icons/ShopIcons";
+import { SohaHome } from "./soha/SohaHome";
 import { ThemedHome } from "./themes/ThemedHome";
 
 export type HomeCategory = { id: string; name: string; image: string | null };
@@ -82,6 +83,7 @@ export function HomeContent({
 }) {
   const { t } = useTranslations();
   const theme = useStoreTheme();
+  const soha = useSohaLook();
   const router = useRouter();
   const [retrying, startRetry] = useTransition();
 
@@ -102,6 +104,19 @@ export function HomeContent({
             {retrying ? t("common.loading") : t("common.retry")}
           </button>
         }
+      />
+    );
+  }
+
+  if (soha) {
+    return (
+      <SohaHome
+        look={soha}
+        categories={categories}
+        products={products}
+        sections={sections}
+        total={total}
+        sharedLead={sharedLead}
       />
     );
   }

@@ -21,7 +21,8 @@ export const STORE_HERO_ID = "store-hero";
  * only once content scrolls underneath.
  *
  * A storefront theme draws its own bar (ThemedMobileHeader); the props are
- * only read there.
+ * only read there. A trade theme with a band intro repaints this bar through
+ * `.soha-bar` (app/globals.css).
  */
 export function MobileHeader({
   store,
@@ -55,7 +56,7 @@ export function MobileHeader({
 
   return (
     <header
-      className={`sticky top-0 z-20 flex items-center gap-2 border-b bg-white py-2 pl-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))] transition-colors duration-150 dark:bg-gray-900 lg:hidden ${
+      className={`soha-bar sticky top-0 z-20 flex items-center gap-2 border-b bg-white py-2 pl-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))] transition-colors duration-150 dark:bg-gray-900 lg:hidden ${
         scrolled
           ? "border-gray-900/[0.06] dark:border-white/[0.06]"
           : "border-transparent"

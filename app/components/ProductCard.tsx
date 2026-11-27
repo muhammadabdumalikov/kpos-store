@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useStoreTheme } from "@/context/StoreThemeContext";
+import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { isWeighed, usePrice, type QuantityType } from "@/hooks/usePrice";
 import { useCartQty } from "@/lib/cart-store";
@@ -12,6 +12,7 @@ import { onOrderLabel, stockOf } from "@/lib/stock";
 import type { StoreTheme } from "@/lib/store-theme";
 import { AddControl, CartCount } from "./AddControl";
 import { BoxIcon } from "./icons/ShopIcons";
+import { SohaCard } from "./soha/SohaCard";
 
 type ProductCardProps = {
   id: string;
@@ -105,6 +106,7 @@ export function ProductCard({
   const { t } = useTranslations();
   const { parts, format } = usePrice();
   const theme = useStoreTheme();
+  const soha = useSohaLook();
   const [broken, setBroken] = useState(false);
 
   const { max, soldOut, lowStock, onOrder } = stockOf(quantity, preorder);
@@ -142,6 +144,31 @@ export function ProductCard({
   ]
     .filter(Boolean)
     .join(", ");
+
+  if (soha) {
+    return (
+      <SohaCard
+        look={soha}
+        card={{
+          id,
+          name,
+          price,
+          image: showImage ? image! : null,
+          onImageError: () => setBroken(true),
+          soldOut,
+          max,
+          amount,
+          suffix,
+          was,
+          orderLabel: showOrderLabel ? orderLabel : null,
+          unit,
+          hasOptions: hasOptions === true,
+          spoken,
+          pill: pill && { text: pill.text, className: `soha-pill ${cornerPill} ${pill.tone}` },
+        }}
+      />
+    );
+  }
 
   if (theme !== "default") {
     return (
@@ -252,7 +279,7 @@ export function ProductCard({
 }
 
 /** What a themed card shows, worked out once by ProductCard. */
-type CardModel = {
+export type CardModel = {
   id: string;
   name: string;
   price: number;
@@ -416,7 +443,7 @@ function ThemedCard({ theme, card }: { theme: Exclude<StoreTheme, "default">; ca
 }
 
 /** A themed card's photo tile with its corner label; a box when there is no photo. */
-function CardPhoto({ card, tile }: { card: CardModel; tile: string }) {
+export function CardPhoto({ card, tile }: { card: CardModel; tile: string }) {
   const { t } = useTranslations();
   return (
     <div className={`relative aspect-card w-full overflow-hidden ${tile}`}>

@@ -13,6 +13,7 @@ import {
   type HomeSection,
 } from "./components/HomeContent";
 import { StoreIntro } from "./components/StoreIntro";
+import { SohaAfterBar, SohaIntro } from "./components/soha/SohaIntro";
 import { AfishaIntro, JurnalIntro, TungiIntro, TungiTicker } from "./components/themes/HomeTop";
 import {
   getStoreProducts,
@@ -27,7 +28,7 @@ import { pickAnyHero, pickFeatured, pickNewArrival } from "../lib/home-picks";
 import { optionGroups } from "../lib/product-options";
 import { toOldPrice } from "../lib/product-badges";
 import { sharedOrderLead } from "../lib/stock";
-import { normalizeStoreTheme } from "../lib/store-theme";
+import { normalizeSohaKey, normalizeStoreTheme } from "../lib/store-theme";
 
 const HOME_PRODUCTS = 10;
 // Most categories that may each cost one extra request for a borrowed photo.
@@ -76,6 +77,8 @@ export default async function Home() {
 
   const info: StoreInfo | null = infoRes.status === "fulfilled" ? infoRes.value : null;
   const theme = normalizeStoreTheme(info?.theme);
+  // A trade theme (lib/soha-looks) draws its own top; `theme` is then "default".
+  const soha = normalizeSohaKey(info?.theme);
   let categories: HomeCategory[] =
     categoriesRes.status === "fulfilled"
       ? categoriesRes.value.map((c) => ({ id: c.id, name: c.name, image: c.image }))
@@ -170,7 +173,13 @@ export default async function Home() {
           search under it then sticks to the top. A storefront theme orders
           its own top: Jurnal's header lies over its cover, Tungi's sits
           under the new-arrivals strip and carries the shop's name. */}
-      {theme === "default" && (
+      {soha && (
+        <>
+          <SohaIntro info={info} orderLead={sharedLead} />
+          <MobileHeader />
+        </>
+      )}
+      {theme === "default" && !soha && (
         <>
           <StoreIntro info={info} orderLead={sharedLead} />
           <MobileHeader />
@@ -196,6 +205,7 @@ export default async function Home() {
       )}
 
       <main className="mx-auto max-w-7xl px-4 pb-[calc(var(--nav-total)_+_24px)] lg:pb-16">
+        {soha && !failed && <SohaAfterBar info={info} orderLead={sharedLead} />}
         {theme === "tungi" && !failed && <TungiIntro info={info} product={tungiHero} orderLead={sharedLead} />}
         {/* Not when the shop could not be opened: the error panel stands alone. */}
         {!failed && <BannerCarousel banners={banners} />}
