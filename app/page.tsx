@@ -29,6 +29,8 @@ import { optionGroups } from "../lib/product-options";
 import { toOldPrice } from "../lib/product-badges";
 import { sharedOrderLead } from "../lib/stock";
 import { normalizeSohaKey, normalizeStoreTheme } from "../lib/store-theme";
+import { sampleProducts, withDemoPictures } from "../lib/theme-preview";
+import { getThemePreview } from "../lib/theme-preview-server";
 
 const HOME_PRODUCTS = 10;
 // Most categories that may each cost one extra request for a borrowed photo.
@@ -64,6 +66,10 @@ function toHomeProduct(p: StoreProduct): HomeProduct {
 
 export default async function Home() {
   const slug = await getStoreSlugServer();
+  // The owner trying a theme on (lib/theme-preview): this page in that theme,
+  // with a sample picture on every card that has no photo of its own.
+  const preview = await getThemePreview();
+  const dress = (list: StoreProduct[]) => (preview ? withDemoPictures(list, preview) : list);
 
   // Settled separately: a failed category list should not hide the products,
   // and only a failed product list means "the shop could not be opened".
@@ -75,7 +81,8 @@ export default async function Home() {
     getStoreBanners(slug),
   ]);
 
-  const info: StoreInfo | null = infoRes.status === "fulfilled" ? infoRes.value : null;
+  const savedInfo: StoreInfo | null = infoRes.status === "fulfilled" ? infoRes.value : null;
+  const info: StoreInfo | null = savedInfo && preview ? { ...savedInfo, theme: preview } : savedInfo;
   const theme = normalizeStoreTheme(info?.theme);
   // A trade theme (lib/soha-looks) draws its own top; `theme` is then "default".
   const soha = normalizeSohaKey(info?.theme);
@@ -84,9 +91,16 @@ export default async function Home() {
       ? categoriesRes.value.map((c) => ({ id: c.id, name: c.name, image: c.image }))
       : [];
   const failed = productsRes.status === "rejected";
-  const products: HomeProduct[] =
-    productsRes.status === "fulfilled" ? productsRes.value.products.map(toHomeProduct) : [];
-  const total = productsRes.status === "fulfilled" ? productsRes.value.total : 0;
+  // A shop with nothing on sale yet previews with sample cards: an empty page
+  // shows nothing of a theme.
+  const sampled = preview !== null && productsRes.status === "fulfilled" && productsRes.value.total === 0;
+  const newest: StoreProduct[] = sampled
+    ? sampleProducts(preview)
+    : productsRes.status === "fulfilled"
+      ? dress(productsRes.value.products)
+      : [];
+  const products: HomeProduct[] = newest.map(toHomeProduct);
+  const total = sampled ? newest.length : productsRes.status === "fulfilled" ? productsRes.value.total : 0;
 
   // A shop with more than one page of products gets a shelf per category, so
   // the home page shows its range instead of only the newest ten. A small
@@ -104,7 +118,7 @@ export default async function Home() {
       if (p.categoryId && p.image && !photoOf.has(p.categoryId)) photoOf.set(p.categoryId, p.image);
     }
   };
-  if (productsRes.status === "fulfilled") notePhotos(productsRes.value.products);
+  notePhotos(newest);
   const uncovered = categories
     .filter((c) => !c.image && !photoOf.has(c.id) && !shelves.some((s) => s.id === c.id))
     .slice(0, CATEGORY_PHOTO_LOOKUPS);
@@ -121,7 +135,7 @@ export default async function Home() {
     Promise.all(toCount.map((c) => settle(getStoreProducts({ category: c.id, limit: 1, slug })))),
   ]);
   for (const res of [...results, ...lookups]) {
-    if (res.status === "fulfilled") notePhotos(res.value.products);
+    if (res.status === "fulfilled") notePhotos(dress(res.value.products));
   }
   const counts: Record<string, number> = {};
   const noteCount = (id: string, res: PromiseSettledResult<{ total: number }>) => {
@@ -141,7 +155,7 @@ export default async function Home() {
         return {
           id: c.id,
           name: c.name,
-          products: res.status === "fulfilled" ? res.value.products.map(toHomeProduct) : [],
+          products: res.status === "fulfilled" ? dress(res.value.products).map(toHomeProduct) : [],
         };
       })
       // One product is not a shelf.

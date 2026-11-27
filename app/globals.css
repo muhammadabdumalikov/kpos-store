@@ -1359,3 +1359,11 @@
 :root[data-theme="daftar"] .soha-fact {
   border-width: 1.5px;
 }
+
+/* Theme preview (lib/theme-preview): the owner's home page in a theme they
+   are trying on, framed by the dashboard. It is a picture of the page, not a
+   shop: nothing on it can be followed or pressed, while the page itself still
+   scrolls. */
+html[data-preview] :is(a, button, input, select, textarea, summary, [role="button"], [tabindex]) {
+  pointer-events: none;
+}
