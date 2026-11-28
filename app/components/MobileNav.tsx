@@ -43,7 +43,7 @@ export function MobileNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-gray-900/[0.06] bg-white dark:border-white/[0.06] dark:bg-gray-900 lg:hidden jurnal:border-gray-200 afisha:border-gray-900"
+      className="tab-bar fixed inset-x-0 bottom-0 z-20 border-t border-gray-900/[0.06] bg-white dark:border-white/[0.06] dark:bg-gray-900 lg:hidden jurnal:border-gray-200 afisha:border-gray-900"
       style={{ paddingBottom: "var(--nav-safe-bottom)" }}
       aria-label={t("nav.mainNav")}
     >

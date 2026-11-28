@@ -58,3 +58,14 @@
   color: var(--color-on-primary);
   border-radius: var(--r-ctl);
 }
+
+/* The phone's tab bar marks the current page in the shop's accent. A theme
+   whose buttons are another colour marks it in that one, so the bar does not
+   bring a hue the page has nowhere else; Usta's yellow is too pale for a
+   label on white, so its ink does it. */
+:root:is([data-theme="guldasta"], [data-theme="mayin"], [data-theme="kitob"]) .tab-bar a[aria-current="page"] {
+  color: var(--color-primary);
+}
+:root[data-theme="usta"] .tab-bar a[aria-current="page"] {
+  color: var(--color-ink);
+}
