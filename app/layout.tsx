@@ -4,6 +4,7 @@ import { TelegramProvider } from "@/context/TelegramContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Suspense } from "react";
 import { PreviewBeacon } from "./components/PreviewBeacon";
 import TopLoadingBar from "./components/TopLoadingBar";
 import { Tracking } from "./components/Tracking";
@@ -181,8 +182,9 @@ export default async function RootLayout({
       data-soha={soha ? "" : undefined}
       data-corner={look?.corner}
       data-bar={look?.bar}
-      // A theme preview: links and buttons are switched off (globals.css).
-      data-preview={preview ? "" : undefined}
+      // A theme preview (lib/theme-preview): the key, for code with no
+      // React context (the cart's storage, the back button).
+      data-preview={preview ?? undefined}
       className={htmlClass}
       style={{ ["--tg-viewport-height" as string]: "100vh", ["--tg-viewport-stable-height" as string]: "100vh" }} suppressHydrationWarning>
       <head>
@@ -202,8 +204,13 @@ export default async function RootLayout({
       <body className="min-h-screen bg-white dark:bg-gray-900" suppressHydrationWarning>
         {/* Ad trackers: nothing visible, nothing loaded without an id. */}
         <Tracking ids={tracking} />
-        {preview && <PreviewBeacon theme={preview} />}
-        <StoreThemeProvider theme={theme} soha={soha}>
+        {preview && (
+          // It reads the address, which a page drawn ahead of time has not got.
+          <Suspense fallback={null}>
+            <PreviewBeacon theme={preview} />
+          </Suspense>
+        )}
+        <StoreThemeProvider theme={theme} soha={soha} preview={preview}>
           <ThemeProvider forced={scheme}>
             <LocaleProvider>
               <TelegramProvider>

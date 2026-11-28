@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- shop pictures come from whatever host the shop's storage uses */
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useState } from "react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { usePrice } from "@/hooks/usePrice";

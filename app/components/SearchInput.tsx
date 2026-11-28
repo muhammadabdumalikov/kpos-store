@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
+import { usePreviewHref, useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { CloseIcon, SearchIcon } from "./icons/ShopIcons";
 
@@ -52,6 +52,7 @@ function SearchField({
   autoFocus: boolean;
 }) {
   const router = useRouter();
+  const keep = usePreviewHref();
   const { t } = useTranslations();
   const theme = useStoreTheme();
   // A trade theme may ask in its trade's words ("Kitob nomi yoki muallif").
@@ -65,7 +66,7 @@ function SearchField({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const term = value.trim();
-    router.push(term ? `/catalog?q=${encodeURIComponent(term)}` : "/catalog");
+    router.push(keep(term ? `/catalog?q=${encodeURIComponent(term)}` : "/catalog"));
   };
 
   const clear = () => {
@@ -74,7 +75,7 @@ function SearchField({
     const rest = new URLSearchParams(params);
     rest.delete("q");
     const qs = rest.toString();
-    router.push(qs ? `/catalog?${qs}` : "/catalog");
+    router.push(keep(qs ? `/catalog?${qs}` : "/catalog"));
   };
 
   return (

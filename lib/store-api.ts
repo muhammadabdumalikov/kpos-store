@@ -281,7 +281,7 @@ export interface CreateStoreOrderInput {
   /** Optional only when the shop has a single payment method enabled. */
   paymentMode?: PaymentMode;
   /** Storefront locale; the shop's Telegram notifications follow it. */
-  locale?: "uz" | "uzc" | "ru" | "en";
+  locale?: "uz" | "ru" | "en";
   /** Telegram mini-app launch payload; binds the order to that Telegram user. */
   initData?: string;
 }

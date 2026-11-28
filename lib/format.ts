@@ -31,7 +31,6 @@ export const toAmount = (value: string | number | null | undefined) =>
 
 const DATE_LOCALES: Record<Locale, string> = {
   uz: "uz-UZ",
-  uzc: "uz-Cyrl-UZ",
   ru: "ru-RU",
   en: "en-GB",
 };

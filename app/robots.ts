@@ -14,8 +14,8 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
     rules: {
       userAgent: "*",
       allow: "/",
-      // A theme preview is a picture of the home page, not a page of its own.
-      disallow: ["/cart", "/orders", "/tg", "/*?preview_theme="],
+      // A theme preview is the owner trying a look on, not a page of its own.
+      disallow: ["/cart", "/orders", "/tg", "/*?preview_theme=", "/*&preview_theme="],
     },
     sitemap: `${origin}/sitemap.xml`,
   };

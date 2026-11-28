@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useTranslations } from "@/hooks/useTranslations";
 import { normalizeFulfillment } from "@/lib/fulfillment";
 import type { StoreInfo } from "@/lib/store-api";

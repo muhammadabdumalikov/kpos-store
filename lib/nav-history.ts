@@ -15,6 +15,8 @@
 // them in turn (its patch calls whatever it found there, i.e. this wrapper),
 // so router navigations and any direct calls are all counted.
 
+import { pagePreview, previewHref } from "./theme-preview";
+
 const DEPTH = "__kposDepth";
 
 type HistoryState = Record<string, unknown> | null | undefined;
@@ -76,5 +78,10 @@ type BackRouter = { back: () => void; replace: (href: string) => void };
  */
 export function navigateBack(router: BackRouter, fallback?: string | null): void {
   if (canGoBackInApp()) router.back();
-  else router.replace(fallback ?? fallbackHref ?? "/");
+  else {
+    const href = fallback ?? fallbackHref ?? "/";
+    // In the dashboard's theme preview the page it goes up to keeps the theme.
+    const preview = pagePreview();
+    router.replace(preview ? previewHref(href, preview) : href);
+  }
 }

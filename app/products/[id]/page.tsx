@@ -18,6 +18,8 @@ import {
 } from "../../../lib/store-api";
 import { getStoreSlugServer } from "../../../lib/store-slug-server";
 import { getSiteOrigin, jsonLd } from "../../../lib/site-url";
+import { sampleProduct, sampleProducts, withDemoPictures } from "../../../lib/theme-preview";
+import { getThemePreview } from "../../../lib/theme-preview-server";
 import uz from "../../../i18n/messages/uz.json";
 
 /** Cards under the product: two rows on desktop, five on a phone. */
@@ -33,7 +35,9 @@ type Params = { params: Promise<{ id: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { id } = await params;
   const slug = await getStoreSlugServer();
-  const [productRes, infoRes] = await Promise.allSettled([getStoreProduct(id, slug), getStoreInfo(slug)]);
+  const preview = await getThemePreview();
+  const sample = preview ? sampleProduct(preview, id) : null;
+  const [productRes, infoRes] = await Promise.allSettled([sample ?? getStoreProduct(id, slug), getStoreInfo(slug)]);
   const product = productRes.status === "fulfilled" ? productRes.value : null;
   const shop = infoRes.status === "fulfilled" ? infoRes.value.name : null;
   if (!product) return {};
@@ -112,9 +116,13 @@ function productJsonLd(product: StoreProduct, origin: string | null, shop: strin
  * nothing else that can be bought, other products of the shop instead, under
  * their own honest title. A failed request leaves the section out.
  */
-async function loadRelated(product: StoreProduct, slug: string | null): Promise<RelatedProducts | null> {
+async function loadRelated(
+  product: StoreProduct,
+  slug: string | null,
+  dress: (list: StoreProduct[]) => StoreProduct[],
+): Promise<RelatedProducts | null> {
   const others = (list: StoreProduct[]) =>
-    list.filter((p) => p.id !== product.id).slice(0, RELATED).map(toCatalogProduct);
+    dress(list.filter((p) => p.id !== product.id).slice(0, RELATED)).map(toCatalogProduct);
   try {
     if (product.categoryId) {
       const res = await getStoreProducts({ category: product.categoryId, limit: RELATED + 1, slug });
@@ -132,9 +140,15 @@ async function loadRelated(product: StoreProduct, slug: string | null): Promise<
 export default async function ProductPage({ params }: Params) {
   const { id } = await params;
   const slug = await getStoreSlugServer();
+  // The owner trying a theme on (lib/theme-preview): a product without a photo
+  // shows the theme's sample picture, and a shop with nothing on sale yet has
+  // the home page's sample cards, which open here too.
+  const preview = await getThemePreview();
+  const dress = (list: StoreProduct[]) => (preview ? withDemoPictures(list, preview) : list);
+  const sample = preview ? sampleProduct(preview, id) : null;
 
-  const [product, infoRes, categoriesRes] = await Promise.all([
-    getStoreProduct(id, slug),
+  const [found, infoRes, categoriesRes] = await Promise.all([
+    sample ?? getStoreProduct(id, slug),
     getStoreInfo(slug).then(
       (v) => ({ ok: true as const, v }),
       () => ({ ok: false as const })
@@ -144,14 +158,18 @@ export default async function ProductPage({ params }: Params) {
       () => ({ ok: false as const })
     ),
   ]);
-  if (!product) notFound();
+  if (!found) notFound();
+  const [product] = dress([found]);
 
   const info = infoRes.ok ? infoRes.v : null;
   const categoryName =
     product.categoryId && categoriesRes.ok
       ? categoriesRes.v.find((c) => c.id === product.categoryId)?.name ?? null
       : null;
-  const related = await loadRelated(product, slug);
+  const related: RelatedProducts | null =
+    sample && preview
+      ? { kind: "shop", products: sampleProducts(preview).filter((p) => p.id !== id).map(toCatalogProduct) }
+      : await loadRelated(product, slug, dress);
   const origin = await getSiteOrigin();
 
   return (

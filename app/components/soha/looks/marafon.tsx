@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import type { CSSProperties } from "react";
 import { useSohaLook } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";

@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element -- banners come straight from S3 at their stored size */
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "@/hooks/useTranslations";
 import type { StoreBanner } from "@/lib/store-api";

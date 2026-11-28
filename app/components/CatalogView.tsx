@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useTransition } from "react";
-import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
+import { usePreviewHref, useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useCatalogPages } from "@/hooks/useCatalogPages";
 import { useTranslations } from "@/hooks/useTranslations";
 import { CATALOG_PAGE_SIZE, type CatalogProduct } from "@/lib/catalog-pages";
@@ -53,6 +53,7 @@ export function CatalogView({
 }) {
   const { t } = useTranslations();
   const router = useRouter();
+  const keep = usePreviewHref();
   const [pending, startTransition] = useTransition();
 
   const go: Go = (next) => {
@@ -64,7 +65,7 @@ export function CatalogView({
     if (s && s !== DEFAULT_SORT) p.set("sort", s);
     if (q) p.set("q", q);
     const qs = p.toString();
-    startTransition(() => router.push(qs ? `/catalog?${qs}` : "/catalog", { scroll: false }));
+    startTransition(() => router.push(keep(qs ? `/catalog?${qs}` : "/catalog"), { scroll: false }));
   };
 
   const categoryName = category ? categories.find((c) => c.id === category)?.name : undefined;

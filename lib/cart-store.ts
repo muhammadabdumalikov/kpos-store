@@ -1,7 +1,9 @@
 import { useSyncExternalStore } from "react";
 import { cleanChoices, type OptionChoice } from "./product-options";
+import { storageKey } from "./theme-preview";
 
-const CART_KEY = "KPOS_cart";
+/** The theme preview keeps a cart of its own (lib/theme-preview). */
+const cartKey = () => storageKey("KPOS_cart");
 /** Fired on this tab after every write; other tabs hear the `storage` event. */
 const CART_EVENT = "kpos:cart";
 
@@ -67,7 +69,7 @@ function parse(raw: string | null): CartLine[] {
 function readRaw(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem(CART_KEY);
+    return localStorage.getItem(cartKey());
   } catch {
     return null;
   }
@@ -89,7 +91,7 @@ export function setCart(lines: CartLine[]): void {
     return typeof kept === "number" ? { ...l, price: kept } : l;
   });
   try {
-    localStorage.setItem(CART_KEY, JSON.stringify(next));
+    localStorage.setItem(cartKey(), JSON.stringify(next));
   } catch {
     // ignore (private mode, quota)
   }
@@ -186,7 +188,7 @@ function snapshot(): CartLine[] {
 
 function subscribe(onChange: () => void): () => void {
   const onStorage = (e: StorageEvent) => {
-    if (e.key === null || e.key === CART_KEY) onChange();
+    if (e.key === null || e.key === cartKey()) onChange();
   };
   window.addEventListener(CART_EVENT, onChange);
   window.addEventListener("storage", onStorage);

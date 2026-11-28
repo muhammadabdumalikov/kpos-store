@@ -15,6 +15,8 @@ import {
   type StoreInfo,
 } from "../../lib/store-api";
 import { getStoreSlugServer } from "../../lib/store-slug-server";
+import { sampleProducts, withDemoPictures } from "../../lib/theme-preview";
+import { getThemePreview } from "../../lib/theme-preview-server";
 import type { Metadata } from "next";
 import uz from "../../i18n/messages/uz.json";
 
@@ -70,10 +72,18 @@ export default async function CatalogPage({
       ? categoriesRes.value.map((c) => ({ id: c.id, name: c.name }))
       : [];
   const failed = productsRes.status === "rejected";
-  const products: CatalogProduct[] =
-    productsRes.status === "fulfilled" ? productsRes.value.products.map(toCatalogProduct) : [];
-  const total =
-    productsRes.status === "fulfilled" && typeof productsRes.value.total === "number"
+  // The owner trying a theme on (lib/theme-preview): a product without a photo
+  // shows the theme's sample picture, and a shop with nothing on sale yet the
+  // home page's sample cards.
+  const preview = await getThemePreview();
+  const sampled =
+    preview !== null && productsRes.status === "fulfilled" && productsRes.value.total === 0 && !requestCategory && !query;
+  const found =
+    productsRes.status === "fulfilled" ? (preview ? withDemoPictures(productsRes.value.products, preview) : productsRes.value.products) : [];
+  const products: CatalogProduct[] = (sampled ? sampleProducts(preview) : found).map(toCatalogProduct);
+  const total = sampled
+    ? products.length
+    : productsRes.status === "fulfilled" && typeof productsRes.value.total === "number"
       ? productsRes.value.total
       : products.length;
 

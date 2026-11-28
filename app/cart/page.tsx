@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AuthDrawerProvider } from "../components/AuthDrawerContext";
 import { useLoading } from "../components/TopLoadingBar";
@@ -50,7 +50,9 @@ import { onOrderLabel } from "../../lib/stock";
 import { getPayingOrderId, saveOrderId, setPayingOrderId } from "../../lib/order-store";
 import { getStoreSlugClient } from "../../lib/store-slug";
 import { requestTelegramContact } from "../../lib/telegram";
+import { demoPicture, sampleProduct } from "../../lib/theme-preview";
 import { trackBeginCheckout, trackPurchase } from "../../lib/tracking";
+import { usePreviewTheme } from "@/context/StoreThemeContext";
 import { useTelegram } from "@/context/TelegramContext";
 import { useTranslations } from "@/hooks/useTranslations";
 
@@ -170,6 +172,10 @@ export default function CartPage() {
   const [placing, setPlacing] = useState(false);
   const [placedOrder, setPlacedOrder] = useState<StoreOrderResult | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
+  // The owner trying a theme on in the dashboard (lib/theme-preview): the
+  // checkout is theirs to see and fill in, the order is not sent.
+  const preview = usePreviewTheme();
+  const [previewStop, setPreviewStop] = useState(false);
   const [phone, setPhone] = useState("+998 ");
   const [customerName, setCustomerName] = useState("");
   const [note, setNote] = useState("");
@@ -349,7 +355,7 @@ export default function CartPage() {
     // (size 40, size 41) share it.
     const ids = [...new Set(lines.map((l) => l.id))];
     Promise.all(
-      ids.map(async (id) => [id, await fetchStoreProduct(id, slug)] as const)
+      ids.map(async (id) => [id, (preview ? sampleProduct(preview, id) : null) ?? (await fetchStoreProduct(id, slug))] as const)
     ).then((pairs) => {
       const byId = new Map<string, StoreProduct | null>(pairs);
       const valid = lines.flatMap((line: CartLine): CartItem[] => {
@@ -361,7 +367,7 @@ export default function CartPage() {
             id: product.id,
             name: product.name,
             price: Math.round(parseFloat(String(product.priceOut)) || 0),
-            image: product.image ?? undefined,
+            image: product.image ?? (preview ? demoPicture(preview) : undefined),
             qty: line.qty,
             selected: line.selected,
             options: line.options,
@@ -380,7 +386,7 @@ export default function CartPage() {
       setLoading(false);
       setTopLoading(false);
     });
-  }, [setTopLoading]);
+  }, [setTopLoading, preview]);
 
   const allSelected = items.length > 0 && items.every((i) => i.selected);
   const selectedCount = items.reduce((acc, i) => acc + (i.selected ? 1 : 0), 0);
@@ -480,6 +486,10 @@ export default function CartPage() {
     if (!phoneValid) setPhoneTouched(true);
     const deliveryOk = checkout.validate();
     if (!phoneValid || !deliveryOk) return;
+    if (preview) {
+      setPreviewStop(true);
+      return;
+    }
     setPlacing(true);
     setOrderError(null);
     setTopLoading(true);
@@ -553,6 +563,7 @@ export default function CartPage() {
     initData,
     setTopLoading,
     t,
+    preview,
   ]);
 
   const currency = t("common.currency");
@@ -563,6 +574,11 @@ export default function CartPage() {
   };
   const hasItems = !loading && items.length > 0;
   const submitLabel = placing ? t("common.sending") : t("cart.checkout");
+  const previewNote = previewStop && (
+    <p role="status" className="mb-2 text-center text-[13px] font-medium leading-[18px] text-gray-600 dark:text-gray-400">
+      {t("cart.previewNoOrder")}
+    </p>
+  );
 
   const payStage = payOrder ? paymentStage(payOrder) : null;
   const payStatus =
@@ -961,6 +977,7 @@ export default function CartPage() {
               />
               {/* The phone has its own bar for this, above the tab bar. */}
               <div className="hidden lg:block">
+                {previewNote}
                 <button
                   type="button"
                   onClick={placeOrder}
@@ -978,11 +995,12 @@ export default function CartPage() {
             does on the other pages. */}
         {hasItems && (
           <>
-            <div className="lg:hidden" style={{ height: "calc(var(--nav-total) + 92px)" }} aria-hidden />
+            <div className="lg:hidden" style={{ height: `calc(var(--nav-total) + ${previewStop ? 120 : 92}px)` }} aria-hidden />
             <div
               className="fixed inset-x-0 z-20 bg-gradient-to-t from-white from-70% to-transparent px-4 pb-3 pt-4 dark:from-gray-900 lg:hidden"
               style={{ bottom: "var(--nav-total)" }}
             >
+              {previewNote}
               <button
                 type="button"
                 onClick={placeOrder}

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useEffect, useId, useRef, useState } from "react";
 import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";
 import { useTelegram } from "@/context/TelegramContext";

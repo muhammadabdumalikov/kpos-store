@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AuthDrawerProvider } from "../components/AuthDrawerContext";
 import { DesktopFooter } from "../components/DesktopFooter";

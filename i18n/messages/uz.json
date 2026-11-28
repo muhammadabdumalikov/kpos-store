@@ -108,6 +108,7 @@
     "remove": "Oʼchirish",
     "checkout": "Buyurtma berish",
     "orderError": "Buyurtma berishda xatolik",
+    "previewNoOrder": "Bu koʼrib chiqish: buyurtma yuborilmaydi.",
     "orderAccepted": "Buyurtma qabul qilindi!",
     "customerInfo": "Buyurtma uchun maʼlumot",
     "phone": "Telefon raqam",

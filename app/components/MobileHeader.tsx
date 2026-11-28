@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useEffect, useState } from "react";
 import LocaleSwitcher from "@/components/common/LocaleSwitcher";
 import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";

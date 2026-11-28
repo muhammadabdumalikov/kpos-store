@@ -3,8 +3,9 @@ import { PREVIEW_HEADER, PREVIEW_PARAM, previewThemeKey } from "./lib/theme-prev
 
 /**
  * Theme preview (lib/theme-preview): a root layout cannot read the query
- * string, so `/?preview_theme=<key>` is handed to it as a request header.
- * The header is always rewritten here — a visitor cannot send their own.
+ * string, so `?preview_theme=<key>` is handed to it, and to the page, as a
+ * request header. The header is always rewritten here — a visitor cannot send
+ * their own.
  */
 export function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);
@@ -14,5 +15,6 @@ export function proxy(request: NextRequest) {
   return NextResponse.next({ request: { headers } });
 }
 
-// The home page only: no other page can be previewed.
-export const config = { matcher: "/" };
+// Every page of the shop; not Next's own files, nor anything with a file
+// extension (pictures, icons, robots.txt).
+export const config = { matcher: "/((?!_next/|.*\\.).*)" };

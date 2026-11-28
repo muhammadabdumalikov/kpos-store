@@ -108,6 +108,7 @@
     "remove": "Remove",
     "checkout": "Place order",
     "orderError": "Failed to place order",
+    "previewNoOrder": "This is a preview: no order is sent.",
     "orderAccepted": "Order accepted!",
     "customerInfo": "Order details",
     "phone": "Phone number",

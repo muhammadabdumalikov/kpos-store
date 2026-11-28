@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useState } from "react";
 import { GridIcon } from "./icons/ShopIcons";
 

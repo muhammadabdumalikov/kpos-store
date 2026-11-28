@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { usePreviewHref } from "@/context/StoreThemeContext";
 import { useTranslations } from "@/hooks/useTranslations";
 import { navigateBack, setBackFallback } from "@/lib/nav-history";
 import { ChevronLeftIcon } from "./icons/ShopIcons";
@@ -37,10 +38,11 @@ export function BackButton({
 }) {
   const { t } = useTranslations();
   const router = useRouter();
+  const keep = usePreviewHref();
 
   return (
     <a
-      href={fallback}
+      href={keep(fallback)}
       onClick={(e) => {
         if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
         e.preventDefault();

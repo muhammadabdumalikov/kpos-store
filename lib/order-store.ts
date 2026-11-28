@@ -1,4 +1,8 @@
-const ORDERS_KEY = "KPOS_orders";
+import { storageKey } from "./theme-preview";
+
+// The theme preview keeps lists of its own (lib/theme-preview): it shows none
+// of the orders placed from this browser.
+const ordersKey = () => storageKey("KPOS_orders");
 const MAX_SAVED = 30;
 
 /** Order ids this browser has placed, newest first (the id is the customer's
@@ -6,7 +10,7 @@ const MAX_SAVED = 30;
 export function getSavedOrderIds(): string[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(ORDERS_KEY);
+    const raw = localStorage.getItem(ordersKey());
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -23,7 +27,7 @@ export function saveOrderId(id: string): void {
       0,
       MAX_SAVED
     );
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(ids));
+    localStorage.setItem(ordersKey(), JSON.stringify(ids));
   } catch {
     // ignore
   }
@@ -33,7 +37,7 @@ export function removeOrderId(id: string): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(
-      ORDERS_KEY,
+      ordersKey(),
       JSON.stringify(getSavedOrderIds().filter((x) => x !== id))
     );
   } catch {
@@ -41,7 +45,7 @@ export function removeOrderId(id: string): void {
   }
 }
 
-const PAYING_KEY = "KPOS_paying_order";
+const payingKey = () => storageKey("KPOS_paying_order");
 
 /**
  * The card-transfer order whose money is still due. The buyer leaves for
@@ -51,7 +55,7 @@ const PAYING_KEY = "KPOS_paying_order";
 export function getPayingOrderId(): string | null {
   if (typeof window === "undefined") return null;
   try {
-    return localStorage.getItem(PAYING_KEY) || null;
+    return localStorage.getItem(payingKey()) || null;
   } catch {
     return null;
   }
@@ -60,8 +64,8 @@ export function getPayingOrderId(): string | null {
 export function setPayingOrderId(id: string | null): void {
   if (typeof window === "undefined") return;
   try {
-    if (id) localStorage.setItem(PAYING_KEY, id);
-    else localStorage.removeItem(PAYING_KEY);
+    if (id) localStorage.setItem(payingKey(), id);
+    else localStorage.removeItem(payingKey());
   } catch {
     // ignore
   }

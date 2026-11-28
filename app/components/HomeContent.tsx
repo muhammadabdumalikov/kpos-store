@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/ShopLink";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { useSohaLook, useStoreTheme } from "@/context/StoreThemeContext";

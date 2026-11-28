@@ -12,8 +12,10 @@ import {
   type CatalogPages,
   type CatalogProduct,
 } from "@/lib/catalog-pages";
+import { usePreviewTheme } from "@/context/StoreThemeContext";
 import { getStoreProducts } from "@/lib/store-api";
 import { getStoreSlugClient } from "@/lib/store-slug";
+import { withDemoPictures } from "@/lib/theme-preview";
 
 export type CatalogPagesStatus = "idle" | "loading" | "error";
 
@@ -45,6 +47,7 @@ export function useCatalogPages({
   const [key] = useState(() =>
     catalogQueryKey({ slug: getStoreSlugClient(), category, sort, query })
   );
+  const preview = usePreviewTheme();
 
   const [state, setState] = useState<{ list: CatalogPages; restoredScroll: number | null }>(() => {
     const cached = typeof window !== "undefined" && isHistoryRestore() ? readCatalogPages(key) : null;
@@ -131,7 +134,9 @@ export function useCatalogPages({
       // Offset paging over a live catalogue: a product added meanwhile can
       // shift one onto the next page twice. Show it once.
       const seen = new Set(latest.products.map((p) => p.id));
-      const fresh = res.products.map(toCatalogProduct).filter((p) => !seen.has(p.id));
+      // The theme preview gives a product without a photo the theme's sample picture.
+      const listed = preview ? withDemoPictures(res.products, preview) : res.products;
+      const fresh = listed.map(toCatalogProduct).filter((p) => !seen.has(p.id));
       const products = [...latest.products, ...fresh];
       const total = typeof res.total === "number" ? res.total : latest.total;
       const next: CatalogPages = {
@@ -150,7 +155,7 @@ export function useCatalogPages({
     } finally {
       if (inflight.current === controller) inflight.current = null;
     }
-  }, [category, query, sort]);
+  }, [category, query, sort, preview]);
 
   return {
     products: list.products,
