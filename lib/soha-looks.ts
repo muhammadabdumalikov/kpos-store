@@ -1,5 +1,7 @@
 // Trade themes ("soha mavzulari"): one ready-made look per kind of shop the
-// landing page lists (food, building goods, flowers, books …).
+// landing page lists (food, building goods, flowers, books …), and Butik, a
+// clothes theme built the same way (the dashboard lists it with the
+// hand-drawn clothes trio).
 //
 // Each is drawn after the real shops of its trade and has a structure of its
 // own, not a recolouring of one skeleton:
@@ -40,6 +42,7 @@ export const SOHA_KEYS = [
   "uy",
   "garaj",
   "daftar",
+  "butik",
 ] as const;
 export type SohaKey = (typeof SOHA_KEYS)[number];
 
@@ -72,6 +75,12 @@ export type SohaLook = {
   counts?: boolean;
   /** The search field's own prompt (a message key); the plain "Qidirish..." otherwise. */
   searchHint?: string;
+  /**
+   * The product page's photos: "side" stands the thumbnails in a column on
+   * the photo's right, on a phone too, in place of the dots and the row of
+   * thumbnails under it.
+   */
+  gallery?: "side";
 };
 
 export const SOHA_LOOKS: Record<SohaKey, SohaLook> = {
@@ -101,4 +110,6 @@ export const SOHA_LOOKS: Record<SohaKey, SohaLook> = {
   garaj: { scheme: "light", page: "#ffffff", accent: "orange", corner: "soft", bar: "field", phoneCols: 1, cols: 3, counts: true, searchHint: "home.partSearchHint" },
   // Kanselyariya: bright category tiles first, marker titles, ink-outlined cards.
   daftar: { scheme: "light", page: "#ffffff", accent: "blue", corner: "soft", bar: "field", phoneCols: 2, cols: 5 },
+  // Kiyim: a shop app. The name centred, big category photos first, grey packshot tiles, black buttons.
+  butik: { scheme: "light", page: "#ffffff", accent: "graphite", corner: "soft", bar: "field", phoneCols: 2, cols: 4, gallery: "side" },
 };

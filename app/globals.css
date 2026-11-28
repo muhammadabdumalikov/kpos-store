@@ -16,6 +16,7 @@
 @import "./soha/uy.css";
 @import "./soha/garaj.css";
 @import "./soha/daftar.css";
+@import "./soha/butik.css";
 
 @custom-variant dark (&:is(.dark *));
 

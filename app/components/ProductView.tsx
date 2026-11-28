@@ -147,6 +147,7 @@ export function ProductView({
   const description = product.description?.trim() || null;
   const chatHref = sellerChatHref(info);
   const gallery = product.images?.length ? product.images : product.image ? [product.image] : [];
+  const sideGallery = soha?.gallery === "side";
   // As on the card: a sold-out product shows no markdown and no flags.
   const was = !soldOut && product.oldPrice && product.oldPrice > product.price ? product.oldPrice : null;
   const percent = was ? discountPercent(product.price, was) : null;
@@ -161,16 +162,22 @@ export function ProductView({
       <div className="grid grid-cols-1 gap-x-8 md:grid-cols-2 md:items-start md:pt-4 lg:mt-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-x-12 lg:pt-0 xl:gap-x-16">
         {/* Phone: the photo runs edge to edge from the top of the page, the
             back button on it. Inside Telegram the client's own back button
-            (same rule) already sits in the header. */}
-        <div className="relative -mx-4 md:mx-0">
+            (same rule) already sits in the header. A theme with the
+            thumbnails beside the photo (Butik) keeps the page's margins. */}
+        <div className={`relative md:mx-0 ${sideGallery ? "pt-3 md:pt-0" : "-mx-4"}`}>
           <ProductGallery
             key={gallery.join("|")}
             images={gallery}
             name={product.name}
             soldOut={soldOut}
+            side={sideGallery}
           />
           {!isTelegram && (
-            <BackButton fallback={backHref} variant="float" className="absolute left-3 top-3 lg:hidden" />
+            <BackButton
+              fallback={backHref}
+              variant="float"
+              className={`absolute lg:hidden ${sideGallery ? "left-2 top-5" : "left-3 top-3"}`}
+            />
           )}
         </div>
 
@@ -570,8 +577,13 @@ const MAX_RATIO = 5 / 4;
  * row of thumbnails under the tile jumps to a photo. Edge to edge on the
  * phone, a rounded tile from the tablet up. A single photo is just the tile.
  * Sold out ghosts the photos the same way the card does.
+ *
+ * `side` (a theme's choice, lib/soha-looks `gallery`): a rounded tile on the
+ * phone too, and with more than one photo the thumbnails stand in a column on
+ * its right, as tall as the tile and scrolling beyond it, in place of the dots
+ * and the row under it.
  */
-function ProductGallery({ images, name, soldOut }: { images: string[]; name: string; soldOut: boolean }) {
+function ProductGallery({ images, name, soldOut, side = false }: { images: string[]; name: string; soldOut: boolean; side?: boolean }) {
   const { t } = useTranslations();
   const [failed, setFailed] = useState<string[]>([]);
   // Square until the first photo says otherwise.
@@ -610,13 +622,29 @@ function ProductGallery({ images, name, soldOut }: { images: string[]; name: str
     );
   }
 
+  const column = side && many;
+  const thumb = (src: string, i: number, shape: string) => (
+    <button
+      type="button"
+      onClick={() => goTo(i)}
+      aria-label={t("product.photoN").replace("{n}", String(i + 1))}
+      aria-current={i === index ? "true" : undefined}
+      className={`block overflow-hidden bg-gray-900/[0.035] outline-none transition-shadow duration-100 focus-visible:ring-2 focus-visible:ring-brand-500/60 dark:bg-gray-200 ${shape} ${
+        i === index ? "ring-2 ring-gray-900 dark:ring-white" : "ring-1 ring-gray-900/[0.06] hover:ring-gray-900/30"
+      }`}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" loading="lazy" className="h-full w-full object-cover mix-blend-multiply" />
+    </button>
+  );
+
   return (
-    <div>
+    <div className={column ? "flex gap-2 md:gap-3" : undefined}>
       <div
         style={{ aspectRatio: ratio }}
-        className={`relative w-full overflow-hidden bg-gray-900/[0.035] md:rounded-[28px] dark:bg-gray-200 ${
-          soldOut ? "dark:opacity-60" : ""
-        }`}
+        className={`relative overflow-hidden bg-gray-900/[0.035] dark:bg-gray-200 ${side ? "r-tile" : "md:rounded-[28px]"} ${
+          column ? "min-w-0 flex-1" : "w-full"
+        } ${soldOut ? "dark:opacity-60" : ""}`}
       >
         <div
           ref={scroller}
@@ -664,7 +692,7 @@ function ProductGallery({ images, name, soldOut }: { images: string[]; name: str
           ))}
         </div>
 
-        {many && (
+        {many && !side && (
           <div
             aria-hidden
             className="pointer-events-none absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white/85 px-2 py-1.5"
@@ -681,25 +709,25 @@ function ProductGallery({ images, name, soldOut }: { images: string[]; name: str
         )}
       </div>
 
-      {many && (
+      {many && !side && (
         <ul className="mt-3 hidden flex-wrap gap-2 md:flex">
           {shown.map((src, i) => (
-            <li key={src}>
-              <button
-                type="button"
-                onClick={() => goTo(i)}
-                aria-label={t("product.photoN").replace("{n}", String(i + 1))}
-                aria-current={i === index ? "true" : undefined}
-                className={`block h-16 w-16 overflow-hidden rounded-[14px] bg-gray-900/[0.035] outline-none transition-shadow duration-100 focus-visible:ring-2 focus-visible:ring-brand-500/60 dark:bg-gray-200 ${
-                  i === index ? "ring-2 ring-gray-900 dark:ring-white" : "ring-1 ring-gray-900/[0.06] hover:ring-gray-900/30"
-                }`}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt="" loading="lazy" className="h-full w-full object-cover mix-blend-multiply" />
-              </button>
-            </li>
+            <li key={src}>{thumb(src, i, "h-16 w-16 rounded-[14px]")}</li>
           ))}
         </ul>
+      )}
+
+      {/* Positioned, so the column takes the tile's height and not its own. */}
+      {column && (
+        <div className="relative w-[52px] shrink-0 md:w-[72px]">
+          <ul aria-label={t("product.gallery")} className="no-scrollbar absolute inset-0 flex flex-col gap-2 overflow-y-auto p-0.5">
+            {shown.map((src, i) => (
+              <li key={src} className="shrink-0">
+                {thumb(src, i, "r-tile aspect-[4/5] w-full")}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

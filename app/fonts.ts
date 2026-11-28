@@ -8,6 +8,7 @@ import {
   IBM_Plex_Sans,
   JetBrains_Mono,
   Literata,
+  Manrope,
   Mulish,
   Nunito,
   Nunito_Sans,
@@ -261,4 +262,12 @@ export const shantell = Shantell_Sans({
   display: 'swap',
   preload: false,
   variable: '--font-shantell',
+});
+
+/** Butik: a plain modern grotesque for names, titles and prices. */
+export const manrope = Manrope({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-manrope',
 });

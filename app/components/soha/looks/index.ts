@@ -1,6 +1,7 @@
 import type { SohaKey } from "@/lib/soha-looks";
 import type { SohaParts } from "../parts";
 import { bozor } from "./bozor";
+import { butik } from "./butik";
 import { daftar } from "./daftar";
 import { garaj } from "./garaj";
 import { guldasta } from "./guldasta";
@@ -29,4 +30,5 @@ export const SOHA_PARTS: Record<SohaKey, SohaParts> = {
   uy,
   garaj,
   daftar,
+  butik,
 };

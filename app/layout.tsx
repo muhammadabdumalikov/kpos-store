@@ -24,6 +24,7 @@ import {
   golos,
   jetbrainsMono,
   literata,
+  manrope,
   mulish,
   nunito,
   nunitoSans,
@@ -153,6 +154,7 @@ const SOHA_FONTS: Record<SohaKey, string> = {
   uy: raleway.variable,
   garaj: exo2.variable,
   daftar: `${shantell.variable} ${golos.variable}`,
+  butik: manrope.variable,
 };
 
 export default async function RootLayout({

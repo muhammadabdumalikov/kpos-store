@@ -1,0 +1,86 @@
+/* Butik: clothes. White, light grey tiles, one near-black for text, label
+   bands and buttons, a red for a markdown alone. Manrope throughout; small
+   rounded corners on tiles, fields and buttons, only the "+" is round.
+   Parts: app/components/soha/looks/butik.tsx. */
+:root[data-theme="butik"] {
+  --font-outfit: 'kpos-apos', var(--font-manrope), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --font-head: 'kpos-apos', var(--font-manrope), 'Segoe UI', 'Noto Sans', 'PT Sans', Arial, sans-serif;
+  --color-black: #111111;
+  --color-gray-25: #fcfcfc;
+  --color-gray-50: #f9f9f9;
+  --color-gray-100: #f3f3f3;
+  --color-gray-200: #e7e7e7;
+  --color-gray-300: #d4d4d4;
+  --color-gray-400: #a0a0a0;
+  --color-gray-500: #666666;
+  --color-gray-600: #525252;
+  --color-gray-700: #3d3d3d;
+  --color-gray-800: #262626;
+  --color-gray-900: #111111;
+  --color-gray-950: #0a0a0a;
+  --color-page: #ffffff;
+  --color-card: #ffffff;
+  --color-panel: #f3f3f3;
+  --color-line: #e7e7e7;
+  --color-ink: #111111;
+  --color-muted: #666666;
+  --color-band: #111111;
+  --color-on-band: #ffffff;
+  --color-spot: #d4231a;
+  --color-on-spot: #ffffff;
+  --r-card: 10px;
+  --r-tile: 8px;
+  --r-ctl: 8px;
+  --r-soft: 8px;
+  --color-primary: #111111;
+  --color-primary-hover: #333333;
+  --color-on-primary: #ffffff;
+}
+
+/* A category's name across the foot of its photo: a dark band you can read
+   on any picture, no fade. */
+:root[data-theme="butik"] .butik-band {
+  background: rgb(17 17 17 / 0.74);
+}
+
+/* The "+" on a photo: a 32px black disc inside the 44px button, set 8px from
+   the photo's corner. */
+:root[data-theme="butik"] .add-corner {
+  margin: 0 -6px -6px 0;
+  padding: 6px;
+  border-radius: 999px;
+  background: var(--color-primary) content-box;
+  color: var(--color-on-primary);
+}
+:root[data-theme="butik"] .add-corner:hover {
+  background-color: var(--color-primary-hover);
+}
+:root[data-theme="butik"] .add-corner:not(:focus-visible) {
+  box-shadow: none;
+}
+
+/* The product page's choices (sizes, colours): grey boxes, the chosen one
+   white inside a black outline, as on a clothes shop's size row. */
+:root[data-theme="butik"] [role="group"] > div > button[aria-pressed] {
+  min-width: 56px;
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+:root[data-theme="butik"] [role="group"] > div > button[aria-pressed]:hover {
+  background: var(--color-gray-200);
+}
+:root[data-theme="butik"] [role="group"] > div > button[aria-pressed="true"] {
+  background: var(--color-page);
+  box-shadow: inset 0 0 0 1.5px var(--color-ink);
+  font-weight: 700;
+}
+:root[data-theme="butik"] [role="group"] > div > button[aria-pressed="true"]:focus-visible {
+  box-shadow: inset 0 0 0 1.5px var(--color-ink), 0 0 0 2px var(--color-page), 0 0 0 4px rgb(17 17 17 / 0.45);
+}
+
+/* Manrope's tabular figures give the 1 a wide cell ("1 49 000"): prices here
+   are set in its own proportional figures. */
+:root[data-theme="butik"] .tabular-nums {
+  font-variant-numeric: normal;
+}
