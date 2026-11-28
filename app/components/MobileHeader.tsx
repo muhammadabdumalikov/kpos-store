@@ -9,6 +9,7 @@ import type { StoreInfo } from "@/lib/store-api";
 import type { StoreTheme } from "@/lib/store-theme";
 import { useStoreInfo } from "@/lib/use-store-info";
 import { SearchInput } from "./SearchInput";
+import { ShopMark, isLogoOnly } from "./ShopMark";
 import { CloseIcon, SearchIcon } from "./icons/ShopIcons";
 
 /** The id of the home page's cover hero, which Jurnal's header lies over. */
@@ -168,7 +169,7 @@ function ThemedMobileHeader({
                   href="/"
                   className="flex h-11 min-w-0 items-center px-1 font-head text-[19px] font-medium uppercase tracking-[0.24em] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current"
                 >
-                  <span className="truncate">{name}</span>
+                  <ShopMark info={info} logoClassName="h-9 max-w-[180px]" />
                 </Link>
               )}
             </div>
@@ -181,19 +182,21 @@ function ThemedMobileHeader({
 
   // Tungi
   const logo = info?.logo ?? null;
+  const logoOnly = isLogoOnly(info);
   const tagline = home ? info?.tagline?.trim() || null : null;
+  const nameClass = logoOnly ? "sr-only" : "truncate text-[18px] font-extrabold leading-6 tracking-[-0.01em] text-white";
   const identity = (
     <>
       {logo && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={logo} alt="" className="h-10 w-10 shrink-0 rounded-full bg-white object-cover" />
+        <img
+          src={logo}
+          alt=""
+          className={logoOnly ? "h-10 w-auto max-w-[160px] shrink-0 rounded-md object-contain" : "h-10 w-10 shrink-0 rounded-full bg-white object-cover"}
+        />
       )}
       <div className="min-w-0">
-        {home ? (
-          <h1 className="truncate text-[18px] font-extrabold leading-6 tracking-[-0.01em] text-white">{name}</h1>
-        ) : (
-          <p className="truncate text-[18px] font-extrabold leading-6 tracking-[-0.01em] text-white">{name}</p>
-        )}
+        {home ? <h1 className={nameClass}>{name}</h1> : <p className={nameClass}>{name}</p>}
         {tagline && <p className="truncate text-[12px] font-medium leading-4 text-gray-400">{tagline}</p>}
       </div>
     </>
@@ -287,11 +290,11 @@ function SohaWordmarkBar({ store, home, scrolled }: { store?: StoreInfo | null; 
             {name &&
               (home ? (
                 <h1 id="store-title" className={mark}>
-                  <span className="truncate">{name}</span>
+                  <ShopMark info={info} logoClassName="h-9 max-w-[180px] rounded-md" />
                 </h1>
               ) : (
                 <Link href="/" className={`${mark} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current`}>
-                  <span className="truncate">{name}</span>
+                  <ShopMark info={info} logoClassName="h-9 max-w-[180px] rounded-md" />
                 </Link>
               ))}
           </div>

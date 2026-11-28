@@ -2,6 +2,7 @@
 
 import type { StoreInfo } from "@/lib/store-api";
 import { DeliveryLine, useDeliveryLine, useShopImage } from "./shop-facts";
+import { isLogoOnly } from "./ShopMark";
 
 /**
  * The top of the home page in the default look: a thin strip in the shop's
@@ -19,6 +20,9 @@ export function StoreIntro({ info }: { info: StoreInfo | null }) {
   // Desktop: the header already carries the shop name, so a shop with no face
   // does not repeat it; one with a logo or a tagline shows it as a title.
   const branded = Boolean(logo.url || tagline);
+  // A logo that spells the name stands alone; the name stays the page title
+  // for screen readers. A broken logo brings the name back.
+  const logoOnly = isLogoOnly(info) && Boolean(logo.url);
 
   return (
     <section aria-labelledby="store-title">
@@ -39,13 +43,21 @@ export function StoreIntro({ info }: { info: StoreInfo | null }) {
             alt=""
             decoding="async"
             onError={logo.onError}
-            className="h-14 w-14 shrink-0 rounded-full bg-white object-cover ring-1 ring-gray-900/[0.06] lg:h-[72px] lg:w-[72px]"
+            className={
+              logoOnly
+                ? "h-14 w-auto max-w-[240px] shrink-0 rounded-lg object-contain lg:h-[72px] lg:max-w-[320px]"
+                : "h-14 w-14 shrink-0 rounded-full bg-white object-cover ring-1 ring-gray-900/[0.06] lg:h-[72px] lg:w-[72px]"
+            }
           />
         )}
         <div className="min-w-0">
           <h1
             id="store-title"
-            className="line-clamp-2 break-words text-[24px] font-extrabold leading-[30px] tracking-[-0.02em] text-gray-900 dark:text-white lg:text-[30px] lg:leading-9"
+            className={
+              logoOnly
+                ? "sr-only"
+                : "line-clamp-2 break-words text-[24px] font-extrabold leading-[30px] tracking-[-0.02em] text-gray-900 dark:text-white lg:text-[30px] lg:leading-9"
+            }
           >
             {info.name}
           </h1>

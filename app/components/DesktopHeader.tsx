@@ -12,6 +12,7 @@ import { summarizeCart, useCart } from "@/lib/cart-store";
 import { useStoreInfo } from "@/lib/use-store-info";
 import type { StoreInfo } from "@/lib/store-api";
 import { SearchInput } from "./SearchInput";
+import { ShopMark, isLogoOnly } from "./ShopMark";
 import { BagIcon, GridIcon, ReceiptIcon } from "./icons/ShopIcons";
 import { afishaCaps, jurnalCaps } from "./themes/classes";
 
@@ -62,7 +63,7 @@ export function DesktopHeader({ store }: { store?: StoreInfo | null }) {
               title={info.name}
               className="flex min-w-0 max-w-[460px] items-center justify-center font-head text-[26px] font-medium uppercase tracking-[0.24em] text-gray-900 outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
             >
-              <span className="truncate">{info.name}</span>
+              <ShopMark info={info} logoClassName="h-12 max-w-[260px]" />
             </Link>
           ) : (
             <span />
@@ -105,7 +106,7 @@ export function DesktopHeader({ store }: { store?: StoreInfo | null }) {
               title={info.name}
               className="flex min-w-0 max-w-[320px] shrink items-center px-5 font-head text-[20px] font-black uppercase tracking-[-0.03em] text-gray-900 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gray-900"
             >
-              <span className="truncate">{info.name}</span>
+              <ShopMark info={info} logoClassName="h-10 max-w-[240px]" />
             </Link>
           )}
           <Link href="/catalog" aria-current={onCatalog ? "page" : undefined} className={cell(onCatalog)}>
@@ -149,7 +150,7 @@ export function DesktopHeader({ store }: { store?: StoreInfo | null }) {
             title={info.name}
             className="mr-2 flex min-w-0 max-w-[300px] shrink items-center gap-2.5 rounded-lg text-[22px] font-extrabold tracking-[-0.02em] text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 dark:text-white"
           >
-            {info.logo && (
+            {info.logo && !isLogoOnly(info) && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={info.logo}
@@ -157,7 +158,7 @@ export function DesktopHeader({ store }: { store?: StoreInfo | null }) {
                 className="h-9 w-9 shrink-0 rounded-full bg-white object-cover ring-1 ring-gray-900/[0.06]"
               />
             )}
-            <span className="min-w-0 truncate">{info.name}</span>
+            <ShopMark info={info} className="min-w-0 truncate" logoClassName="h-11 max-w-[220px] rounded-md" />
           </Link>
         )}
 

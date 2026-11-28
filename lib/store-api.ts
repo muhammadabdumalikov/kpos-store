@@ -186,6 +186,9 @@ export interface StoreInfo {
   // predates them omits them, and a shop may leave any of them empty.
   /** Round picture next to the shop's name. */
   logo?: string | null;
+  /** The logo already spells the name: headers show the logo alone. Older
+   *  backends omit it; always false without a logo. */
+  logoOnly?: boolean;
   /** Wide picture across the top of the home page. */
   cover?: string | null;
   /** One line under the name, up to 140 characters. */
